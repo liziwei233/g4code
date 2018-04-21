@@ -54,16 +54,19 @@ Double_t outputfunc(Double_t x, vector<double> par){
     double SPEpar[7];
 	
 	r.SetSeed(0);
-	tts = r.Gaus(0,10.62e-12);
+	tts = r.Gaus(0,30e-12);
 	//tts = 0;
-
-	SPEpar[0]=3e5;  //Gain
+	//
+	//----MCP R10754------
+	//------------------------------
+	//
+	SPEpar[0]=1e6;  //Gain
 	SPEpar[1]=1.6e-19; //e
-	SPEpar[2]=3e-12;  //Ca  ??
-	SPEpar[3]=6.5e-12; //C
+	SPEpar[2]=2.65e-12;  //Ca  ??
+	SPEpar[3]=12e-12; //C
 	SPEpar[4]=10e3;    //R   ??
 	SPEpar[5]=50;      //Z
-	SPEpar[6]=80e-12;  //rise time
+	SPEpar[6]=90e-12;  //rise time
 	//int N;
 	//N=sizeof(par)/sizeof(par[0]);
 	int n=0;
@@ -84,7 +87,7 @@ Double_t outputfunc(Double_t x, vector<double> par){
 }
 
 
-void Outputfun_MCP(){
+void Outputfun_MCP(const char *rootname=""){
 	
 	
 	TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Double_t yup=0.5, Int_t textFont=62, Size_t textSize=0.05);
@@ -120,14 +123,13 @@ void Outputfun_MCP(){
 	vector<double> parR;
 	vector<double> parL;
 
-	Double_t RL = -2e-9;
-	Double_t RR = 5e-9;
+	Double_t RL = -5e-9;
+	Double_t RR = 20e-9;
 	int binNum=0;
 	binNum = (RR-RL)/1e-12;
 
-    Int_t range =5e3;
-	Double_t thrd = -10.0;//U_max=7.5mV
-	double TH[6]={-5,-7.5,-10,-12.5,-15,-20};
+    Int_t range =5e3;  // 5ps/sample
+	Double_t thrd = -30; //Umax = -28.94mV
 	double Rate=0;
 	
 	bool flagR=0,flagL=0;
@@ -145,11 +147,7 @@ void Outputfun_MCP(){
 	Double_t yR[5000]={};
 	Double_t yL[5000]={};
 	
-
-	for(int s = 0; s<6;s++){
-
-	thrd = TH[s];
-	sprintf(name,"twoside");
+	sprintf(name,"%s",rootname);
 	sprintf(buff,"%s.root",name);
 
 	TFile *f1 = new TFile(buff,"READ");
@@ -160,7 +158,7 @@ void Outputfun_MCP(){
 
 	//sprintf(name,"Thrd_%g",abs(thrd));	
 	
-	sprintf(buff,"analysed_%sthrd_%g.root",name,TMath::Abs(thrd));
+	sprintf(buff,"%sdata.root",name);
 
 	TFile *f2 = new TFile(buff,"RECREATE");
 	TTree *t2 = new TTree("data","restore analysed data  from G4");
@@ -169,7 +167,8 @@ void Outputfun_MCP(){
 	t2->Branch("T0L",&xT0_L,"T0L/D");
 	t2->Branch("T0R",&xT0_R,"T0R/D");
 	t2->Branch("T0",&xT0,"T0/D");	
-	//
+	//for(int s = 0; s<4;s++){
+
 	
 	
 	double t_L = RL;
@@ -439,7 +438,7 @@ void Outputfun_MCP(){
 
 
     
-	}
+	//}
 	cout<<"The process is over,THANK YOU!"<<endl;
 
 	//c->Delete();

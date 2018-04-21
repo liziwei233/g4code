@@ -84,7 +84,7 @@ Double_t outputfunc(Double_t x, vector<double> par){
 }
 
 
-void Outputfun_MCP(){
+void Outputfun_MCP_thrdloop(){
 	
 	
 	TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Double_t yup=0.5, Int_t textFont=62, Size_t textSize=0.05);
