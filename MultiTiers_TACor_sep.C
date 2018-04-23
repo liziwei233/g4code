@@ -5,7 +5,7 @@
 #include <TH1.h>
 #include <TStyle.h>
 
-void MultiTiers_TACor_sep(){
+void MultiTiers_TACor_sep(const char *rootname=""){
 	
 	//void MygStyle();
 	//MygStyle();
@@ -19,17 +19,17 @@ void MultiTiers_TACor_sep(){
 //--------------Configuration-----------------------//
 //***************************************************//
 	float init_tL = -2.e-9;
-	float init_tR = 16.e-9;
+	float init_tR = 10.e-9;
 	
 	float init_UL = -6e3;
 	float init_UR = 0; 
 	
-	int rbt = 3;
-	int rbU = 5;
+	int rbt = 5;
+	int rbU = 40;
 	
 	// the range set After Correct
-	float L2 = -0.3e-9;
-	float R2 = 0.3e-9;
+	float L2 = -100e-12;
+	float R2 = 100e-12;
 	int binT2 = 2e3;
 //---------------------------------------------------//	
 //***************************************************//
@@ -37,16 +37,16 @@ void MultiTiers_TACor_sep(){
 
 	float RL,RR;
 	float U_RL,U_RR;
-	int binT = (init_tR-init_tL)/10e-12;
+	int binT = (init_tR-init_tL)/0.5e-12;
 	int binU = (init_UR-init_UL)/1;
 	
 	
-	const int T = 4;
+	const int T = 1;
 	float thrd;
 	for (int s = 14;s<15;s++)
 	{
 	//thrd = (s+1)*0.2;
-	sprintf(name,"dataL500");
+	sprintf(name,"%s",rootname);
 	sprintf(buff,"%s.root",name);
 	TFile *f = new TFile(buff,"READ");
 	TTree *t = (TTree*)f->Get("data");
@@ -98,7 +98,7 @@ void MultiTiers_TACor_sep(){
 	
 	c1->cd();
 	h->Draw();
-	h->Rebin(1);
+	h->Rebin(rbt);
 	//RL = h->GetMean();
 	//cout<<"RL = "<<RL<<endl;
 	//return;
@@ -120,7 +120,7 @@ void MultiTiers_TACor_sep(){
 	
 	cU->cd();
 	hU->Draw();
-	hU->Rebin(1);
+	hU->Rebin(rbU);
 	TF1 *fitU = new TF1("fitU","gaus",init_UL,init_UR);
 	fitU->SetParameter(1,hU->GetMean());
 	hU->Fit(fitU,"R");
@@ -137,8 +137,8 @@ void MultiTiers_TACor_sep(){
 	c2->cd();
 	//t->Draw("T0:UR>>ht","","colz");
 	ht->Draw("colz");
-	ht->RebinX(rbt);
-	ht->RebinY(rbU);
+	ht->RebinX(rbU);
+	ht->RebinY(rbt);
 	ht->GetYaxis()->SetRangeUser(RL,RR);
 	ht->GetXaxis()->SetRangeUser(U_RL,U_RR);
 	//return;
@@ -156,7 +156,10 @@ void MultiTiers_TACor_sep(){
 	c3->SaveAs(buff);
 	//return;
 	//h->Reset();
-	
+
+//*****************************************************************//
+//--------------------After Correction-----------------------------//
+//*****************************************************************//	
 	
 	ht->Reset();
 	ht->GetYaxis()->SetRangeUser(L2,R2);
