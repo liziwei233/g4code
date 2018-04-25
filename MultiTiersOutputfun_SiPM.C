@@ -138,12 +138,12 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	//vector<double> parL2;
 
 	Double_t RL = 0e-9;
-	Double_t RR = 15e-9;
+	Double_t RR = 20e-9;
 	int binNum=0;
-	binNum = (RR-RL)/1e-12;
+	binNum = (RR-RL)/4e-12;
 
     Int_t range = 5e3; //3ps/Sample
-	Double_t thrd = -2;//Umax = -2
+	Double_t thrd = -0.7;//Umax = -0.71
 	double Rate=0;
 	
 	bool flagR=0,flagL=0;
@@ -225,7 +225,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 
 	//count->clear();
 	//for(int i = certain; i < certain+1; i++){
-	for(int i = 0; i < 25; i++){
+	for(int i = 0; i < N; i++){
 		
 		//-----------initial----------------------//
 		TL->clear();
@@ -275,10 +275,10 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 			//cout<<"par"<<k<<" = "<<parR[iT][k]<<endl;
 					}
 			//return;
-				if(iT==0) h[0]->Fill(Temp);
 				}
 				//return;
 			
+			if((*IDR)[k]==0) h[0]->Fill(Temp);
 			
 			//myFun->SetParameter(k,par[k]);
 			}
@@ -294,8 +294,8 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 			//parR[k]=8.3e-9;
 			//cout<<" [+] parR1 "<<k<<"\t = "<<Temp<<endl;
 			//cout<<"par"<<k<<" = "<<par[k]<<endl;
-				if(iT==0) h[1]->Fill(Temp);
 				}			
+			if((*IDL)[k]==0) h[1]->Fill(Temp);
 			//myFun->SetParameter(k,par[k]);
 			}
 			
