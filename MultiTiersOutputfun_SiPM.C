@@ -267,7 +267,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 				//cout<<parR[iT][k]<<endl;
 				//
 
-				if((*IDR)[k]==iT) {
+				if((*IDR)[k]>iT*16&&(*IDR)[k]<(iT+1)*16){
 					parR[iT].push_back(Temp);
 				//parR[iT].push_back(0);
 			//parR[k]=8.3e-9;
@@ -290,7 +290,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 			//cout<< T[][k] <<endl;
 			Temp = (*TL)[k]*1e-9;
 			for(int iT=0; iT<T; iT++){
-				if((*IDL)[k]==iT) parL[iT].push_back(Temp);
+				if((*IDL)[k]>iT*16&&(*IDL)[k]<(iT+1)*16) parL[iT].push_back(Temp);
 			//parR[k]=8.3e-9;
 			//cout<<" [+] parR1 "<<k<<"\t = "<<Temp<<endl;
 			//cout<<"par"<<k<<" = "<<par[k]<<endl;
