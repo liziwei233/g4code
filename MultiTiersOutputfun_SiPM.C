@@ -124,7 +124,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	//TRandom3 r;
 	//r.SetSeed(0);
 	char name[1024];
-	char buff[1024];
+        char buff[1024];
 
 	const int T = 4;//amounts of Tiers 
 
@@ -142,8 +142,10 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	int binNum=0;
 	binNum = (RR-RL)/4e-12;
 
-    Int_t range = 5e3; //3ps/Sample
-	Double_t thrd = -0.7;//Umax = -0.71
+        Int_t range = 5e3; //3ps/Sample
+	Double_t Umax = -0.7;//Umax = -0.71
+	double thrd=0;
+        int TH[6]={1,3,5,10,20,30};
 	double Rate=0;
 	
 	bool flagR=0,flagL=0;
@@ -166,10 +168,6 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	Double_t yR[T][5000]={};
 	Double_t yL[T][5000]={};
 	
-
-	//TString a = TString(rootname);
-	//TString b;
-	//b.Append(a,a.Length()-5);
 	sprintf(name,"%s",rootname);
 	sprintf(buff,"%s.root",name);
 
@@ -180,11 +178,19 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	t1->SetBranchAddress("PmtL.t",&TL);
 	t1->SetBranchAddress("PmtL.id",&IDL);
 	t1->SetBranchAddress("PmtR.id",&IDR);
+        
+        for(int s=0;s<6;s++){
+        
+        thrd = Umax*TH[s];
+        cout<<"thrd"<<thrd<<endl;
+	//TString a = TString(rootname);
+	//TString b;
+	//b.Append(a,a.Length()-5);
 
 	//sprintf(name,"Thrd_%g",abs(thrd));	
 	
-	sprintf(buff,"%sdata.root",name);
-
+	sprintf(buff,"%sdata_thrd%d.root",name,TH[s]);
+        cout<<"output data file name: "<<buff<<endl;
 	TFile *f2 = new TFile(buff,"RECREATE");
 	TTree *t2 = new TTree("data","restore analysed data  from G4");
 	t2->Branch("UL",UL,"UL[4]/D");
@@ -223,7 +229,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	cout<<"Entries = "<<N<<endl;
 
 
-	//count->clear();
+	//count->
 	//for(int i = certain; i < certain+1; i++){
 	for(int i = 0; i < N; i++){
 		
@@ -510,7 +516,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 
 
     
-	//}
+	}
 	cout<<"The process is over,THANK YOU!"<<endl;
 
 	//c->Delete();
