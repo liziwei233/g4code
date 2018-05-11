@@ -124,7 +124,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	//TRandom3 r;
 	//r.SetSeed(0);
 	char name[1024];
-	char buff[1024];
+        char buff[1024];
 
 	const int T = 4;//amounts of Tiers 
 
@@ -138,12 +138,14 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	//vector<double> parL2;
 
 	Double_t RL = 0e-9;
-	Double_t RR = 15e-9;
+	Double_t RR = 20e-9;
 	int binNum=0;
-	binNum = (RR-RL)/1e-12;
+	binNum = (RR-RL)/4e-12;
 
-    Int_t range = 5e3; //3ps/Sample
-	Double_t thrd = -2;//Umax = -2
+        Int_t range = 5e3; //3ps/Sample
+	Double_t Umax = -0.7;//Umax = -0.71
+	double thrd=0;
+        int TH[6]={1,3,5,10,20,30};
 	double Rate=0;
 	
 	bool flagR=0,flagL=0;
@@ -166,10 +168,6 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	Double_t yR[T][5000]={};
 	Double_t yL[T][5000]={};
 	
-
-	//TString a = TString(rootname);
-	//TString b;
-	//b.Append(a,a.Length()-5);
 	sprintf(name,"%s",rootname);
 	sprintf(buff,"%s.root",name);
 
@@ -180,11 +178,19 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	t1->SetBranchAddress("PmtL.t",&TL);
 	t1->SetBranchAddress("PmtL.id",&IDL);
 	t1->SetBranchAddress("PmtR.id",&IDR);
+        
+        for(int s=0;s<6;s++){
+        
+        thrd = Umax*TH[s];
+        cout<<"thrd"<<thrd<<endl;
+	//TString a = TString(rootname);
+	//TString b;
+	//b.Append(a,a.Length()-5);
 
 	//sprintf(name,"Thrd_%g",abs(thrd));	
 	
-	sprintf(buff,"%sdata.root",name);
-
+	sprintf(buff,"%sdata_thrd%d.root",name,TH[s]);
+        cout<<"output data file name: "<<buff<<endl;
 	TFile *f2 = new TFile(buff,"RECREATE");
 	TTree *t2 = new TTree("data","restore analysed data  from G4");
 	t2->Branch("UL",UL,"UL[4]/D");
@@ -223,9 +229,9 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	cout<<"Entries = "<<N<<endl;
 
 
-	//count->clear();
+	//count->
 	//for(int i = certain; i < certain+1; i++){
-	for(int i = 0; i < 25; i++){
+	for(int i = 0; i < N; i++){
 		
 		//-----------initial----------------------//
 		TL->clear();
@@ -267,7 +273,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 				//cout<<parR[iT][k]<<endl;
 				//
 
-				if((*IDR)[k]==iT) {
+				if((*IDR)[k]>iT*16&&(*IDR)[k]<(iT+1)*16){
 					parR[iT].push_back(Temp);
 				//parR[iT].push_back(0);
 			//parR[k]=8.3e-9;
@@ -275,10 +281,10 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 			//cout<<"par"<<k<<" = "<<parR[iT][k]<<endl;
 					}
 			//return;
-				if(iT==0) h[0]->Fill(Temp);
 				}
 				//return;
 			
+			if((*IDR)[k]==0) h[0]->Fill(Temp);
 			
 			//myFun->SetParameter(k,par[k]);
 			}
@@ -290,12 +296,12 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 			//cout<< T[][k] <<endl;
 			Temp = (*TL)[k]*1e-9;
 			for(int iT=0; iT<T; iT++){
-				if((*IDL)[k]==iT) parL[iT].push_back(Temp);
+				if((*IDL)[k]>iT*16&&(*IDL)[k]<(iT+1)*16) parL[iT].push_back(Temp);
 			//parR[k]=8.3e-9;
 			//cout<<" [+] parR1 "<<k<<"\t = "<<Temp<<endl;
 			//cout<<"par"<<k<<" = "<<par[k]<<endl;
-				if(iT==0) h[1]->Fill(Temp);
 				}			
+			if((*IDL)[k]==0) h[1]->Fill(Temp);
 			//myFun->SetParameter(k,par[k]);
 			}
 			
@@ -510,7 +516,7 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 
 
     
-	//}
+	}
 	cout<<"The process is over,THANK YOU!"<<endl;
 
 	//c->Delete();

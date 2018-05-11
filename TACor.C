@@ -5,7 +5,7 @@
 #include <TH1.h>
 #include <TStyle.h>
 
-void MultiTiers_TACor_sep(const char *rootname=""){
+void TACor(const char *rootname=""){
 	
 	//void MygStyle();
 	//MygStyle();
@@ -19,17 +19,17 @@ void MultiTiers_TACor_sep(const char *rootname=""){
 //--------------Configuration-----------------------//
 //***************************************************//
 	float init_tL = -2.e-9;
-	float init_tR = 10.e-9;
+	float init_tR = 16.e-9;
 	
 	float init_UL = -6e3;
 	float init_UR = 0; 
 	
-	int rbt = 5;
-	int rbU = 40;
+	int rbt = 3;
+	int rbU = 2;
 	
 	// the range set After Correct
-	float L2 = -100e-12;
-	float R2 = 100e-12;
+	float L2 = -500e-12;
+	float R2 = 500e-12;
 	int binT2 = 2e3;
 //---------------------------------------------------//	
 //***************************************************//
@@ -37,11 +37,11 @@ void MultiTiers_TACor_sep(const char *rootname=""){
 
 	float RL,RR;
 	float U_RL,U_RR;
-	int binT = (init_tR-init_tL)/0.5e-12;
+	int binT = (init_tR-init_tL)/10e-12;
 	int binU = (init_UR-init_UL)/1;
 	
 	
-	const int T = 1;
+	const int T = 4;
 	float thrd;
 	for (int s = 14;s<15;s++)
 	{
