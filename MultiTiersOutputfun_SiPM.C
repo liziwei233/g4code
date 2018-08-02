@@ -96,7 +96,7 @@ Double_t outputfunc(Double_t x, vector<double> par){
 }
 
 
-void MultiTiersOutputfun_SiPM(const char *rootname=""){
+void MultiTiersOutputfun_SiPM(const char *rootname="",int npethrd=1){
 	
 	
 	TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Double_t yup=0.5, Int_t textFont=62, Size_t textSize=0.05);
@@ -168,6 +168,17 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	Double_t yR[T][5000]={};
 	Double_t yL[T][5000]={};
 	
+        
+        for(int s=0;s<1;s++){
+        
+        //thrd = Umax*TH[s];
+        thrd = Umax*npethrd;
+        cout<<"thrd = "<<thrd<<endl;
+	//TString a = TString(rootname);
+	//TString b;
+	//b.Append(a,a.Length()-5);
+
+	//sprintf(name,"Thrd_%g",abs(thrd));	
 	sprintf(name,"%s",rootname);
 	sprintf(buff,"%s.root",name);
 
@@ -178,16 +189,6 @@ void MultiTiersOutputfun_SiPM(const char *rootname=""){
 	t1->SetBranchAddress("PmtL.t",&TL);
 	t1->SetBranchAddress("PmtL.id",&IDL);
 	t1->SetBranchAddress("PmtR.id",&IDR);
-        
-        for(int s=0;s<6;s++){
-        
-        thrd = Umax*TH[s];
-        cout<<"thrd"<<thrd<<endl;
-	//TString a = TString(rootname);
-	//TString b;
-	//b.Append(a,a.Length()-5);
-
-	//sprintf(name,"Thrd_%g",abs(thrd));	
 	
 	sprintf(buff,"%sdata_thrd%d.root",name,TH[s]);
         cout<<"output data file name: "<<buff<<endl;
