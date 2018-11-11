@@ -126,9 +126,9 @@ void Outputfun_MCP(const char *rootname=""){
 	Double_t RL = -5e-9;
 	Double_t RR = 20e-9;
 	int binNum=0;
-	binNum = (RR-RL)/1e-12;
+	binNum = (RR-RL)/25e-12;
 
-    Int_t range =5e3;  // 5ps/sample
+    Int_t range =5e3;  // 25ps/sample
 	Double_t thrd = -30; //Umax = -28.94mV
 	double Rate=0;
 	
