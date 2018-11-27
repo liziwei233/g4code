@@ -96,7 +96,7 @@ void OPinformation(const char *rootname="")
     N = fphID->size();
 
     cout<<"the photon quantity is "<<N<<endl;
-
+//return;
     TH1D *HB = new TH1D("HB",";ID;Bounce",N+10,1,N+10);
 	
 	TH1D *hphB = new TH1D("hphB",";Bounce;Counts",500,1,500);
@@ -116,8 +116,7 @@ void OPinformation(const char *rootname="")
 	*
 	*****************************************************************/
 	
-    t1->Draw("op.Bounce>>HB");
-	
+    t1->Draw("op.Bounce>>HB","Entry$==0");
     for(int i=2; i<N; i++){
         //ID = i+1;
         //binN = ID+1;
@@ -155,6 +154,7 @@ void OPinformation(const char *rootname="")
 
     }
 	c1->cd();
+	c1->SetLogx();
 	c1->Clear();
 	DrawMyHist1(hphB,"Bounce","Counts",1,2,1);
 	hphB->Draw();
@@ -196,11 +196,11 @@ void OPinformation(const char *rootname="")
 	DrawMyHist1(ht[1],"Time (ns)","Counts",1,2,1); //Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 	c2->cd();
 	c2->Clear();
-	t1->Draw("PmtL.t>>htL");
+	t1->Draw("PmtL.t>>htL","Entry$==0");
 	sprintf(buff,"%s_hittime_PMTleft.png",name);
 	c2->SaveAs(buff);
 	c2->Clear();
-	t1->Draw("PmtR.t>>htR");
+	t1->Draw("PmtR.t>>htR","Entry$==0");
 	sprintf(buff,"%s_hittime_PMTright.png",name);
 	c2->SaveAs(buff);
 	
@@ -213,19 +213,19 @@ void OPinformation(const char *rootname="")
 	*
 	*****************************************************************/
 	TH2D *hpos[2];
-	hpos[0]=new TH2D("hposL",";x (mm); y (mm)",20,-1*halfx,halfx,20,-1*halfy,halfy);
-	hpos[1]=new TH2D("hposR",";x (mm); y (mm)",20,-1*halfx,halfx,20,-1*halfy,halfy);
+	hpos[0]=new TH2D("hposL",";x (mm); y (mm)",100,-1*halfx,halfx,100,-1*halfy,halfy);
+	hpos[1]=new TH2D("hposR",";x (mm); y (mm)",100,-1*halfx,halfx,100,-1*halfy,halfy);
 	
 	c3->cd();
 	
 	DrawMyHist2(hpos[0],"x (mm)","y (mm)",1,2,1); //Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 	DrawMyHist2(hpos[1],"x (mm)","y (mm)",1,2,1); //Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 	c3->Clear();
-	t1->Draw("PmtL.x:PmtL.y>>hposL","","colz");
+	t1->Draw("PmtL.x:PmtL.y>>hposL","Entry$==0","colz");
 	sprintf(buff,"%s_hitpostion_PMTleft.png",name);
 	c3->SaveAs(buff);
 	c3->Clear();
-	t1->Draw("PmtR.x:PmtR.y>>hposR","","colz");
+	t1->Draw("PmtR.x:PmtR.y>>hposR","Entry$==0","colz");
 	sprintf(buff,"%s_hitposition_PMTright.png",name);
 	c3->SaveAs(buff);
 	
@@ -248,16 +248,16 @@ void OPinformation(const char *rootname="")
 	DrawMyHist1(hwl[0],"Wavelength (nm)","Counts",1,2,1); //Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 	DrawMyHist1(hwl[1],"Wavelength (nm)","Counts",1,2,1); //Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 	c4->Clear();
-	t1->Draw("1264/ph.E/1e6>>hphwlL");
+	t1->Draw("1264/ph.E/1e6>>hphwl","Entry$==0");
 	sprintf(buff,"%s_wavelength_allphotons.png",name);
 	c4->SaveAs(buff);
 	
 	c4->Clear();
-	t1->Draw("1264/PmtL.E/1e6>>hwlL");
+	t1->Draw("1264/PmtL.E/1e6>>hwlL","Entry$==0");
 	sprintf(buff,"%s_wavelength_PMTleft.png",name);
 	c4->SaveAs(buff);
 	c4->Clear();
-	t1->Draw("1264/PmtR.E/1e6>>hwlR");
+	t1->Draw("1264/PmtR.E/1e6>>hwlR","Entry$==0");
 	sprintf(buff,"%s_wavelength_PMTright.png",name);
 	c4->SaveAs(buff);
 	
