@@ -53,9 +53,7 @@ Double_t outputfunc(Double_t x, vector<double> par){
 	Double_t tts = 0;
     double SPEpar[7];
 	
-	r.SetSeed(0);
-	tts = r.Gaus(0,30e-12);
-	//tts = 0;
+	//tts = r.Gaus(0,10.6e-12);
 	//
 	//----MCP R10754------
 	//------------------------------
@@ -74,8 +72,14 @@ Double_t outputfunc(Double_t x, vector<double> par){
 	//while(par[n]>5e-9){
 		if (x-par.at(n)<-30e-9){
 		val+=0;}
-		else val+=response(x-tts-par.at(n),SPEpar);
+		else{
+
+	        r.SetSeed(par.at(n));
+	        tts = r.Gaus(0,10.6e-12); //TTS of MCP-R3805U
+                //cout<<"tts= "<<tts<<endl;
+                val+=response(x-tts-par.at(n),SPEpar);
 		//cout<<"    [-] x : par : val "<<x<<"\t"<<par[n]<<"\t"<<val<<endl;
+                }
 		
 	}
 	//cout<<"n = "<<n<<endl;
@@ -123,12 +127,14 @@ void Outputfun_MCP(const char *rootname=""){
 	vector<double> parR;
 	vector<double> parL;
 
-	Double_t RL = -5e-9;
-	Double_t RR = 20e-9;
+	//Double_t RL = -5e-9;
+	//Double_t RR = 20e-9;
+	Double_t RL = -0e-9;
+	Double_t RR = 10e-9;
 	int binNum=0;
-	binNum = (RR-RL)/1e-12;
+	binNum = (RR-RL)/25e-12;
 
-    Int_t range =5e3;  // 5ps/sample
+    Int_t range =5e3;  // 25ps/sample
 	Double_t thrd = -30; //Umax = -28.94mV
 	double Rate=0;
 	
