@@ -53,7 +53,7 @@ void SPE(){
 	double sum=0,Q=0,Q_act=0;
 	bool flag1 = 0,flag2 = 0;
 
- /*   
+    
  	//SiPM
     SPEpar[0]=2.4e6;  //Gain
 	SPEpar[1]=1.6e-19; //e
@@ -64,8 +64,8 @@ void SPE(){
 	SPEpar[4]=10e3;    //R   ??
 	SPEpar[5]=50;      //Z
 	SPEpar[6]=0.5e-9;  //rise time
-*/
 
+/*
 	//MCP
 	SPEpar[0]=3e5;  //Gain
 	SPEpar[1]=1.6e-19; //e
@@ -74,6 +74,7 @@ void SPE(){
 	SPEpar[4]=10e3;    //R   ??
 	SPEpar[5]=50;      //Z
 	SPEpar[6]=80e-12;  //rise time
+*/
 
     for(int j=0;j<range;j++){
 			x[j]=(RR-RL)/range*j+RL;
