@@ -59,9 +59,9 @@ void OPinformation(const char *rootname="")
 
     int N = 0;
 
-	double halfx = 5;
-	double halfy = 5;
-	
+	double halfx = 5*1.2;
+	double halfy = 5*1.2;
+	int posbin = 200;	
 	TCanvas *c1 = new TCanvas("c1","",800,600);
 	SetMyPad(c1,0.12,0.05,0.05,0.12);
 	
@@ -213,19 +213,24 @@ void OPinformation(const char *rootname="")
 	*
 	*****************************************************************/
 	TH2D *hpos[2];
-	hpos[0]=new TH2D("hposL",";x (mm); y (mm)",100,-1*halfx,halfx,100,-1*halfy,halfy);
-	hpos[1]=new TH2D("hposR",";x (mm); y (mm)",100,-1*halfx,halfx,100,-1*halfy,halfy);
-	
+	hpos[0]=new TH2D("hposL",";x (mm); y (mm)",posbin,-1*halfx,halfx,posbin,-1*halfy,halfy);
+	hpos[1]=new TH2D("hposR",";x (mm); y (mm)",posbin,-1*halfx,halfx,posbin,-1*halfy,halfy);
+	hpos[0]->SetMarkerStyle(24);
+	hpos[1]->SetMarkerStyle(24);
+	hpos[0]->SetMarkerColor(1);
+	hpos[1]->SetMarkerColor(1);
 	c3->cd();
 	
 	DrawMyHist2(hpos[0],"x (mm)","y (mm)",1,2,1); //Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 	DrawMyHist2(hpos[1],"x (mm)","y (mm)",1,2,1); //Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 	c3->Clear();
-	t1->Draw("PmtL.x:PmtL.y>>hposL","Entry$==0","colz");
+	t1->Draw("PmtL.x:PmtL.y>>hposL");
+	//t1->Draw("PmtL.x:PmtL.y>>hposL","Entry$==0");
 	sprintf(buff,"%s_hitpostion_PMTleft.png",name);
 	c3->SaveAs(buff);
 	c3->Clear();
-	t1->Draw("PmtR.x:PmtR.y>>hposR","Entry$==0","colz");
+	t1->Draw("PmtR.x:PmtR.y>>hposR");
+	//t1->Draw("PmtR.x:PmtR.y>>hposR","Entry$==0");
 	sprintf(buff,"%s_hitposition_PMTright.png",name);
 	c3->SaveAs(buff);
 	
