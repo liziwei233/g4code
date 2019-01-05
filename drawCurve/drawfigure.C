@@ -19,10 +19,14 @@ TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Doubl
 gStyle->SetOptTitle(0);
 gStyle->SetOptStat(1111);
 
-float x1[]={-75,-30,0,5,10,15,20,25,30,75}; //deep=width changed
-float y1[]={1.7,2,4,5,18,152,140,139,145,151};
-float y2[]={2400,2322,2011,2019,2043,2083,2139,2218,2322,2399};
-float y3[]={452,238,148,119,21,6,7,7,7,3};
+//float x1[]={-75,-30,0,5,10,15,20,25,30,75}; //deep=width changed
+float x1[]={0,0.1,6,12}; //deep=width changed
+float y1[]={3.9,3.7,3.8,3.6};
+float y2[]={2011,2011,2012,2011};
+float y3[]={148,152,108,92};
+
+float xL=7;
+float xR=11;
 
 //float y1[]={62.79,33.52,22.88,22.27,21.18};
 //float x2[]={5,10,20,30,40}; //d=10mm,width changed
@@ -36,9 +40,9 @@ TGraph *gTR = new TGraph(n,x1,y1);
 TGraph *gLY = new TGraph(n,x1,y2); 
 TGraph *gHit = new TGraph(n,x1,y3);
 
-DrawMyGraph(gTR,"theta (deg)","Time resolution (ps)",1.5,20,4,4,2,7);
-DrawMyGraph(gLY,"theta (deg)","Time resolution (ps)",2.,22,2,2,2,7);
-DrawMyGraph(gHit,"theta (deg)","Time resolution (ps)",2.,22,2,2,2,7);
+DrawMyGraph(gTR,"#sigma_{#alpha} (deg)","",1.,20,4,4,2,7);
+DrawMyGraph(gLY,"","",0.8,21,1,1,2,7);
+DrawMyGraph(gHit,"","",1.,22,2,2,2,7);
 /*
 DrawMyGraph(gR1,"Rate","Time resolution (ps)",1.5,20,1,1,2,1);
 DrawMyGraph(gR2,"Rate","Time resolution (ps)",1,21,2,2,2,1);
@@ -47,20 +51,52 @@ DrawMyGraph(gth_TA,"threshold (mV)","Time resolution (ps)",1,21,2,2,2,1);
 DrawMyGraph(gAn,"Angle (deg) ","Time resolution (ps)",1.5,20,1,1,2,1);
 //DrawMyGraph(gH,"RF2","",1,4,8,8,3,1);
 */
-TCanvas *c1 = new TCanvas("c1","c1",800,600);
+TCanvas *c1 = new TCanvas("c1","c1",600,1000);
 c1->cd(); 
-c1->Divide(1,3);
+//c1->Divide(1,3);
+   TPad *pad1 = new TPad("pad1",
+      "The pad with the function",0.01,0.75,0.98,0.98);
+   TPad *pad2 = new TPad("pad2",
+      "The pad with the histogram",0.01,0.40,0.98,0.75);
+   TPad *pad3 = new TPad("pad3",
+      "The pad with the histogram",0.01,0.01,0.98,0.40);
+pad1->Draw();
+pad2->Draw();
+pad3->Draw();
 //gR1->Draw("ALP");
-c1->cd(3);
-SetMyPad(gpad,0.01,0.01,0.01,0.01);
-gTR->Draw("ALP");
 //gh->GetYaxis()->SetRangeUser(10,75);
-c1->cd(1);
-SetMyPad(gpad,0.01,0.01,0.01,0.01);
+//c1->cd(1);
+pad1->cd();
+gPad->SetGrid();
+SetMyPad(gPad,0.1,0.01,0.1,0.01);
 gLY->Draw("ALP");
-c1->cd(2);
-SetMyPad(gpad,0.01,0.01,0.01,0.1);
+gLY->GetYaxis()->SetRangeUser(1.7e3,2.8e3);
+gLY->GetYaxis()->SetLabelSize( 0.120 );
+TPaveLabel *label1 = new TPaveLabel(xL,2100,xR,2330,"Light yield");
+//TPaveLabel *label1 = new TPaveLabel(0.55,0.30,0.8,0.45,"Light yield");
+label1->Draw();
+
+pad2->cd();
+gPad->SetGrid();
+//gPad->SetLogy();
+SetMyPad(gPad,0.1,0.01,0.01,0.01);
 gHit->Draw("ALP");
+gHit->GetYaxis()->SetRangeUser(-45,285);
+TPaveLabel *label2 = new TPaveLabel(xL,0,xR,60,"Hits");
+label2->Draw();
+
+pad3->cd();
+SetMyPad(gPad,0.1,0.01,0.01,0.20);
+gTR->Draw("ALP");
+gPad->SetGrid();
+//gPad->SetLogy();
+gTR->GetYaxis()->SetRangeUser(-10,25);
+     gTR->GetXaxis()->SetTitleSize(0.1);
+     gTR->GetXaxis()->SetTitleOffset(0.78);
+gPad->Modified();
+gPad->Update();
+TPaveLabel *label3 = new TPaveLabel(xL,-7,xR*1.1,1,"Time Res (ps)");
+label3->Draw();
 
 /*
 gth->Draw("ALP");
@@ -99,7 +135,7 @@ leg = DrawMyLeg(0.55,0.68,0.65,0.85);
 leg->AddEntry(gLY,"Lightyieled","lp");
 leg->AddEntry(gTR,"Time Res","lp");
 leg->AddEntry(gHit,"Hits","lp");
-leg->Draw();
+//leg->Draw();
 
 
 /*leg->AddEntry(gF,"FWHM (ns)","lp");
@@ -108,7 +144,7 @@ leg->AddEntry(gH,"workHV (V)","lp");
 leg->Draw();
 */
 
-c1->SaveAs("TR.png");
+c1->SaveAs("ground.png");
 
 
 }
@@ -127,11 +163,11 @@ void DrawMyGraph(TGraph *datagraph, const char *xtitle, const char *ytitle, Floa
      datagraph->GetXaxis()->SetAxisColor(1);
      datagraph->GetYaxis()->SetAxisColor(1);
      datagraph->GetXaxis()->SetLabelColor(1);
-     datagraph->GetYaxis()->SetLabelColor(1);
+     datagraph->GetYaxis()->SetLabelColor(LColor);
      datagraph->GetXaxis()->SetLabelFont( 42 );
      datagraph->GetYaxis()->SetLabelFont( 42 );
-     datagraph->GetXaxis()->SetLabelSize( 0.05 );
-     datagraph->GetYaxis()->SetLabelSize( 0.05 );
+     datagraph->GetXaxis()->SetLabelSize( 0.10 );
+     datagraph->GetYaxis()->SetLabelSize( 0.10 );
      datagraph->GetXaxis()->SetLabelOffset( 0.01 );
      datagraph->GetYaxis()->SetLabelOffset( 0.01 );
      datagraph->GetXaxis()->SetTitleFont( 42 );
@@ -142,6 +178,8 @@ void DrawMyGraph(TGraph *datagraph, const char *xtitle, const char *ytitle, Floa
      datagraph->GetYaxis()->SetTitleSize(0.06);
      datagraph->GetXaxis()->SetTitleOffset(0.8);
      datagraph->GetYaxis()->SetTitleOffset(0.8);
+     datagraph->GetXaxis()->SetNdivisions(510);     
+     datagraph->GetYaxis()->SetNdivisions(505);
 }
 
 void DrawMyHist1(TH1 *datahist, const char *xtitle,const char *ytitle, Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1){
