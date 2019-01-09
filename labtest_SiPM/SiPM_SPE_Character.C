@@ -22,18 +22,24 @@ void SiPM_SPE_Character(const char *rootname="")
 *****************************************************
 **==========>*******************************<========*/
 	double xL = 100; //base cut
-	double xR = 110;
+	double xR = 120;
 	/*double blrmsL = 0.e-3;
 	double blrmsR = 0.1e-3;
 	double blL = -0.5e-3;
 	double blR = 0.1e-3;
 	*/
 	double blrmsL = 0.e-3;
-	double blrmsR = 0.1e-3;
+	double blrmsR = 3.e-3;
 	double blL = -60.5e-3;
+	//double blR = 0;
 	double blR = 60.05e-3;
 	
-	double tRL=20; //hist time range
+	
+	double xRL = 100;
+	double xRR = 110;
+	
+	
+	double tRL=26; //hist time range
 	double tRR=35;
 	
 	double rRL=0;//hist risetime range
@@ -45,13 +51,13 @@ void SiPM_SPE_Character(const char *rootname="")
 	double brmsRL = blrmsL-1e-3;  //hist baseline range
 	double brmsRR = blrmsR+1e-3;
 
-	double aRL=-1e-3,aRR=2e-3; //find Amp peak range
-	double alimit1=0.4e-3;
-	double alimit2=0.753e-3;
+	double aRL=-1e-3,aRR=182e-3; //find Amp peak range
+	double alimit1=38e-3;
+	double alimit2=52e-3;
 
-	double qRL=-0.5,qRR=2;	//find Charge peak range
-	double qlimit1=0.16;
-	double qlimit2=0.3;
+	double qRL=-0.5,qRR=80;	//find Charge peak range
+	double qlimit1=12;
+	double qlimit2=18;
 		
 	gStyle->SetOptFit(1111);
 	sprintf(buff,"%s.dat",name);
@@ -60,6 +66,8 @@ void SiPM_SPE_Character(const char *rootname="")
 	sprintf(buff,"%s.root",name);
     TFile *f1 = new TFile(buff,"READ");
     TTree *t1 = (TTree*)f1->Get("Pico");
+	
+	
 	
 	double T2,T1,Q1,Q2;
 	double x,y,blrms,rise,bl;
@@ -109,6 +117,15 @@ void SiPM_SPE_Character(const char *rootname="")
 	TH1F *hblrms = new TH1F("hblrms","",800,brmsRL,brmsRR);
 	DrawMyHist1(hblrms,"baseline RMS (V)","Counts",kBlue,2);
 	
+	TH1F *hx = new TH1F("hx",";Time (ns);Counts",200,xRL,xRR);
+	DrawMyHist1(hx,"Time (ns)","Counts",kBlue,2);
+	t1->Draw("MCP2_global_maximum_x>>hx");
+	//return;
+	TF1* gx=twoguasfit(hx,&xRL,&xRR,0.4,1);
+	xL = gx->GetParameter(1)-2.5*gx->GetParameter(2);
+	xR = gx->GetParameter(1)+2.5*gx->GetParameter(2);
+	cout<<"global maximum x range = "<<xL<<"\t"<<xR<<endl;
+	
 	gPad->Modified(); 
 	gPad->Update(); 
  
@@ -118,7 +135,7 @@ void SiPM_SPE_Character(const char *rootname="")
 	for(int i=0;i<N;i++){
 		t1->GetEntry(i);
 		//if(Q2>qlimit1&&Q2<qlimit2)
-			if (x>xL&&x<xR&&blrms>blrmsL&&blrms<blrmsR&&bl<blR&&bl>blL&&Q2>0.05)
+			if (x>xL&&x<xR&&blrms>blrmsL&&blrms<blrmsR&&bl<blR&&bl>blL&&Q2>5)
 			{
 				ha->Fill(y);
 				hq->Fill(Q2);
@@ -183,7 +200,7 @@ void SiPM_SPE_Character(const char *rootname="")
 	c4->cd();		
 	/*	t1->Draw("MCP2_twentypercent_time-MCP1_twentypercent_time>>ht","MCP2_all_charge>0.2&&MCP2_all_charge<8");
 	*/
-	TF1* t=twoguasfit(ht,&tRL,&tRR,0.1,1);
+	TF1* t=twoguasfit(ht,&tRL,&tRR,0.5,1);
 	double STR=t->GetParameter(2);
 	sprintf(buff,"%s_STR.png",name);
     
@@ -208,7 +225,7 @@ void SiPM_SPE_Character(const char *rootname="")
 	
 	
 	cout<<"The spe amplitude (mV) = "<<pe1A*1e3<<endl;
-	cout<<"The spe charge (pC) = "<<pe1q<<endl;
+	cout<<"The spe charge (pC) = "<<speq<<endl;
 	cout<<"The Gain = "<<G<<endl;
 	cout<<"The STR (ps) = "<<STR*1e3<<endl;
 	cout<<"The ped amp mean (mV) = "<<pedmean<<endl;
