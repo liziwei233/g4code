@@ -1,5 +1,5 @@
-TH2F* DrawMyHist2d(double x1,double x2,double y1,double y2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5)
-{	TH2F *datahist= new TH2F("h2d","",200,x1,x2,200,y1,y2);
+TH2F* DrawMyHist2d(const char* name="h2d",double x1,double x2,double y1,double y2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5)
+{	TH2F *datahist= new TH2F(name,"",200,x1,x2,200,y1,y2);
 	TCanvas *c1 =new TCanvas("c1","c1",800,600);
 	gPad->SetMargin(0.14,0.1,0.14,0.1);
 	datahist->SetLineColor( LColor );

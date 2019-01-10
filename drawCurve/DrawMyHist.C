@@ -1,6 +1,6 @@
-TH1F* DrawMyHist(double x1,double x2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5 ){
+TH1F* DrawMyHist(const char* name="hist",double x1,double x2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5 ){
 	
-	TH1F *datahist= new TH1F("hist","",200,x1,x2);
+	TH1F *datahist= new TH1F(name,"",200,x1,x2);
 	TCanvas *c2 =new TCanvas("c2","c2",800,600);
 	gPad->SetMargin(0.14,0.1,0.14,0.1);
      datahist->SetLineColor( LColor );
