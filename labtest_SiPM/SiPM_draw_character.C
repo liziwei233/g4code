@@ -219,11 +219,15 @@ TF1* twoguasfit(TH1 *ht,double* tRL,double* tRR,double fac=0.4, int rbt=1){
         //First fit for ensuring the rangement of histgram;
 		TH1* h = (TH1*)ht->Clone();
 		h->Rebin(rbt);
+        double mean = h->GetMean();
+        double sigma = h->GetRMS();
 		TF1 *fit = new TF1("fit","gaus",*tRL,*tRR);        
 		h->GetXaxis()->SetRangeUser(*tRL,*tRR);
+		fit->SetParameter(1,mean);
+		//fit->SetParameter(2,sigma);
 		h->Fit(fit);
-        double mean = fit->GetParameter(1);
-        double sigma = TMath::Abs(fit->GetParameter(2));
+        mean = fit->GetParameter(1);
+        sigma = TMath::Abs(fit->GetParameter(2));
 		if(*tRL<mean-5*sigma||sigma>1)
 		{*tRL = mean-5*sigma;
 		*tRR = mean+5*sigma;}

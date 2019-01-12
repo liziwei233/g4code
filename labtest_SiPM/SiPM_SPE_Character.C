@@ -6,6 +6,8 @@ using namespace std;
 void SiPM_SPE_Character(const char *rootname="")
 {
 	void DrawMyHist1(TH1F *datahist,const char *xtitle,const char *ytitle, Color_t LColor=1, Width_t LWidth=3 , Color_t TitleColor=1);
+	TH2F* DrawMyHist2d(const char* name,double x1,double x2,double y1,double y2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5);
+	TH1F* DrawMyHist(const char* name,double x1,double x2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5 );
 	TF1* gausfit(TH1* hU,int rbU,float U_RL, float U_RR);
     void SetMyPad(TVirtualPad *pad,float left, float right, float top, float bottom);
 	TF1* twoguasfit(TH1 *ht,double* tRL,double* tRR,double fac=0.4, int rbt=1);
@@ -29,14 +31,14 @@ void SiPM_SPE_Character(const char *rootname="")
 	double blR = 0.1e-3;
 	*/
 	double blrmsL = 0.e-3;
-	double blrmsR = 3.e-3;
-	double blL = -60.5e-3;
+	double blrmsR = 2.e-3;
+	double blL = -20.5e-3;
 	//double blR = 0;
-	double blR = 60.05e-3;
+	double blR = 20.05e-3;
 	
 	
-	double xRL = 100;
-	double xRR = 110;
+	double xRL = 0;
+	double xRR = 200;
 	
 	
 	double tRL=26; //hist time range
@@ -52,12 +54,12 @@ void SiPM_SPE_Character(const char *rootname="")
 	double brmsRR = blrmsR+1e-3;
 
 	double aRL=-1e-3,aRR=182e-3; //find Amp peak range
-	double alimit1=38e-3;
-	double alimit2=52e-3;
+	double alimit1=22e-3;
+	double alimit2=38e-3;
 
 	double qRL=-0.5,qRR=80;	//find Charge peak range
-	double qlimit1=12;
-	double qlimit2=18;
+	double qlimit1=8;
+	double qlimit2=14;
 		
 	gStyle->SetOptFit(1111);
 	sprintf(buff,"%s.dat",name);
@@ -84,20 +86,13 @@ void SiPM_SPE_Character(const char *rootname="")
 	//TCut c_x = "MCP2_global_maximum_x>410&&MCP2_global_maximum_x<412.5";
 	//TCut c_x = "MCP2_global_maximum_x>530&&MCP2_global_maximum_x<532";
 	//TCut c_blrms = "MCP2_baseline_rms<0.1e-3";
-	
-    TCanvas *c1= new TCanvas("c1","c1",800,600);
-	SetMyPad(c1,0.12,0.1,0.1,0.12);
-	TCanvas *c2= new TCanvas("c2","c2",800,600);
-	SetMyPad(c2,0.12,0.1,0.1,0.12);
-	TCanvas *c3= new TCanvas("c3","c3",800,600);
-	SetMyPad(c3,0.12,0.1,0.1,0.12);
-	TCanvas *c4= new TCanvas("c4","c4",800,600);
-	SetMyPad(c4,0.12,0.1,0.1,0.12);
-	TCanvas *c5= new TCanvas("c5","c5",800,600);
-	SetMyPad(c5,0.12,0.1,0.1,0.12);
-	TCanvas *c6= new TCanvas("c6","c6",800,600);
-	SetMyPad(c6,0.12,0.1,0.1,0.12);
-	
+	TCanvas *c[7];
+	for (int i=0;i<7;i++){
+	sprintf(buff,"C%d",i);
+    c[i]= new TCanvas(buff,buff,800,600);
+	SetMyPad(gPad,0.12,0.1,0.1,0.12);
+	}
+
     TH1F *hq = new TH1F("hq",";charge (pC);Counts",200,qRL,qRR);
 	DrawMyHist1(hq,"charge (pC)","Counts",kBlue,2);
 
@@ -116,18 +111,23 @@ void SiPM_SPE_Character(const char *rootname="")
 	
 	TH1F *hblrms = new TH1F("hblrms","",800,brmsRL,brmsRR);
 	DrawMyHist1(hblrms,"baseline RMS (V)","Counts",kBlue,2);
-	
-	TH1F *hx = new TH1F("hx",";Time (ns);Counts",200,xRL,xRR);
+
+	TH2F* hqy=DrawMyHist2d("hqy",aRL,aRR,qRL,qRR,"Amp (V)","Charge (pC)");
+
+	TH1F *hx = new TH1F("hx",";Time (ns);Counts",2e3,xRL,xRR);
 	DrawMyHist1(hx,"Time (ns)","Counts",kBlue,2);
+	c[1]->cd();
 	t1->Draw("MCP2_global_maximum_x>>hx");
 	//return;
+    xRL = hx->GetBinCenter(hx->GetMaximumBin())-10;
+    xRR = hx->GetBinCenter(hx->GetMaximumBin())+10;
 	TF1* gx=twoguasfit(hx,&xRL,&xRR,0.4,1);
 	xL = gx->GetParameter(1)-2.5*gx->GetParameter(2);
 	xR = gx->GetParameter(1)+2.5*gx->GetParameter(2);
 	cout<<"global maximum x range = "<<xL<<"\t"<<xR<<endl;
 	
-	gPad->Modified(); 
-	gPad->Update(); 
+	//gPad->Modified(); 
+	//gPad->Update(); 
  
  
  
@@ -135,22 +135,23 @@ void SiPM_SPE_Character(const char *rootname="")
 	for(int i=0;i<N;i++){
 		t1->GetEntry(i);
 		//if(Q2>qlimit1&&Q2<qlimit2)
-			if (x>xL&&x<xR&&blrms>blrmsL&&blrms<blrmsR&&bl<blR&&bl>blL&&Q2>5)
+			if (x>xL&&x<xR&&blrms>blrmsL&&blrms<blrmsR&&bl<blR&&bl>blL&&Q2>0.5)
 			{
 				ha->Fill(y);
 				hq->Fill(Q2);
 				hr->Fill(rise);
 				hbl->Fill(bl);
 				hblrms->Fill(blrms);
+				hqy->Fill(y,Q2);
 				if(y<alimit1&&y>aRL)
 				//if(y<alimit2&&y>alimit1)
 				//if(y<1.8e-3&&y>1.3e-3)
 					ht->Fill(T2-T1);
 			}
 	}
-	
-	c1->cd();
 	//t1->Draw("MCP2_global_maximum_y>>ha",c_x&&c_blrms);	
+	c[1]->cd();
+	cout<<"program running normly"<<endl;	
 	TF1* a1=gausfit(ha,1,aRL,alimit1);
 	TF1* a2=gausfit(ha,1,alimit1,alimit2);
 	double pe1A=a1->GetParameter(1);
@@ -159,9 +160,9 @@ void SiPM_SPE_Character(const char *rootname="")
 	a1->Draw("same");
 	a2->Draw("same");
     sprintf(buff,"%s_amp.png",name);
-    c1->SaveAs(buff);
+    c[1]->SaveAs(buff);
 
-	c2->cd();
+	c[2]->cd();
     //t1->Draw("MCP2_all_charge>>hq",c_x&&c_blrms);
     TF1* q1=gausfit(hq,1,qRL,qlimit1);
 	//return;
@@ -176,9 +177,9 @@ void SiPM_SPE_Character(const char *rootname="")
 	q2->Draw("same");
 	sprintf(buff,"%s_charge.png",name);
     
-    c2->SaveAs(buff);
+    c[2]->SaveAs(buff);
 	
-	c3->cd();
+	c[3]->cd();
 	//t1->Draw("MCP2_rise_time>>hr",c_x&&c_blrms);
     //TF1* r1=gausfit(hr,1,0,5);
 	TF1* r1=twoguasfit(hr,&rRL,&rRR,0.3,1);
@@ -194,40 +195,44 @@ void SiPM_SPE_Character(const char *rootname="")
 	//q2->Draw("same");
 	sprintf(buff,"%s_risetime.png",name);
     
-    c3->SaveAs(buff);
+    c[3]->SaveAs(buff);
 	//return;
 	
-	c4->cd();		
+	c[4]->cd();		
 	/*	t1->Draw("MCP2_twentypercent_time-MCP1_twentypercent_time>>ht","MCP2_all_charge>0.2&&MCP2_all_charge<8");
 	*/
-	TF1* t=twoguasfit(ht,&tRL,&tRR,0.5,1);
+	TF1* t=twoguasfit(ht,&tRL,&tRR,0.2,2);
 	double STR=t->GetParameter(2);
+	double STRerr=t->GetParError(2);
 	sprintf(buff,"%s_STR.png",name);
     
-    c4->SaveAs(buff);
+    c[4]->SaveAs(buff);
 
-	c5->cd();
+	c[5]->cd();
 	TF1* b1=twoguasfit(hbl,&bRL,&bRR,0.4,1);
 	double pedmean=b1->GetParameter(1)*1e3;
 	double pedmeansigma=b1->GetParameter(2)*1e3;
 	sprintf(buff,"%s_baseline.png",name);
     
-    c5->SaveAs(buff);
+    c[5]->SaveAs(buff);
 
-	c6->cd();
+	c[6]->cd();
 	TF1* b2=twoguasfit(hblrms,&brmsRL,&brmsRR,0.4,1);
 	double pedRMS=b2->GetParameter(1)*1e3;
 	sprintf(buff,"%s_baselinerms.png",name);
     
-    c6->SaveAs(buff);
+    c[6]->SaveAs(buff);
 
-
+	c[0]->cd();
+	hqy->Draw("colz");
+	sprintf(buff,"%s_Qvsy",name);
+	c[0]->SaveAs(buff);
 	
 	
 	cout<<"The spe amplitude (mV) = "<<pe1A*1e3<<endl;
 	cout<<"The spe charge (pC) = "<<speq<<endl;
 	cout<<"The Gain = "<<G<<endl;
-	cout<<"The STR (ps) = "<<STR*1e3<<endl;
+	cout<<"The STR (ps) = "<<STR*1e3<<"\t"<<STRerr*1e3<<endl;
 	cout<<"The ped amp mean (mV) = "<<pedmean<<endl;
 	cout<<"The ped amp sigma (mV) = "<<pedmeansigma<<endl;
 	cout<<"The ped amp RMS (mV) = "<<pedRMS<<endl;
@@ -238,9 +243,9 @@ void SiPM_SPE_Character(const char *rootname="")
 	string time = getTime();
     output<< time << endl;
 	output<<"The spe amplitude (mV) = "<<pe1A*1e3<<endl;
-	output<<"The spe charge (pC) = "<<pe1q<<endl;
+	output<<"The spe charge (pC) = "<<speq<<endl;
 	output<<"The Gain = "<<G<<endl;
-	output<<"The STR (ps) = "<<STR*1e3<<endl;
+	output<<"The STR (ps) = "<<STR*1e3<<"\t"<<STRerr*1e3<<endl;
 	output<<"The ped amp mean (mV) = "<<pedmean<<endl;
 	output<<"The ped amp sigma (mV) = "<<pedmeansigma<<endl;
 	output<<"The ped amp RMS (mV) = "<<pedRMS<<endl;
@@ -248,10 +253,80 @@ void SiPM_SPE_Character(const char *rootname="")
 	output<<"\n"<<endl;
 	
 }
+TH2F* DrawMyHist2d(const char* name,double x1,double x2,double y1,double y2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5)
+{	
+	TH2F *datahist= new TH2F(name,"",200,x1,x2,200,y1,y2);
+	TCanvas *c1 =new TCanvas("c1","c1",800,600);
+	gPad->SetMargin(0.14,0.1,0.14,0.1);
+	datahist->SetLineColor( LColor );
+    datahist->SetLineWidth( LWidth );
+	datahist->GetXaxis()->SetTitle( xtitle);
+     datahist->GetYaxis()->SetTitle( ytitle);
+     datahist->GetXaxis()->SetAxisColor(1);
+     datahist->GetYaxis()->SetAxisColor(1);
+     datahist->GetXaxis()->SetLabelColor(1);
+     datahist->GetYaxis()->SetLabelColor(1);
+     datahist->GetXaxis()->SetLabelFont( 42 );
+     datahist->GetYaxis()->SetLabelFont( 42 );
+     datahist->GetXaxis()->SetLabelSize( 0.06 );
+     datahist->GetYaxis()->SetLabelSize( 0.06 );
+     datahist->GetXaxis()->SetLabelOffset( 0.01 );
+	 datahist->GetXaxis()->SetTitleFont( 42 );
+     datahist->GetYaxis()->SetTitleFont( 42 );
+	 
+	 Color_t TitleColor=1;
+     datahist->GetXaxis()->SetTitleColor( TitleColor);
+     datahist->GetYaxis()->SetTitleColor( TitleColor );
+     datahist->GetXaxis()->SetTitleSize(0.06);
+     datahist->GetYaxis()->SetTitleSize(0.06);
+     datahist->GetXaxis()->SetTitleOffset(1.0);
+     datahist->GetYaxis()->SetTitleOffset(1.0);
+	 //datahist->GetXaxis()->SetBorderSize(5);
+     datahist->GetXaxis()->SetNdivisions(510);
+     datahist->GetYaxis()->SetNdivisions(510);
+     datahist->GetXaxis()->CenterTitle();
+     datahist->GetYaxis()->CenterTitle();
+	 return datahist;
+	 }
+
+TH1F* DrawMyHist(const char* name,double x1,double x2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5 ){
+	
+	TH1F *datahist= new TH1F(name,"",200,x1,x2);
+	TCanvas *c2 =new TCanvas("c2","c2",800,600);
+	gPad->SetMargin(0.14,0.1,0.14,0.1);
+     datahist->SetLineColor( LColor );
+     datahist->SetLineWidth( LWidth );
+	datahist->GetXaxis()->SetTitle( xtitle);
+     datahist->GetYaxis()->SetTitle( ytitle);
+     datahist->GetXaxis()->SetAxisColor(1);
+     datahist->GetYaxis()->SetAxisColor(1);
+     datahist->GetXaxis()->SetLabelColor(1);
+     datahist->GetYaxis()->SetLabelColor(1);
+     datahist->GetXaxis()->SetLabelFont( 42 );
+     datahist->GetYaxis()->SetLabelFont( 42 );
+     datahist->GetXaxis()->SetLabelSize( 0.06 );
+     datahist->GetYaxis()->SetLabelSize( 0.06 );
+     datahist->GetXaxis()->SetLabelOffset( 0.01 );
+     datahist->GetYaxis()->SetLabelOffset( 0.01 );
+     datahist->GetXaxis()->SetTitleFont( 42 );
+     datahist->GetYaxis()->SetTitleFont( 42 );
+	 Color_t TitleColor=1;
+     datahist->GetXaxis()->SetTitleColor( TitleColor);
+     datahist->GetYaxis()->SetTitleColor( TitleColor );
+     datahist->GetXaxis()->SetTitleSize(0.06);
+     datahist->GetYaxis()->SetTitleSize(0.06);
+     datahist->GetXaxis()->SetTitleOffset(1.0);
+     datahist->GetYaxis()->SetTitleOffset(1.1);
+     //datahist->GetXaxis()->SetBorderSize(5);
+     datahist->GetXaxis()->SetNdivisions(510);
+     datahist->GetYaxis()->SetNdivisions(510);
+     datahist->GetXaxis()->CenterTitle();
+     datahist->GetYaxis()->CenterTitle();
+	 return datahist;
+}
 void DrawMyHist1(TH1F *datahist,const char *xtitle,const char *ytitle, Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1){
      datahist->SetLineColor( LColor );
      datahist->SetLineWidth( LWidth );
- 
      datahist->GetXaxis()->SetTitle( xtitle);
      datahist->GetYaxis()->SetTitle( ytitle);
      datahist->GetXaxis()->SetAxisColor(1);
@@ -277,7 +352,6 @@ void DrawMyHist1(TH1F *datahist,const char *xtitle,const char *ytitle, Color_t L
      datahist->GetYaxis()->SetNdivisions(510);
      datahist->GetXaxis()->CenterTitle();
      datahist->GetYaxis()->CenterTitle();
- 
 }
 
 void SetMyPad(TVirtualPad *pad,float left, float right, float top, float bottom){
@@ -319,11 +393,13 @@ TF1* twoguasfit(TH1 *ht,double* tRL,double* tRR,double fac=0.4, int rbt=1){
         //First fit for ensuring the rangement of histgram;
 		TH1* h = (TH1*)ht->Clone();
 		h->Rebin(rbt);
+        double mean = h->GetBinCenter(h->GetMaximumBin());
+        double sigma = h->GetRMS();
 		TF1 *fit = new TF1("fit","gaus",*tRL,*tRR);        
 		h->GetXaxis()->SetRangeUser(*tRL,*tRR);
 		h->Fit(fit);
-        float mean = fit->GetParameter(1);
-        float sigma = TMath::Abs(fit->GetParameter(2));
+        mean = fit->GetParameter(1);
+        sigma = TMath::Abs(fit->GetParameter(2));
 		if(*tRL<mean-5*sigma||sigma>1)
 		{*tRL = mean-5*sigma;
 		*tRR = mean+5*sigma;}
@@ -376,7 +452,7 @@ TF1* twoguasfit(TH1 *ht,double* tRL,double* tRR,double fac=0.4, int rbt=1){
 		
 		cout<<h->GetName()<<"\t"<<*tRL<<"\t"<<*tRR<<endl;
         h->GetXaxis()->SetRangeUser(*tRL,*tRR);
-		return fit_tr;
+		return fit2;
 }
 
 
