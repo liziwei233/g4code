@@ -38,7 +38,11 @@ Double_t response(Double_t x, Double_t par[7]){
 }
 void SPE(){
     Double_t response(Double_t x, Double_t par[7]);
+    
 
+    void DrawMyGraph(TGraph *datagraph, const char *xtitle, const char *ytitle, Float_t MSize=1, Int_t MStyle =28, Color_t MColor=1, Color_t LColor=1, Float_t LWidth=1, Int_t LStyle=1, Color_t FColor=16);
+    void SetMyPad(TVirtualPad *pad,float left, float right, float top, float bottom);
+    TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Double_t yup=0.5, Int_t textFont=62, Size_t textSize=0.05);
     Double_t RL = -5e-9;
 	Double_t RR = 55e-9;
 	Int_t range = 6e3;
@@ -83,59 +87,67 @@ void SPE(){
     for(int j=0;j<range;j++){
 			x[j]=(RR-RL)/range*j+RL;
 			y[j]=response(x[j],SPEpar);
+                        x[j]=x[j]*1e9;
+                        y[j]=y[j]*1e3;
 		}   
 
 	U = TMath::MinElement(range,y);
-	cout<<"the amplitude of signal = "<<U*1000<<"mV"<<endl;
+	//cout<<"the amplitude of signal = "<<U*1000<<"mV"<<endl;
+	cout<<"the amplitude of signal = "<<U<<"mV"<<endl;
 
 	flag1 = 1;
 	flag2 = 1;
 
 	for( int q = 0 ;q < range; q++){
-			if(y[q]<U*0.1&& flag1)
+                    if(q>1){
+			if(y[q]<U*0.1&& y[q-1]>U*0.1&&y[q-2]>U*0.1)
 			//if(yR[q]<Rate*UR && flagR && yR[q]<thrd) 
 			{
 				rise1 = x[q];
-				flag1 = 0;
+				//flag1 = 0;
 				//cout<<"		[+] selected xR = "<<xT0_R<<"\t"<<yR[q]<<endl;
 				}
-			if(y[q]<U*0.9&&flag2) 
+			if(y[q]<U*0.9&&y[q-1]>U*0.9&&y[q-2]>U*0.9) 
 			//if(yL[q]<Rate*UL && flagL && yL[q]<thrd) 
 			{
 				rise2 = x[q];
-				flag2 = 0;
+				//flag2 = 0;
 				//cout<<"		[+] selected xL = "<<xT0_L<<"\t"<<yL[q]<<endl;
 				}
-			if(y[q]>U*0.9&&flag2==0)
+			if(y[q]>U*0.9&&y[q-1]<U*0.9&&y[q-2]<U*0.9)
 			{
 				fall2 = x[q];
-				flag2 = 1;
+				//flag2 = 1;
 			}
-			if(y[q]>U*0.1&&flag1==0)
+			if(y[q]>U*0.1&&y[q-1]<U*0.1&&y[q-2]<U*0.1)
 			{
 				fall1 = x[q];
-				flag1 = 1;
+				//flag1 = 1;
 			}
+                        }
 			sum+=y[q];
 			
 
 				//cout<<" q value"<<q<<endl;
 		}
-	tRise = (rise2-rise1)*1e12;
-	tFall = (fall1-fall2)*1e12;
+	tRise = (rise2-rise1)*1e3;
+	tFall = (fall1-fall2)*1e3;
 	//Q = -1*TMath::Mean(range,y)*range/50*(RR-RL)*1e12; //pC
-	Q = -1*sum/50*10; //pC
+	Q = (x[0]-x[1])*sum/50; //pC
 	Q_act=SPEpar[0]*SPEpar[1]*1e12; //e
 
 	cout<<"rise time = "<<tRise<<"(ps), fall time = "<<tFall<<"(ps)"<<endl;
-	cout<<"the charge = "<<Q<<endl;
-	cout<<"the charge (actrul) = "<<Q_act<<endl;
+	cout<<"the charge = "<<Q<<"pC"<<endl;
+	cout<<"the charge (actual) = "<<Q_act<<"pC"<<endl;
 
     TGraph *g = new TGraph(range,x,y);   
-    //TCanvas *c = new TCanvas("c","",1600,600);
-
-	//c->cd();
-	g->Draw();
+    TCanvas *c = new TCanvas("c","",800,600);
+    DrawMyGraph(g,"Time (ns)","Amplitude (mV)",1,28,1,kRed,3,1,16);
+    SetMyPad(c,0.18,0.1,0.1,0.15);
+	c->cd();
+	g->Draw("AL");
+       g->GetXaxis()->SetRangeUser(-1,3); 
+        /*
 	TAxis *xA = g->GetXaxis();
 	TAxis *yA = g->GetYaxis();
 	g->SetLineWidth(2);
@@ -144,6 +156,99 @@ void SPE(){
 	xA->SetRangeUser(RL,RR);
 	//xA->SetRangeUser(5,10);
 	yA->SetTitle("Amplitude (V)");
-
+*/
     
+}
+
+void DrawMyGraph(TGraph *datagraph, const char *xtitle, const char *ytitle, Float_t MSize=1, Int_t MStyle =28, Color_t MColor=1, Color_t LColor=1, Float_t LWidth=1, Int_t LStyle=1, Color_t FColor=16){
+     datagraph->SetTitle("");
+     datagraph->SetLineColor( LColor );
+     datagraph->SetLineWidth( LWidth );
+     datagraph->SetLineStyle( LStyle );
+     datagraph->SetMarkerSize( MSize );
+     datagraph->SetMarkerStyle( MStyle );
+     datagraph->SetMarkerColor( MColor );
+     datagraph->SetFillColor( FColor );
+     //datagraph->SetFillStyle( FStyle );
+     datagraph->GetXaxis()->SetTitle( xtitle);
+     datagraph->GetYaxis()->SetTitle( ytitle);
+     datagraph->GetXaxis()->SetAxisColor(1);
+     datagraph->GetYaxis()->SetAxisColor(1);
+     datagraph->GetXaxis()->SetLabelColor(1);
+     datagraph->GetYaxis()->SetLabelColor(1);
+     datagraph->GetXaxis()->SetLabelFont( 42 );
+     datagraph->GetYaxis()->SetLabelFont( 42 );
+     datagraph->GetXaxis()->SetLabelSize( 0.05 );
+     datagraph->GetYaxis()->SetLabelSize( 0.05 );
+     datagraph->GetXaxis()->SetLabelOffset( 0.01 );
+     datagraph->GetYaxis()->SetLabelOffset( 0.01 );
+     datagraph->GetXaxis()->SetTitleFont( 42 );
+     datagraph->GetYaxis()->SetTitleFont( 42 );
+     //datagraph->GetXaxis()->SetTitleColor( TitleColor);
+     //datagraph->GetYaxis()->SetTitleColor( TitleColor );
+     datagraph->GetXaxis()->SetTitleSize(0.06);
+     datagraph->GetYaxis()->SetTitleSize(0.06);
+     datagraph->GetXaxis()->SetTitleOffset(1.0);
+     datagraph->GetYaxis()->SetTitleOffset(1.2);
+     datagraph->GetXaxis()->SetNdivisions(510);     
+     datagraph->GetYaxis()->SetNdivisions(505);
+}
+
+TH1F* DrawMyHist(const char* name,double x1,double x2, char *xtitle, char *ytitle, Color_t LColor=1, Width_t LWidth=1.5 ){
+	
+	TH1F *datahist= new TH1F(name,"",200,x1,x2);
+	TCanvas *c2 =new TCanvas("c2","c2",800,600);
+	gPad->SetMargin(0.14,0.1,0.14,0.1);
+     datahist->SetLineColor( LColor );
+     datahist->SetLineWidth( LWidth );
+	datahist->GetXaxis()->SetTitle( xtitle);
+     datahist->GetYaxis()->SetTitle( ytitle);
+     datahist->GetXaxis()->SetAxisColor(1);
+     datahist->GetYaxis()->SetAxisColor(1);
+     datahist->GetXaxis()->SetLabelColor(1);
+     datahist->GetYaxis()->SetLabelColor(1);
+     datahist->GetXaxis()->SetLabelFont( 42 );
+     datahist->GetYaxis()->SetLabelFont( 42 );
+     datahist->GetXaxis()->SetLabelSize( 0.06 );
+     datahist->GetYaxis()->SetLabelSize( 0.06 );
+     datahist->GetXaxis()->SetLabelOffset( 0.01 );
+     datahist->GetYaxis()->SetLabelOffset( 0.01 );
+     datahist->GetXaxis()->SetTitleFont( 42 );
+     datahist->GetYaxis()->SetTitleFont( 42 );
+	 Color_t TitleColor=1;
+     datahist->GetXaxis()->SetTitleColor( TitleColor);
+     datahist->GetYaxis()->SetTitleColor( TitleColor );
+     datahist->GetXaxis()->SetTitleSize(0.06);
+     datahist->GetYaxis()->SetTitleSize(0.06);
+     datahist->GetXaxis()->SetTitleOffset(1.0);
+     datahist->GetYaxis()->SetTitleOffset(1.1);
+     //datahist->GetXaxis()->SetBorderSize(5);
+     datahist->GetXaxis()->SetNdivisions(510);
+     datahist->GetYaxis()->SetNdivisions(510);
+     datahist->GetXaxis()->CenterTitle();
+     datahist->GetYaxis()->CenterTitle();
+	 return datahist;
+}
+void SetMyPad(TVirtualPad *pad,float left, float right, float top, float bottom){
+  pad->SetFillColor(10);
+  pad->SetBorderMode(0);
+  pad->SetBorderSize(0);
+  pad->SetFrameFillColor(10);
+  //pad->SetFrameFillStyle(3003);
+  pad->SetFrameBorderMode(0);
+  pad->SetFrameBorderSize(0);
+  pad->SetLeftMargin(left);
+  pad->SetRightMargin(right);
+  pad->SetTopMargin(top);
+  pad->SetBottomMargin(bottom);
+}
+TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Double_t yup=0.5, Int_t textFont=62, Size_t textSize=0.05){
+  TLegend *leg = new TLegend(xlow,ylow,xup,yup);
+  leg->SetBorderSize(0);
+  leg->SetFillStyle(0);
+  leg->SetFillColor(10);
+  leg->SetTextFont(textFont);
+  leg->SetTextSize(textSize);
+  //leg->Draw("same");
+  return leg;
 }
