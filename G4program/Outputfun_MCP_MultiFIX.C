@@ -10,7 +10,6 @@ TRandom3 r;
 
 using namespace std;
 
-//Double_t outputfunc(Double_t x, vector<double> par);
 Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe);
 Double_t response(Double_t x, Double_t par[7]);
 TF1* pol3fit(TGraph* g,float U_RL, float U_RR);
@@ -84,8 +83,6 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
 
             if(par.at(n)-Tmark<Trecept)
             {
-                //r.SetSeed(par.at(n));
-                //tts = r.Gaus(0,ttssigma); //TTS of MCP-R3805U
                 //cout<<"tts= "<<tts<<endl;
                 val+=response(x-tts.at(n)-par.at(n),SPEpar);
                 counter++;
@@ -97,10 +94,8 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
             else 
             {
                 Tmark=par.at(n);
-                //r.SetSeed(par.at(n));
-                //tts = r.Gaus(0,ttssigma); //TTS of MCP-R3805U
                 //cout<<"tts= "<<tts<<endl;
-                val += response(x - tts.at(n) - par.at(n), SPEpar);
+                val+=response(x-tts.at(n)-par.at(n),SPEpar);
                 counter++;
             }
 
@@ -109,6 +104,7 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
 
     }
     //cout<<"n = "<<n<<endl;
+
     *npe=counter;
     return val;
 
@@ -151,10 +147,9 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
 
 
 
-    void Outputfun_MCP(const char *rootname="",double fac = 0.2, const char* ParType="CFD"){
-    //void Outputfun_MCP(const char *rootname="",double fac = -30, const char* ParType="FIX"){
+    void Outputfun_MCP_MultiFIX(const char *rootname=""){
 
-        cout<<"fac="<<fac<<",dicriminate:"<<ParType<<endl;
+        cout<<"fac=30-360mV"<<",dicriminate Type: FIX"<<endl;
 
         /*===========================================
          * ============Procedure timing start========
@@ -199,15 +194,17 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
         Double_t zoomRL = -2e-9;
         Double_t zoomRR = 8e-9;
         int binNum=0;
-        binNum = (RR-RL)/5e-12;
+        binNum = (RR-RL)/25e-12;
 
         double ttssigma=20e-12;
         const int range =400;  // 25ps/sample
         Double_t thrd = -30; //Umax = -28.94mV
-        double Rate=0;
+       
 
         bool flagR=0,flagL=0;
-        double xT0_L=0,xT0_R=0,xT0=0;
+        double fac=0;
+        double xT0_L[12]={0},xT0_R[12]={0},xT0[12]={0};
+        double percent[12]={0};
         int indexL=0,indexR=0;
         double keypointL=0,keypointR=0;
         double InX=0,InY=0;
@@ -241,18 +238,18 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
         t1->SetBranchAddress("ph.x", &IncidX);
         t1->SetBranchAddress("ph.y", &IncidY);
 
-
         //sprintf(name,"Thrd_%g",abs(thrd));	
 
-        sprintf(buff,"%sdata.root",name);
+        sprintf(buff,"%sdataFIX.root",name);
 
         TFile *f2 = new TFile(buff,"RECREATE");
         TTree *t2 = new TTree("data","restore analysed data  from G4");
         t2->Branch("UL",&UL,"UL/D");
         t2->Branch("UR",&UR,"UR/D");
-        t2->Branch("T0L",&xT0_L,"T0L/D");
-        t2->Branch("T0R",&xT0_R,"T0R/D");
-        t2->Branch("T0",&xT0,"T0/D");	
+        t2->Branch("T0L",xT0_L,"T0L[12]/D");
+        t2->Branch("T0R",xT0_R,"T0R[12]/D");
+        t2->Branch("T0",xT0,"T0[12]/D");
+        t2->Branch("percent",percent,"percent[12]/D");	
         t2->Branch("npeL",&npeL,"npeL/I");	
         t2->Branch("npeR",&npeR,"npeR/I");	
         t2->Branch("InX",&InX,"InX/D");	
@@ -298,8 +295,8 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
             IncidX->clear();
             IncidY->clear();
 
-            //h[0]->Reset();
-            //h[1]->Reset();
+            h[0]->Reset();
+            h[1]->Reset();
 
             //parR.clear();
             //parL.clear();
@@ -315,12 +312,14 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
             //par[i]=r.Gaus(2.4e-9,0.5e-9);
             //par[i]=4e-9;
             t1->GetEntry(i);
-            
             InX = (*IncidX)[0];
             InY = (*IncidY)[0];
-            
             temp = TR->size();
             //cout<<"counterR = "<< temp <<endl;
+            //myFun = new TF1("myFun",outputfunc,RL,RR,temp);
+
+
+
             for(int k=0;k<temp;k++){
                 //cout<< T[][k] <<endl;
                 parR.push_back((*TR)[k]*1e-9);
@@ -348,12 +347,12 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
                 //myFun->SetParameter(k,par[k]);
             }
             
+
             // Initial these variable
             memset(xL, 0, sizeof(xL));
             memset(xR, 0, sizeof(xR));
             memset(yL, 0, sizeof(yL));
             memset(yR, 0, sizeof(yR));
-
             //cout<<"hello"<<endl;
             //cout<<"parL.size() = "<<parL.size()<<endl;
             //cout<<"parR.size() = "<<parR.size()<<endl;
@@ -402,8 +401,6 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
              *================================ 
              *=======ZOOM OUT the leading egde;
              *=================================*/
-
-
             UR = TMath::MinElement(range,yR);
             UL = TMath::MinElement(range,yL);
             /*
@@ -422,25 +419,27 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
             /*=================================
              *=======Discriminate the signal===
              *=================================*/
+            for (int p=0;p<12;p++)
+        {
             flagR = 1;
             flagL = 1;
-            xT0_R = 0;
-            xT0_L = 0 ;
-            xT0 = 0;
-            indexL=0;
-            indexR=0;
+
+            xT0_R[p] = 0;
+            xT0_L[p] = 0 ;
+            xT0[p] = 0;
             keypointL = 0;
             keypointR = 0;
-            if (strcmp(ParType,"FIX")==0) //if the discriminate way is fix threshold discrim
-            {
-                keypointL = fac;
-                keypointR = fac;
-            }
-            else {
-                keypointR = fac*UR;
+            indexL=0;
+            indexR=0;
 
-                keypointL = fac*UL;
-            }
+            fac=-30-p*30;
+            
+            percent[p] = fac;
+
+            keypointR = fac;
+
+            keypointL = fac;
+            
 
 
             for( int q = 0 ;q < range; q++){
@@ -471,23 +470,23 @@ Double_t outputfunc(Double_t x, vector<double> par, vector<double> tts,int* npe)
              * ==================================================*/
             TGraph *gR = new TGraph(range,xR,yR);
             TF1* fitR = pol3fit(gR,xR[indexR]- 60e-3,xR[indexR]+80e-3);
-            xT0_R=fitR->GetX(keypointR)*1e-9;
+            xT0_R[p]=fitR->GetX(keypointR)*1e-9;
 
             //return;
             TGraph *gL = new TGraph(range,xL,yL);
             TF1* fitL = pol3fit(gL,xL[indexL]-60e-3,xL[indexL]+80e-3);
-            xT0_L=fitL->GetX(keypointL)*1e-9;
+            xT0_L[p]=fitL->GetX(keypointL)*1e-9;
             //xT0_L = Discriminate(xL,yL,indexL);
 
-            hSig[1]->Fill(xT0_L);
-            hSig[0]->Fill(xT0_R);
-            if(xT0_L&&xT0_R) xT0 = (xT0_L+xT0_R)*0.5;
-            hSIG->Fill(xT0);
+            hSig[1]->Fill(xT0_L[p]);
+            hSig[0]->Fill(xT0_R[p]);
+            if(xT0_L[p]&&xT0_R[p]) xT0[p] = (xT0_L[p]+xT0_R[p])*0.5;
+            hSIG->Fill(xT0[p]);
             //cout<<"[-] Event No. Filled  xR:xL:x0 = "<<i<<"\t"<<xR[indexR]<<"\t"<<xL[indexL]<<"\t"<<(xR[indexR]+xL[indexL])/2<<endl;
             //cout<<"[-] Event No. Filled  xR:xL:x0 = "<<i<<"\t"<<xT0_R<<"\t"<<xT0_L<<"\t"<<xT0<<endl;
-
+        }
             t2->Fill();
-
+        
 
 
             //cout<<"loop k = "<<k<<endl;
