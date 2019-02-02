@@ -13,6 +13,7 @@ void drawfigure(){
 void DrawMyGraph(TGraph *datagraph, const char *xtitle, const char *ytitle, Float_t MSize=1, Int_t MStyle =28, Color_t MColor=1, Color_t LColor=1, Float_t LWidth=1, Int_t LStyle=1, Color_t FColor=16);
 void DrawMyHist1(TH1 *datahist, const char *xtitle,const char *ytitle, Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
 void DrawMyHist2(TH2 *datahist, const char *xtitle,const char *ytitle, Color_t LColor=1, Width_t LWidth=3, Color_t TitleColor=1);
+void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,float x2,float y1,float y2);
 void SetMyPad(TVirtualPad *pad,float left, float right, float top, float bottom);
 TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Double_t yup=0.5, Int_t textFont=62, Size_t textSize=0.05);
 
@@ -240,6 +241,36 @@ void DrawMyHist2(TH2 *datahist, const char *xtitle,const char *ytitle, Color_t L
      datahist->GetXaxis()->CenterTitle();
      datahist->GetYaxis()->CenterTitle();
 }
+
+void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,float x2,float y1,float y2){
+
+
+        TH1F* hpad = pad->DrawFrame(x1,y1,x2,y2);
+        hpad->GetXaxis()->SetTitle( xname);
+        hpad->GetYaxis()->SetTitle( yname);
+        hpad->GetXaxis()->SetAxisColor(1);
+        hpad->GetYaxis()->SetAxisColor(1);
+        hpad->GetXaxis()->SetLabelColor(1);
+        hpad->GetYaxis()->SetLabelColor(1);
+        hpad->GetXaxis()->SetLabelFont( 42 );
+        hpad->GetYaxis()->SetLabelFont( 42 );
+        hpad->GetXaxis()->SetLabelSize( 0.05 );
+        hpad->GetYaxis()->SetLabelSize( 0.05 );
+        hpad->GetXaxis()->SetLabelOffset( 0.01 );
+        hpad->GetYaxis()->SetLabelOffset( 0.01 );
+        hpad->GetXaxis()->SetTitleFont( 42 );
+        hpad->GetYaxis()->SetTitleFont( 42 );
+        //hpad->GetXaxis()->SetTitleColor( TitleColor);
+        //hpad->GetYaxis()->SetTitleColor( TitleColor );
+        hpad->GetXaxis()->SetTitleSize(0.06);
+        hpad->GetYaxis()->SetTitleSize(0.06);
+        hpad->GetXaxis()->SetTitleOffset(1.0);
+        hpad->GetYaxis()->SetTitleOffset(1.0);
+        pad->Modified();
+        pad->Update();
+
+}
+
 void SetMyPad(TVirtualPad *pad,float left, float right, float top, float bottom){
   pad->SetFillColor(10);
   pad->SetBorderMode(0);
