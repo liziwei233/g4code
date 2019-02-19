@@ -1,4 +1,5 @@
-#include "DrawMyfunc.h"
+#include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
+#include "/mnt/c/Subsys/work/g4code/mycode/Include/LZWfunc.h"
 #include <iostream>
 using namespace std;
 
@@ -180,6 +181,7 @@ void DrawMyfunc::SetPad(TVirtualPad *pad,float left, float bottom, float right, 
   pad->SetTopMargin(top);
   pad->SetBottomMargin(bottom);
 }
+
 TLegend* DrawMyfunc::Leg(Double_t xlow, Double_t ylow, Double_t xup, Double_t yup, Int_t textFont, Size_t textSize){
   TLegend *leg = new TLegend(xlow,ylow,xup,yup);
   leg->SetBorderSize(0);

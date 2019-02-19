@@ -14,9 +14,9 @@ LDFLAGS = `root-config --glibs`
 all: $(OBJECTS) draw
 #testbeam: $(OBJECTS) 
 
-#draw: $(OBJECTS) draw.cpp 
-#	@echo "Building executable 'draw'..."
-#	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+draw: $(OBJECTS) draw.C 
+	@echo "Building executable 'draw'..."
+	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 
 $(OBJDIR)/DrawMyfunc.o: $(SRCDIR)/DrawMyfunc.cpp $(INCDIR)/DrawMyfunc.h 

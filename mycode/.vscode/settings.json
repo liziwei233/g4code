@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.gdml_entity": "html",
+        "*.mac": "coffeescript",
+        "typeinfo": "c",
+        "vector": "c",
+        "array": "c",
+        "string_view": "c",
+        "iostream": "c"
+    }
+}

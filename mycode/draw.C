@@ -1,9 +1,8 @@
-#include "DrawMyfunc.h"
+#include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
 
-int main()
-//void draw()
+//int main()
+int draw()
 {
-    
 float x1[]={0,0.1,6,12}; //deep=width changed
 float y1[]={3.9,3.7,3.8,3.6};
 float y2[]={2011,2011,2012,2011};
@@ -16,13 +15,26 @@ TGraph *g2 = new TGraph(n,x1,y2);
 TGraph *g3 = new TGraph(n,x1,y3);
 
 TH1F *h1 = new TH1F("h1","",100,-1,1);
+h1->FillRandom("gaus",1e3);
 TF1 *f1 = new TF1("f1","sin(x)",-1,1);
 TCanvas *c1 = new TCanvas("c1","",800,600);
 c1->cd();
 DrawMyfunc* draw;
 draw->Hist(h1,"x axis","y axis",3,2,4,2);
+draw->SetPad(c1,0.1,0.14,0.05,0.05);
+
+//DrawMyfunc::SetPad(c1,0.1,0.14,0.05,0.05);
 h1->Draw();
+TLegend *leg=draw->Leg();
+leg->AddEntry(g1,"g1 g1 g1","lp");
+leg->Draw();
+TLatex *l=draw->Latex("this is a text");
+l->Draw();
 c1->SaveAs("c1.png");
 
 return 0;
+}
+
+int main(){
+    return draw();
 } 

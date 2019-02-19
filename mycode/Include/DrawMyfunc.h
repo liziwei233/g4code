@@ -9,7 +9,7 @@
 #include "TGraph.h"
 #include "TLatex.h"
 #include "TLegend.h"
-
+#include "TVirtualPad.h"
 
 class DrawMyfunc
 {
