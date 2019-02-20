@@ -1,4 +1,4 @@
-#include "/mnt/c/Subsys/work/g4code/mycode/Include/LZWfunc.h"
+#include "../Include/LZWfunc.h"
 #include <iostream>
 using namespace std;
 
@@ -41,6 +41,23 @@ TF1* LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE U)
 
     return fitU;
 }
+
+// #define __PEAKS_C_FIT_AREAS__ 1 /* fit peaks' areas */
+Double_t LZWfunc::fpeaks(Double_t *x, Double_t *par) {
+   Double_t result = par[0] + par[1]*x[0];
+   for (Int_t p=0;p<30;p++) {
+      Double_t norm  = par[3*p+2]; // "height" or "area"
+      Double_t mean  = par[3*p+3];
+      Double_t sigma = par[3*p+4];
+#if defined(__PEAKS_C_FIT_AREAS__)
+      norm /= sigma * (TMath::Sqrt(TMath::TwoPi())); // "area"
+#endif /* defined(__PEAKS_C_FIT_AREAS__) */
+      result += norm*TMath::Gaus(x[0],mean,sigma);
+   }
+   return result;
+}
+
+
 TF1* LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE* U)
 {
 

@@ -2,11 +2,11 @@
 #include <time.h>
 #include <TString.h>
 
-#include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
-#include "/mnt/c/Subsys/work/g4code/mycode/Include/LZWfunc.h"
+#include "Include/DrawMyfunc.h"
+#include "Include/LZWfunc.h"
 
 using namespace std;
-void SPEchar(const char *rootname="/mnt/f/experiment/FTOF/SIPM/labtest/0108/BFP650_v2_s2/FEboardA_ch2"){
+void SPEchar(const char *rootname="FEboardA_ch2"){
 
 	gStyle->SetOptFit(1111);
 
@@ -51,7 +51,7 @@ void SPEchar(const char *rootname="/mnt/f/experiment/FTOF/SIPM/labtest/0108/BFP6
     LZWfunc lzw;
 
 	TCanvas *c[7];
-	for (int i=0;i<7;i++){
+	for (int i=1;i<2;i++){
     	sprintf(buff,"C%d",i);
         c[i]= new TCanvas(buff,buff,800,600);
     	draw.SetPad(gPad,0.12,0.12,0.1,0.1);
@@ -60,7 +60,7 @@ void SPEchar(const char *rootname="/mnt/f/experiment/FTOF/SIPM/labtest/0108/BFP6
     TH1F *hq = new TH1F("hq",";charge (pC);Counts",200,chR.q.L,chR.q.R);
 	draw.Hist(hq,"charge (pC)","Counts",2);
 
-	TH1F *ha = new TH1F("ha",";Amp(V);Counts",200,chR.y.L,chR.y.R);
+	TH1F *ha = new TH1F("ha",";Amp(V);Counts",400,chR.y.L,chR.y.R);
 	draw.Hist(ha,"Amp(V)","Counts",2);
 	
 	TH1F *hr = new TH1F("hr",";risetime (ns);Counts",200,chR.r.L,chR.r.R);
@@ -68,7 +68,7 @@ void SPEchar(const char *rootname="/mnt/f/experiment/FTOF/SIPM/labtest/0108/BFP6
 	
 	TH1F *ht = new TH1F("ht","",200,chR.t.L,chR.t.R);
 	draw.Hist(ht,"STR (ps)","Counts",2);
-	
+
 	TH1F *hbl = new TH1F("hbl","",400,chR.bl.L,chR.bl.R);
 	draw.Hist(hbl,"baseline (V)","Counts",2);
 	TGaxis::SetMaxDigits(3);
@@ -130,12 +130,21 @@ void SPEchar(const char *rootname="/mnt/f/experiment/FTOF/SIPM/labtest/0108/BFP6
     lzw.Set_charcut(chcut);
     RANGE t=chR.t;
     RANGE U={0,0.05};
-    lzw.CH1Correction(t1,&A,&t0,t,U,rbU,rbt,fac,iter);
+    //lzw.CH1Correction(t1,&A,&t0,t,U,rbU,rbt,fac,iter);
 
-/*
+
 	//t1->Draw("MCP2_global_maximum_y>>ha",c_x&&c_blrms);	
 	c[1]->cd();
 	cout<<"program running normly"<<endl;	
+	TSpectrum *s = new TSpectrum(20,10);
+	int nfound = s->Search(ha,2e-3,"",0.05);
+	printf("Found %d candidate peaks to fit\n",nfound);
+	ha->Draw();
+	return;
+	double *xpeaks;
+	xpeaks = s->GetPositionX();
+
+/*
 	TF1* a1=gausfit(ha,1,aRL,alimit1);
 	TF1* a2=gausfit(ha,1,alimit1,alimit2);
 	double pe1A=a1->GetParameter(1);

@@ -10,7 +10,9 @@
 #include "TGraph.h"
 #include "TLatex.h"
 #include "TLegend.h"
-#include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
+#include "DrawMyfunc.h"
+#include "TSpectrum.h"
+#include "TVirtualFitter.h"
 
 
 using namespace std;
@@ -45,6 +47,7 @@ class LZWfunc
     ~LZWfunc();
     
 
+    Double_t fpeaks(Double_t *x, Double_t *par);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE U);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE* U);
     TF1* twoguasfit(TH1 *ht, double fac, int rbt, RANGE* t);

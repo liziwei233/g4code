@@ -1,5 +1,8 @@
-#include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
-#include "/mnt/c/Subsys/work/g4code/mycode/Include/LZWfunc.h"
+//#include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
+//#include "/mnt/c/Subsys/work/g4code/mycode/Include/LZWfunc.h"
+//#include "/Users/liziwei/learning/g4code/mycode/Include/LZWfunc.h"
+#include "../Include/LZWfunc.h"
+#include "../Include/DrawMyfunc.h"
 #include <iostream>
 using namespace std;
 
