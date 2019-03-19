@@ -1,13 +1,14 @@
 //#include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
 //#include "/mnt/c/Subsys/work/g4code/mycode/Include/LZWfunc.h"
 //#include "/Users/liziwei/learning/g4code/mycode/Include/LZWfunc.h"
-#include "../Include/LZWfunc.h"
+//#include "../Include/LZWfunc.h"
 #include "../Include/DrawMyfunc.h"
 #include <iostream>
 using namespace std;
 
 DrawMyfunc::DrawMyfunc(){
-    ;
+    XTitleOffset=1.0;
+    YTitleOffset=1.0;
 }
 
 DrawMyfunc::~DrawMyfunc()
@@ -66,8 +67,8 @@ void DrawMyfunc::Graph(TGraph *datagraph, const char *xtitle, const char *ytitle
      datagraph->GetYaxis()->SetLabelColor(LColor);
      datagraph->GetXaxis()->SetLabelFont( 42 );
      datagraph->GetYaxis()->SetLabelFont( 42 );
-     datagraph->GetXaxis()->SetLabelSize( 0.10 );
-     datagraph->GetYaxis()->SetLabelSize( 0.10 );
+     datagraph->GetXaxis()->SetLabelSize( 0.05 );
+     datagraph->GetYaxis()->SetLabelSize( 0.05 );
      datagraph->GetXaxis()->SetLabelOffset( 0.01 );
      datagraph->GetYaxis()->SetLabelOffset( 0.01 );
      datagraph->GetXaxis()->SetTitleFont( 42 );
@@ -76,13 +77,14 @@ void DrawMyfunc::Graph(TGraph *datagraph, const char *xtitle, const char *ytitle
      //datagraph->GetYaxis()->SetTitleColor( TitleColor );
      datagraph->GetXaxis()->SetTitleSize(0.06);
      datagraph->GetYaxis()->SetTitleSize(0.06);
-     datagraph->GetXaxis()->SetTitleOffset(0.8);
-     datagraph->GetYaxis()->SetTitleOffset(0.8);
+     datagraph->GetXaxis()->SetTitleOffset(XTitleOffset);
+     datagraph->GetYaxis()->SetTitleOffset(YTitleOffset);
      datagraph->GetXaxis()->SetNdivisions(510);     
      datagraph->GetYaxis()->SetNdivisions(505);
 }
 
 void DrawMyfunc::Hist(TH1 *datahist, const char *xtitle,const char *ytitle, Float_t LWidth, Int_t LStyle, Color_t LColor, Color_t TitleColor){
+     
      datahist->SetLineColor( LColor );
      datahist->SetLineWidth( LWidth );
      datahist->SetLineStyle( LStyle );
@@ -104,13 +106,15 @@ void DrawMyfunc::Hist(TH1 *datahist, const char *xtitle,const char *ytitle, Floa
      datahist->GetYaxis()->SetTitleColor( TitleColor );
      datahist->GetXaxis()->SetTitleSize(0.06);
      datahist->GetYaxis()->SetTitleSize(0.06);
-     datahist->GetXaxis()->SetTitleOffset(1.0);
-     datahist->GetYaxis()->SetTitleOffset(0.8);
+     datahist->GetXaxis()->SetTitleOffset(XTitleOffset);
+     datahist->GetYaxis()->SetTitleOffset(YTitleOffset);
      //datahist->GetXaxis()->SetBorderSize(5);
-     datahist->GetXaxis()->SetNdivisions(510);     
+     datahist->GetXaxis()->SetNdivisions(505);     
      datahist->GetYaxis()->SetNdivisions(510);
      datahist->GetXaxis()->CenterTitle();
      datahist->GetYaxis()->CenterTitle();
+     
+     
 }
 void DrawMyfunc::Hist(TH2 *datahist, const char *xtitle,const char *ytitle, Float_t LWidth, Int_t LStyle, Color_t LColor, Color_t TitleColor){
      datahist->SetLineColor( LColor );
@@ -133,8 +137,8 @@ void DrawMyfunc::Hist(TH2 *datahist, const char *xtitle,const char *ytitle, Floa
      datahist->GetYaxis()->SetTitleColor( TitleColor );
      datahist->GetXaxis()->SetTitleSize(0.06);
      datahist->GetYaxis()->SetTitleSize(0.06);
-     datahist->GetXaxis()->SetTitleOffset(1.0);
-     datahist->GetYaxis()->SetTitleOffset(0.8);
+     datahist->GetXaxis()->SetTitleOffset(XTitleOffset);
+     datahist->GetYaxis()->SetTitleOffset(YTitleOffset);
      //datahist->GetXaxis()->SetBorderSize(5);
      datahist->GetXaxis()->SetNdivisions(510);     
      datahist->GetYaxis()->SetNdivisions(510);
@@ -164,8 +168,8 @@ void DrawMyfunc::Pad(TVirtualPad *pad,const char* xname,const char* yname,float 
         //hpad->GetYaxis()->SetTitleColor( TitleColor );
         hpad->GetXaxis()->SetTitleSize(0.06);
         hpad->GetYaxis()->SetTitleSize(0.06);
-        hpad->GetXaxis()->SetTitleOffset(1.0);
-        hpad->GetYaxis()->SetTitleOffset(1.0);
+        hpad->GetXaxis()->SetTitleOffset(XTitleOffset);
+        hpad->GetYaxis()->SetTitleOffset(YTitleOffset);
         pad->Modified();
         pad->Update();
 
@@ -195,12 +199,37 @@ TLegend* DrawMyfunc::Leg(Double_t xlow, Double_t ylow, Double_t xup, Double_t yu
   //leg->Draw("same");
   return leg;
 }
-TLatex* DrawMyfunc::Latex(char* text, Double_t x, Double_t y, Int_t textFont, Size_t textSize, Color_t colorIndex){
+TLatex* DrawMyfunc::Latex( Double_t x, Double_t y,const char* text, Int_t textFont, Size_t textSize, Color_t colorIndex){
   TLatex *latex = new TLatex(x,y,text);
   latex->SetNDC();
   latex->SetTextFont(textFont);
   latex->SetTextSize(textSize);
   latex->SetTextColor(colorIndex);
-  latex->Draw("same");
+  //latex->Draw("same");
   return latex;
+}
+void DrawMyfunc::Setstat(TH1* datahist, double x1,double y1,double x2,double y2){
+     
+     TPaveStats *st = (TPaveStats*)datahist->FindObject("stats");
+     st->SetX1NDC(x1);
+     st->SetX2NDC(x2);
+     st->SetY1NDC(y1);
+     st->SetY2NDC(y2);
+}
+
+TPad* DrawMyfunc::BuildPad(const int Npad, double* ratio){
+  //* example : build 3 pad ,and the ratio is 1:3:5
+  //* so set Npad=3, ratio[3]={1,3,5}
+  char buff[1024];
+  TPad* pad[Npad];
+  double y[NPad];
+  double hp=0.98;
+  for(int i=0;i<Npad;i++)
+  {
+    y[i]=hp-(0.98-0.01)*ratio[i]/TMath::Mean(Npad,ratio)*Npad;
+    sprintf(buff,"pad%d",i);
+    pad[i]=new TPad(buff,"",0.01,y[i],0.98,hp);
+    hp=y[i];
+  }
+  return pad;
 }

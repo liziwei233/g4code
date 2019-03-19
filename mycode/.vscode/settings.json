@@ -6,6 +6,15 @@
         "vector": "c",
         "array": "c",
         "string_view": "c",
-        "iostream": "c"
-    }
+        "iostream": "c",
+        "*.tcc": "c",
+        "deque": "c",
+        "unordered_map": "c",
+        "system_error": "c"
+    },
+    "editor.quickSuggestionsDelay": 30,
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.autoClosingBrackets": "always",
+    "C_Cpp.errorSquiggles": "Disabled",
 }

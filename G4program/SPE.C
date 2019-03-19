@@ -6,7 +6,8 @@
 #include <TStyle.h>
 #include <TRandom.h>
 
-Double_t response(Double_t x, Double_t par[7]){
+Double_t response(Double_t* xx, Double_t* par){
+	double x=xx[0];
 	Double_t G = par[0];
 	Double_t Q = par[1];
 	Double_t Ca = par[2];
@@ -15,7 +16,7 @@ Double_t response(Double_t x, Double_t par[7]){
 	Double_t Z = par[5];
 	Double_t rise = par[6];
 
-	Double_t val = 0;
+	Double_t val = 0.;
 	Double_t a,b,beta,gamma;
 	
 	// how to accumulate these single photon signal?
@@ -36,8 +37,52 @@ Double_t response(Double_t x, Double_t par[7]){
 
 	
 }
+Double_t rsps(Double_t* xx, Double_t* par){
+	double x=xx[0];
+	
+	Double_t G = par[0];
+	Double_t Ca = par[1];
+	Double_t C = par[2];
+	Double_t R = par[3];
+	Double_t rise = par[4];
+	
+	Double_t Q = 1.6e-19;
+	Double_t Z = 50;
+
+	double t=par[5];
+	
+	/*
+	SPEpar[0]=1e6;  //Gain
+	SPEpar[2]=2.65e-12;  //Ca  ??
+	SPEpar[3]=12e-12; //C
+	SPEpar[4]=10e3;    //R   ??
+	SPEpar[6]=90e-12;  //rise time
+*/
+
+	Double_t val = 0.;
+	Double_t a,b,beta,gamma;
+	
+	// how to accumulate these single photon signal?
+	// which distribution does t0 sample? 
+	//!! get t0 by result of simulation!!
+	
+	beta = ((R+Z)*C+2.0*Ca*R)/(2.0*C*Ca*R*Z);
+	gamma = 1.0/(2.0*C*Ca*R*Z);
+	a = -(beta+TMath::Sqrt(beta*beta-4.0*gamma))/2.0;
+	b = -(beta-TMath::Sqrt(beta*beta-4.0*gamma))/2.0;
+	
+	val = -0.5*G*Q*(b*TMath::Exp(b*(x-t)+0.5*b*b*rise*rise)*TMath::Erfc((-b*rise-(x-t)/rise)/TMath::Sqrt(2.0))-a*TMath::Exp(a*(x-t)+0.5*a*a*rise*rise)*TMath::Erfc((-a*rise-(x-t)/rise)/TMath::Sqrt(2.0)))/(Ca*(b-a));
+	
+	
+	
+	return val;
+
+
+	
+}
 void SPE(){
-    Double_t response(Double_t x, Double_t par[7]);
+	Double_t rsps(Double_t* xx, Double_t* par);
+    Double_t response(Double_t* xx, Double_t* par);
     
 
     void DrawMyGraph(TGraph *datagraph, const char *xtitle, const char *ytitle, Float_t MSize=1, Int_t MStyle =28, Color_t MColor=1, Color_t LColor=1, Float_t LWidth=1, Int_t LStyle=1, Color_t FColor=16);
@@ -86,7 +131,7 @@ void SPE(){
 
     for(int j=0;j<range;j++){
 			x[j]=(RR-RL)/range*j+RL;
-			y[j]=response(x[j],SPEpar);
+			y[j]=response(&x[j],SPEpar);
                         x[j]=x[j]*1e9;
                         y[j]=y[j]*1e3;
 		}   

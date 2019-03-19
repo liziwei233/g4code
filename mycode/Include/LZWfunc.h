@@ -2,6 +2,7 @@
 #ifndef __LZWfunc_h__
 #define __LZWfunc_h__
 
+#include "TTree.h"
 #include "TCanvas.h"
 #include "TMath.h"
 #include "TF1.h"
@@ -13,32 +14,66 @@
 #include "DrawMyfunc.h"
 #include "TSpectrum.h"
 #include "TVirtualFitter.h"
-
+#include "TPaveStats.h"
+#include "TList.h"
 
 using namespace std;
+//*
+//* if run for geant4 data, disable the notation below
+#define G4_FLAG
+
+
+
 
 ofstream output;
-struct EVENT{
-    double time,CFD[20],LED[20],Amp,Q,rise,bl,blrms,x;
-    int npe;
-};
-struct CUT{
-    double Amplow,Ampup;
-    double Qlow,Qup;
-    double riselow,riseup;
-};
-struct POSITION{
+
+
+
+
+
+
+
+typedef struct POSITION{
     double x;
     double y;
-};
+    double z;
+}DIRECTION;
+
 struct RANGE{
     double L;
     double R;
 };
-struct charRANGE{
-    RANGE x,y,q,r,bl,blrms,t;
+
+struct OPTION{
+    int rbt,rbu,iter;
+    double fac;
 };
 
+struct gausPAR{
+    double h; //height 
+    double m; //mean
+    double s;  //sigma
+    bool operator < (const gausPAR & gP) const {//symbol overloading
+            return m<gP.m;
+    }
+}; 
+
+#ifndef G4_FLAG
+struct EVENT{
+    double time,CFD[20],LED[20],Amp,Q,rise,bl,blrms,x;
+};
+typedef struct charRANGE{
+    RANGE x,y,q,r,bl,blrms,t;
+}CUT;
+#else
+struct EVENT{
+    double time,CFD[20],LED[20],Amp;
+    int npe;
+};
+typedef struct charRANGE{
+    RANGE y,t,npe;
+}CUT;
+#endif
 
 class LZWfunc
 {
@@ -48,24 +83,22 @@ class LZWfunc
     
 
     Double_t fpeaks(Double_t *x, Double_t *par);
+    TF1* fpeaksfit(TH1 *ha,int npeaks,double res,double sigma, double thrd);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE U);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE* U);
     TF1* twoguasfit(TH1 *ht, double fac, int rbt, RANGE* t);
     TF1* twoguasfit(TH1 *ht, double fac, int rbt, RANGE t);
     TF1* profilefit(TH2 *Rt, double rbU, double rbt, RANGE t, RANGE U, char *name);
-    TF1* CH3Correction(TTree *t1, EVENT *A, EVENT *B, EVENT *MCP, CUT basecut, CUT selcut, int rbU, int rbt, char *name, double fac, int iter, RANGE t, RANGE U);
-    void CH3Correction(TTree *t1, vector<EVENT *> ch, double* p, int rbU, int rbt, double fac, int iter);
-    TF1* CH2Correction(TTree *t1, EVENT *A, EVENT *B, EVENT *MCP, CUT basecut, CUT selcut, int rbU, int rbt, char *name, double fac, int iter, RANGE t, RANGE U);
-    TF1* CH2Correction(TTree *t1, EVENT *A, EVENT *B, double Uth, int rbU, int rbt, char *name, double fac, int iter, RANGE t, RANGE U);
-    TF1* CH2Correction(TTree * t1, EVENT * A, EVENT * B, POSITION * pos, double range, int rbU, int rbt, char *name, double fac, int iter, RANGE t,RANGE U);
-    TF1* CH2Correction(TTree* t1,EVENT* A,EVENT* B,double* p,int rbU,int rbt,char* name,double fac,int iter, RANGE t, RANGE U);
-    void CH2Correction(TTree* t1,vector<EVENT*> ch, double* p,int rbU,int rbt,double fac,int iter);
     
-    TF1* CH1Correction(TTree * t1, EVENT * A, EVENT * B, double *p, int rbU, int rbt, char *name, double fac, int iter, RANGE t, RANGE U);
-    void CH1Correction(TTree * t1, EVENT * A, double * t0, RANGE t,RANGE U, int rbU, int rbt,  double fac, int iter);
-
+    void CH3Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<charRANGE> range, vector<CUT> cut, OPTION opt, string name);
+    TF1 *CH3Correction(TTree *t1, vector<EVENT *> ch, vector<charRANGE> range, vector<CUT> cut, OPTION opt, string name);
+    TF1 *CH2Correction(TTree *t1, vector<EVENT *> ch, vector<charRANGE> range, vector<CUT> cut, OPTION opt, string name);
+    void CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<charRANGE> range, vector<CUT> cut, OPTION opt, string name);
+    TF1 *CH1Correction(TTree *t1, EVENT *A, charRANGE range, CUT cut, OPTION opt, string name);
+    TF1 *CH1Correction(TTree *t1, EVENT *A, double *t0, charRANGE range, CUT cut, OPTION opt, string name);
     void drawcharacter(TTree *t3, int chN, string* chname, vector<charRANGE> chR);
 
+    bool ifstat(EVENT ch, CUT cut);
     string getTime();
 
 
@@ -110,9 +143,21 @@ class LZWfunc
         return chR.at(chN);
     };
    
-    
+    int Get_npk(){
+        return npk;
+    }
+
+    gausPAR* Get_PeakPar(){
+        return gPar;
+    }
+    void SetADD(bool val){
+        ADD=val;
+    }
 
     private:
+    
+    bool ADD;
+    
     vector<CUT> cut;
     vector<RANGE> U;
     RANGE t;
@@ -120,6 +165,8 @@ class LZWfunc
     charRANGE charcut;
     vector<charRANGE> chR;
     char buff[1024];
+    int npk;
+    gausPAR gPar[100];
     /*TCanvas* c1;
     float MSize;
     float MStyle;

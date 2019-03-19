@@ -1,3 +1,16 @@
+//
+//* Environment: 
+//**     class LZWfunc
+//**     class DrawMyfunc
+//* Data: 
+//*      .root file obtaied by .trc files of Oscilloscope.
+//* Function:
+//**     Caculate the time resolution of SiPM test.
+//* Date: 2019.3.19
+//*
+//***********************************
+//
+
 #include "/mnt/c/Subsys/work/g4code/mycode/Include/DrawMyfunc.h"
 #include "/mnt/c/Subsys/work/g4code/mycode/Include/LZWfunc.h"
 #include <TMath.h>
