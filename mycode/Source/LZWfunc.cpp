@@ -145,6 +145,138 @@ TF1 *LZWfunc::fpeaksfit(TH1 *ha, int npeaks, double res, double sigma, double th
     //gPad->Update();
     return fit;
 }
+double LZWfunc::pmtfun(double *x, double *par){
+  Double_t val = 0.;
+  Double_t amp = par[0];
+  Double_t lambda = par[1];
+  Double_t ped = par[2];
+  Double_t pedSigma = par[3];
+  Double_t peak = par[4];
+  Double_t  sigma = par[5];
+  Double_t bw = par[6];
+
+  //TF1 *myGaus = new TF1("myGaus","[0]*exp(-pow((x-[1])/[2],2)/2.)/sqrt(2.*TMath::Pi()*pow([2],2))",0,4000);
+  //myGaus->SetParameters(TMath::PoissonI(0,lambda), ped, pedSigma);
+  //val += myGaus->Eval(x[0]);
+  val += TMath::PoissonI(0,lambda)*TMath::Gaus(x[0], ped , pedSigma, kTRUE);
+
+  for(int i=1;i<4;i++) {
+    //myGaus->SetParameters(TMath::PoissonI(i,lambda), ped+i*peak, sigma*sqrt(i));// CHANGED!!
+    //val += myGaus->Eval(x[0]);
+    val += TMath::PoissonI(i,lambda)*TMath::Gaus(x[0], ped + i*peak, sigma*sqrt(i), kTRUE);
+  }
+
+  //delete myGaus;
+  return amp*val*bw;
+}
+
+TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
+{
+    TH1 *hqdc = (TH1 *)h->Clone();
+    hqdc->Draw();
+    hqdc->Rebin(rbq);
+    hqdc->SetLineColor(1);
+    TF1 *myGaus = new TF1("myGaus","gaus",0,4000);
+    int ibin =  hqdc->GetMaximumBin();
+    double pedMean = hqdc->GetBinCenter(ibin);
+    //
+    //* try to fit pedstal
+    hqdc->Fit(myGaus,"","",0, pedMean+30);//???????????
+    pedMean = myGaus->GetParameter(1);
+    double pedSigma = myGaus->GetParameter(2);
+    //
+    //* fit pedstal formly
+    hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
+    pedMean = myGaus->GetParameter(1);
+    pedSigma = myGaus->GetParameter(2);
+    /*
+    hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
+    pedMean = myGaus->GetParameter(1);
+    pedSigma = myGaus->GetParameter(2);
+    */
+
+    TF1 *myFun = new TF1("myFun",pmtfun,u.L,u.R,7);
+    //LZWfunc *myfunc = new LZWfunc();
+    //TF1 *myFun = new TF1("myFun", myfunc, &LZWfunc::pmtfun, u.L, u.R, 7);
+    myFun->SetParNames("N","#lambda","#mu_{ped}","#sigma_{ped}","#mu","#sigma", "BW");
+    if(pedSigma>5) hqdc->GetXaxis()->SetRangeUser(pedMean+12*pedSigma,u.R);
+    else  hqdc->GetXaxis()->SetRangeUser(pedMean+30,u.R);//????????????????
+//return;
+    ibin = hqdc->GetMaximumBin();
+    double mean = hqdc->GetBinCenter(ibin)-pedMean;
+    double sigma = hqdc->GetRMS();
+
+    double mean2 = hqdc->GetMean()-pedMean;
+    if(mean2/mean>5) mean = mean2;
+
+    cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
+
+     //Int_t ibin =  h->GetMaximumBin();
+  myFun->SetParameters(hqdc->GetEntries(), 0.1, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(1));
+  myFun->FixParameter(0, hqdc->GetEntries());//fix total yield
+  myFun->FixParameter(6, hqdc->GetBinWidth(1));//fix bin width
+  myFun->SetParLimits(2, pedMean-0.0001,pedMean+0.0001);//fix pedestal mean
+  myFun->SetParLimits(3, pedSigma-0.000001,pedSigma+0.000001);//fix pedestal sigma
+  myFun->SetParLimits(4, 1., u.R);//>10 for 1400V
+  myFun->SetParLimits(5, 0, u.R);
+  if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
+  else myFun->SetRange(pedMean+30,  u.R);
+  //return;
+  cout<<" first fitting..."<<endl;
+  hqdc->Fit(myFun,"R");
+  mean=myFun->GetParameter(4);//return;
+  sigma = myFun->GetParameter(5);
+  myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  u.R);
+  cout<<" second fitting..."<<endl;
+  myFun->SetParLimits(4,mean/2., u.R);
+  hqdc->Fit(myFun,"R");
+  cout<<" fitting done"<<endl;
+  mean = myFun->GetParameter(4);
+  sigma = myFun->GetParameter(5);
+  Double_t par[10], parErr[10];
+  for(int j=0;j<7;j++) {
+    par[j] = myFun->GetParameter(j);
+    parErr[j] = myFun->GetParError(j);
+  }
+
+  Double_t xmin = 0;
+  if((pedMean-15*pedSigma)>0) xmin = pedMean-12*pedSigma;
+  if(par[1]>2) hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+10*mean);
+  else if(par[1]>1) hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+7*mean);
+  else if(par[1]>0.1) hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+5*mean);
+  else if(par[1]>0.05) hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+4*mean);
+  else hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+4*mean);
+
+  hqdc->SetLineWidth(1.5);
+  myGaus->SetLineWidth(1);
+  myGaus->SetLineColor(4);
+  myGaus->Draw("same");
+
+  myFun->SetNpx(1000);
+  //myFun->SetLineWidth(1);
+  myFun->SetLineColor(1);
+  //myFun->SetLineStyle(7);
+  Double_t xmin, xmax;
+  myFun->GetRange(xmin, xmax);
+  myFun->SetRange(0, xmax);
+  myFun->DrawCopy("same");
+  myFun->SetLineStyle(1);
+  myFun->SetLineWidth(3);
+  myFun->SetRange(pedMean-4*pedSigma, xmax);
+  //myFun->Draw("same");
+
+  TF1 *peakFun[10];
+  for(int j=1;j<4;j++) {
+    sprintf(buf,"peakFun%d",j);
+    peakFun[j] = new TF1(buf,"[0]*exp(-pow((x-[1])/[2],2)/2.)/sqrt(2.*TMath::Pi()*pow([2],2))",0,u.R);
+    peakFun[j]->SetParameters(TMath::PoissonI(j, par[1])*par[0]*par[6], par[2]+j*par[4], par[5]*sqrt(1.0*j));//CHANGED!!
+    peakFun[j]->SetLineColor(2);
+    peakFun[j]->SetLineWidth(2);
+    peakFun[j]->Draw("same");
+  }
+
+  myFun->Draw("same");
+}
 
 TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE U)
 {

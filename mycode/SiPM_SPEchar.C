@@ -19,7 +19,7 @@
 #include "Include/LZWfunc.h"
 
 using namespace std;
-void SPEchar(const char *rootname="FEboardA_ch2"){
+void SiPM_SPEchar(const char *rootname="FEboardA_ch2"){
 
 	gStyle->SetOptFit(1111);
 

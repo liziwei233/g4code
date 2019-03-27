@@ -84,6 +84,10 @@ class LZWfunc
 
     Double_t fpeaks(Double_t *x, Double_t *par);
     TF1* fpeaksfit(TH1 *ha,int npeaks,double res,double sigma, double thrd);
+    
+    double pmtfun(double *x,double *par);
+    TF1* SPSfit(TH1* h,int rbq,RANGE u);
+
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE U);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE* U);
     TF1* twoguasfit(TH1 *ht, double fac, int rbt, RANGE* t);
