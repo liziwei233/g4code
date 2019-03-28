@@ -20,7 +20,7 @@
 using namespace std;
 //*
 //* if run for geant4 data, disable the notation below
-#define G4_FLAG
+//#define G4_FLAG
 
 
 

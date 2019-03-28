@@ -222,7 +222,7 @@ TPad* DrawMyfunc::BuildPad(const int Npad, double* ratio){
   //* so set Npad=3, ratio[3]={1,3,5}
   char buff[1024];
   TPad* pad[Npad];
-  double y[NPad];
+  double y[Npad];
   double hp=0.98;
   for(int i=0;i<Npad;i++)
   {
@@ -231,5 +231,5 @@ TPad* DrawMyfunc::BuildPad(const int Npad, double* ratio){
     pad[i]=new TPad(buff,"",0.01,y[i],0.98,hp);
     hp=y[i];
   }
-  return pad;
+  return pad[Npad];
 }

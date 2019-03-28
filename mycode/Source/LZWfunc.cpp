@@ -160,7 +160,7 @@ double LZWfunc::pmtfun(double *x, double *par){
   //val += myGaus->Eval(x[0]);
   val += TMath::PoissonI(0,lambda)*TMath::Gaus(x[0], ped , pedSigma, kTRUE);
 
-  for(int i=1;i<4;i++) {
+  for(int i=1;i<5;i++) {
     //myGaus->SetParameters(TMath::PoissonI(i,lambda), ped+i*peak, sigma*sqrt(i));// CHANGED!!
     //val += myGaus->Eval(x[0]);
     val += TMath::PoissonI(i,lambda)*TMath::Gaus(x[0], ped + i*peak, sigma*sqrt(i), kTRUE);
@@ -176,12 +176,12 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
     hqdc->Draw();
     hqdc->Rebin(rbq);
     hqdc->SetLineColor(1);
-    TF1 *myGaus = new TF1("myGaus","gaus",0,4000);
+    TF1 *myGaus = new TF1("myGaus","gaus",0,u.R);
     int ibin =  hqdc->GetMaximumBin();
     double pedMean = hqdc->GetBinCenter(ibin);
     //
     //* try to fit pedstal
-    hqdc->Fit(myGaus,"","",0, pedMean+30);//???????????
+    hqdc->Fit(myGaus,"","",0, pedMean+6e-3);//???????????
     pedMean = myGaus->GetParameter(1);
     double pedSigma = myGaus->GetParameter(2);
     //
@@ -195,12 +195,12 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
     pedSigma = myGaus->GetParameter(2);
     */
 
-    TF1 *myFun = new TF1("myFun",pmtfun,u.L,u.R,7);
-    //LZWfunc *myfunc = new LZWfunc();
-    //TF1 *myFun = new TF1("myFun", myfunc, &LZWfunc::pmtfun, u.L, u.R, 7);
+    //TF1 *myFun = new TF1("myFun",pmtfun,u.L,u.R,7);
+    LZWfunc *myfunc = new LZWfunc();
+    TF1 *myFun = new TF1("myFun", myfunc, &LZWfunc::pmtfun, u.L, u.R, 7);
     myFun->SetParNames("N","#lambda","#mu_{ped}","#sigma_{ped}","#mu","#sigma", "BW");
     if(pedSigma>5) hqdc->GetXaxis()->SetRangeUser(pedMean+12*pedSigma,u.R);
-    else  hqdc->GetXaxis()->SetRangeUser(pedMean+30,u.R);//????????????????
+    else  hqdc->GetXaxis()->SetRangeUser(pedMean+6e-3,u.R);//????????????????
 //return;
     ibin = hqdc->GetMaximumBin();
     double mean = hqdc->GetBinCenter(ibin)-pedMean;
@@ -212,18 +212,18 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
     cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
 
      //Int_t ibin =  h->GetMaximumBin();
-  myFun->SetParameters(hqdc->GetEntries(), 0.1, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(1));
+  myFun->SetParameters(hqdc->GetEntries(), 0.1, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(5));
   myFun->FixParameter(0, hqdc->GetEntries());//fix total yield
   myFun->FixParameter(6, hqdc->GetBinWidth(1));//fix bin width
   myFun->SetParLimits(2, pedMean-0.0001,pedMean+0.0001);//fix pedestal mean
   myFun->SetParLimits(3, pedSigma-0.000001,pedSigma+0.000001);//fix pedestal sigma
-  myFun->SetParLimits(4, 1., u.R);//>10 for 1400V
+  myFun->SetParLimits(4, pedMean+1*pedSigma, u.R);//>10 for 1400V
   myFun->SetParLimits(5, 0, u.R);
   if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
-  else myFun->SetRange(pedMean+30,  u.R);
-  //return;
+  else myFun->SetRange(pedMean+1*pedSigma,  mean+1*sigma);
   cout<<" first fitting..."<<endl;
   hqdc->Fit(myFun,"R");
+  //return myFun;
   mean=myFun->GetParameter(4);//return;
   sigma = myFun->GetParameter(5);
   myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  u.R);
@@ -239,7 +239,7 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
     parErr[j] = myFun->GetParError(j);
   }
 
-  Double_t xmin = 0;
+  Double_t xmin = 0, xmax = 0;
   if((pedMean-15*pedSigma)>0) xmin = pedMean-12*pedSigma;
   if(par[1]>2) hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+10*mean);
   else if(par[1]>1) hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+7*mean);
@@ -256,7 +256,6 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
   //myFun->SetLineWidth(1);
   myFun->SetLineColor(1);
   //myFun->SetLineStyle(7);
-  Double_t xmin, xmax;
   myFun->GetRange(xmin, xmax);
   myFun->SetRange(0, xmax);
   myFun->DrawCopy("same");
@@ -266,9 +265,9 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
   //myFun->Draw("same");
 
   TF1 *peakFun[10];
-  for(int j=1;j<4;j++) {
-    sprintf(buf,"peakFun%d",j);
-    peakFun[j] = new TF1(buf,"[0]*exp(-pow((x-[1])/[2],2)/2.)/sqrt(2.*TMath::Pi()*pow([2],2))",0,u.R);
+  for(int j=1;j<5;j++) {
+    sprintf(buff,"peakFun%d",j);
+    peakFun[j] = new TF1(buff,"[0]*exp(-pow((x-[1])/[2],2)/2.)/sqrt(2.*TMath::Pi()*pow([2],2))",0,u.R);
     peakFun[j]->SetParameters(TMath::PoissonI(j, par[1])*par[0]*par[6], par[2]+j*par[4], par[5]*sqrt(1.0*j));//CHANGED!!
     peakFun[j]->SetLineColor(2);
     peakFun[j]->SetLineWidth(2);
@@ -276,6 +275,7 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
   }
 
   myFun->Draw("same");
+  return myFun;
 }
 
 TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE U)
