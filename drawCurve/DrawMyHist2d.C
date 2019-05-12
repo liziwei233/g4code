@@ -27,7 +27,7 @@ TH2F* DrawMyHist2d(const char* name="hist",double x1=0,double x2=1,double y1=0,d
      datahist->GetXaxis()->SetTitleOffset(1.0);
      datahist->GetYaxis()->SetTitleOffset(1.0);
 	 //datahist->GetXaxis()->SetBorderSize(5);
-     datahist->GetXaxis()->SetNdivisions(510);
+     datahist->GetXaxis()->SetNdivisions(505);
      datahist->GetYaxis()->SetNdivisions(510);
      datahist->GetXaxis()->CenterTitle();
      datahist->GetYaxis()->CenterTitle();
