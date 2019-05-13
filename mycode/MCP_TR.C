@@ -24,12 +24,13 @@
 #include <TF1.h>
 
 using namespace std;
+#define debug
 
 int MCP_TR(){
     gStyle->SetOptFit(1111);
     char name[100];
     char buff[1024];
-    const char* rootname="rawdata/th100";
+    const char* rootname="/mnt/f/experiment/FTOF/MCP/4-12/systemR3809-MPE";
     sprintf(name,"%s",rootname);
         sprintf(buff,"%s.root",name);
         TFile *f = new TFile(buff,"READ");
@@ -49,8 +50,8 @@ int MCP_TR(){
 	//t3->SetBranchAddress("MCP2_all_charge",&A.Q);
  
 	//t3->SetBranchAddress("MCP1_all_charge",&MCP.Q);
-	t3->SetBranchAddress("MCP1_all_charge",&A.Q);
-	t3->SetBranchAddress("MCP2_all_charge",&B.Q);
+	t3->SetBranchAddress("MCP1_all_charge",A.charge);
+	t3->SetBranchAddress("MCP2_all_charge",B.charge);
  
     //t3->SetBranchAddress("MCP1_CFDtime",MCP.CFD);
 	t3->SetBranchAddress("MCP1_CFDtime",A.CFD);
@@ -67,10 +68,15 @@ int MCP_TR(){
 	t3->SetBranchAddress("MCP1_rise_time",&A.rise);
 	t3->SetBranchAddress("MCP2_rise_time",&B.rise);
 	
+    t3->SetBranchAddress("MCP1_baseline_level",&A.bl);
+	t3->SetBranchAddress("MCP2_baseline_level",&B.bl);
+	
 	//t3->SetBranchAddress("MCP1_baseline_rms",&MCP.blrms);
 	t3->SetBranchAddress("MCP1_baseline_rms",&A.blrms);
 	t3->SetBranchAddress("MCP2_baseline_rms",&B.blrms);
-
+    
+    int N = t3->GetEntries();
+    cout << "Total entries is :" << N << endl;
 
     RANGE def={-9999,9999};
     //* set cut vector 
@@ -96,25 +102,36 @@ int MCP_TR(){
 
     //* set charactor range vector
     //*
-    RANGE y={0,2.5};
-    RANGE q={0,30};
-    RANGE t={-1,1};
+    RANGE y1={0,0.9};
+    RANGE q1={0,20};
+    RANGE t1={-1,1};
+    RANGE y2={0,0.4};
+    RANGE q2={0,6};
+    RANGE t2={-1,1};
     vector<charRANGE> range; 
     charRANGE charA={
         def,
-        y,
-        q,
+        y1,
+        q1,
         def,
         def,
         def,
-        t
+        t1
     };
-    charRANGE charB=charA;
+    charRANGE charB={
+        def,
+        y2,
+        q2,
+        def,
+        def,
+        def,
+        t2
+    };
     range.push_back(charA);
     range.push_back(charB);
 
     //Correct option set
-    int rbt=16,rbU=8;
+    int rbt=8,rbU=4;
     int iter=4;
     double fac=2;
     OPTION opt={rbt,rbU,iter,fac};

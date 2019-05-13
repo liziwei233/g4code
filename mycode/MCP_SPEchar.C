@@ -19,35 +19,52 @@
 #include "Include/LZWfunc.h"
 
 using namespace std;
-void MCP_SPEchar(const char *rootname="FEboardA_ch2"){
+void MCP_SPEchar(){
 
-	gStyle->SetOptFit(1111);
+	gStyle->SetOptFit(1112);
 
 
 	
 //** Set your parameters**
 //*	
 	char name[1024];
-	sprintf(name,"%s",rootname);
     char buff[1024];
+    //const char* rootname="/mnt/f/experiment/FTOF/MCP/4-12/systemR3809-SPE";
+    const char* rootname="/mnt/f/experiment/FTOF/MCP/4-10/test/HV-SPE2200";
+	sprintf(name,"%s",rootname);
   
-	double M=10;
+	//double M=10;
+	double M=1;
+	int qN=0;
+	int rbu=4;
+	double facspe=6.5;
+
+	RANGE def={-9999,9999};
+	RANGE x={0,100};
+	//RANGE y={-5e-3,100e-3};
+	RANGE y={-5e-3,160e-3};
+    //RANGE q={-0.1,1};
+    RANGE q={-0.01,2};
+    RANGE t=x;
     charRANGE chR={
-		{0,80},
-		{-1e-3*M,10e-3*M},
-		{-0.05*M,0.2*M},
-		{0,3},
-		{-22e-3*M,22e-3*M},
-		{-1e-3*M,3e-3*M},
-		{0,50}};//x,y,q,r,bl,blrms,t
+		x,
+        y,
+        q,
+        def,
+        def,
+        def,
+        t
+	};//x,y,q,r,bl,blrms,t
+	
     charRANGE chcut={
-		{-1e4,1e4},
-		{22e-3*M,10e-3*M},
-		{-1e4*M,1e4*M},
-		{0,0.9},
-		{-1e4*M,1e4*M},
-		{0e-3*M,0.3e-3*M},
-		{-1e4,1e4}};//blrms,y 
+		def,
+        def,
+        def,
+        def,
+        def,
+        def,
+        def
+	};//blrms,y 
 	int rbt=128,rbU=16;
 	int rb=2;
 	int maxpk=10;
@@ -79,16 +96,17 @@ void MCP_SPEchar(const char *rootname="FEboardA_ch2"){
     EVENT A;
     //double t0;
 	double p[20];
-	//t1->SetBranchAddress("MCP1_twentypercent_time",&t0);
+	double Q[4];
+	//t1->SetBranchAddress("MCP2_twentypercent_time",&t0);
 	
-    t1->SetBranchAddress("MCP1_CFDtime",A.CFD);
-	t1->SetBranchAddress("MCP1_CFDfrac",p);
-	t1->SetBranchAddress("MCP1_all_charge",&A.Q);
-	t1->SetBranchAddress("MCP1_rise_time",&A.rise);
-	t1->SetBranchAddress("MCP1_global_maximum_y",&A.Amp);
-	t1->SetBranchAddress("MCP1_global_maximum_x",&A.x);
-	t1->SetBranchAddress("MCP1_baseline_rms",&A.blrms);
-	t1->SetBranchAddress("MCP1_baseline_level",&A.bl);
+    t1->SetBranchAddress("MCP2_CFDtime",A.CFD);
+	t1->SetBranchAddress("MCP2_CFDfrac",p);
+	t1->SetBranchAddress("MCP2_all_charge",Q);
+	t1->SetBranchAddress("MCP2_rise_time",&A.rise);
+	t1->SetBranchAddress("MCP2_global_maximum_y",&A.Amp);
+	t1->SetBranchAddress("MCP2_global_maximum_x",&A.x);
+	t1->SetBranchAddress("MCP2_baseline_rms",&A.blrms);
+	t1->SetBranchAddress("MCP2_baseline_level",&A.bl);
 	
 	//TCut c_x = "MCP2_global_maximum_x>410&&MCP2_global_maximum_x<412.5";
 	//TCut c_x = "MCP2_global_maximum_x>530&&MCP2_global_maximum_x<532";
@@ -131,7 +149,7 @@ void MCP_SPEchar(const char *rootname="FEboardA_ch2"){
 	c[0]->cd();
 
     //find the cut range;
-	t1->Draw("MCP1_global_maximum_x>>hx");
+	t1->Draw("MCP2_global_maximum_x>>hx");
 	hx->GetXaxis()->SetRangeUser(5,80);
     chR.x.L=hx->GetBinCenter(hx->GetMaximumBin())-3;
     chR.x.R = hx->GetBinCenter(hx->GetMaximumBin())+3;
@@ -154,21 +172,24 @@ void MCP_SPEchar(const char *rootname="FEboardA_ch2"){
 		t1->GetEntry(i);
 		//if(Q2>qlimit1&&Q2<qlimit2)
 
+
         //pick up the true signal from noise
 			if (A.x>chcut.x.L&&
             A.x<chcut.x.R&&
             A.blrms>chcut.blrms.L&&
             A.blrms<chcut.blrms.R&&
             A.bl<chcut.bl.R&&
-            A.bl>chcut.bl.L&&
-            A.Q>chcut.q.L)
+            A.bl>chcut.bl.L
+			//&&A.Q>chcut.q.L
+			)
 			{
+				hq->Fill(Q[qN]);
 				ha->Fill(A.Amp);
-				hq->Fill(A.Q);
+				//cout<<Q[1]<<endl;
 				hr->Fill(A.rise);
 				hbl->Fill(A.bl);
 				hblrms->Fill(A.blrms);
-				hqy->Fill(A.Amp,A.Q);
+				hqy->Fill(A.Amp,Q[qN]);
 				
 			}
 	}
@@ -203,15 +224,24 @@ void MCP_SPEchar(const char *rootname="FEboardA_ch2"){
 	xpeaks = s->GetPositionX();
 	*/
 
-
+/*
 //	amplitude spectrum
 	sprintf(buff,"%s_amp",name);
     lzw.Set_name(buff);
 	c[1]->cd();
 	ha->Draw();
 	c[1]->SetLogy();
+	TF1* fa=lzw.mcpSPfit(ha,3,chR.y,20);
+	double SPEAmp=(fa->GetParameter(4)-fa->GetParameter(1))*1e3;
+	cout<<"SPEAmp="<<SPEAmp<<endl;
+	sprintf(buff,"SPE Amp=%0.2f mV",SPEAmp);
+	TLatex *l1=draw.Latex(0.4,0.2,buff);
+	l1->Draw();
 	sprintf(buff,"%s_amp.png",name);
     c[1]->SaveAs(buff);
+	return;
+*/
+
 /*	TF1* fa=lzw.fpeaksfit(ha,maxpk,res,sigmaA,thrd);
 	gausPAR* gPa = lzw.Get_PeakPar();
 	double speA=(gPa+1)->m-gPa->m;
@@ -221,10 +251,20 @@ void MCP_SPEchar(const char *rootname="FEboardA_ch2"){
 */
 //	Charge spectrum
 	c[2]->cd();
-	c[2]->SetLogy();
+	//c[2]->SetLogy();
 	sprintf(buff,"%s_charge",name);
     lzw.Set_name(buff);
-	TF1* fq=lzw.SPSfit(hq,4,chR.q);
+	//hq->Draw();
+	//return;
+	//TF1* fq=lzw.SPSfit(hq,4,chR.q,facspe);
+	TF1* fq=lzw.mcpSPfit(hq,rbu,chR.q,facspe);
+	double Gain=(fq->GetParameter(4)-fq->GetParameter(1))*1e-12/1.6e-19;
+	cout<<"Gain="<<Gain<<endl;
+	sprintf(buff,"Gain=%0.2e",Gain);
+	TLatex *l=draw.Latex(0.4,0.2,buff);
+	l->Draw();
+	sprintf(buff,"%s_charge.png",name);
+    c[2]->SaveAs(buff);
 
 	//gausPAR* gPq = lzw.Get_PeakPar();
 	//double speq=(gPq+1)->m-gPq->m;

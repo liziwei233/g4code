@@ -145,6 +145,44 @@ TF1 *LZWfunc::fpeaksfit(TH1 *ha, int npeaks, double res, double sigma, double th
     //gPad->Update();
     return fit;
 }
+double LZWfunc::mcpfun(double *x, double *par){
+  Double_t val = 0.;
+  Double_t amp = par[0];
+  Double_t alpha = par[1];
+  Double_t lambda = par[2];
+  Double_t ped = par[3];
+  Double_t pedSigma = par[4];
+  Double_t peak = par[5];
+  Double_t  sigma = par[6];
+  Double_t bw = par[7];
+
+  //TF1 *myGaus = new TF1("myGaus","[0]*exp(-pow((x-[1])/[2],2)/2.)/sqrt(2.*TMath::Pi()*pow([2],2))",0,4000);
+  //myGaus->SetParameters(TMath::PoissonI(0,lambda), ped, pedSigma);
+  //val += myGaus->Eval(x[0]);
+  
+  //
+  //** dark noise
+  //
+  val += alpha*TMath::Gaus(x[0], ped + peak, sigma, kTRUE);
+  
+  //
+  //** pedstal
+  //
+  val += TMath::PoissonI(0,lambda)*TMath::Gaus(x[0], ped , pedSigma, kTRUE);
+  
+  
+  //
+  //** photonelectron
+  //
+  for(int i=1;i<8;i++) {
+    //myGaus->SetParameters(TMath::PoissonI(i,lambda), ped+i*peak, sigma*sqrt(i));// CHANGED!!
+    //val += myGaus->Eval(x[0]);
+    val += TMath::PoissonI(i,lambda)*TMath::Gaus(x[0], ped + i*peak, sigma*sqrt(i), kTRUE);
+  }
+
+  //delete myGaus;
+  return amp*val*bw;
+}
 double LZWfunc::pmtfun(double *x, double *par){
   Double_t val = 0.;
   Double_t amp = par[0];
@@ -160,7 +198,7 @@ double LZWfunc::pmtfun(double *x, double *par){
   //val += myGaus->Eval(x[0]);
   val += TMath::PoissonI(0,lambda)*TMath::Gaus(x[0], ped , pedSigma, kTRUE);
 
-  for(int i=1;i<5;i++) {
+  for(int i=1;i<4;i++) {
     //myGaus->SetParameters(TMath::PoissonI(i,lambda), ped+i*peak, sigma*sqrt(i));// CHANGED!!
     //val += myGaus->Eval(x[0]);
     val += TMath::PoissonI(i,lambda)*TMath::Gaus(x[0], ped + i*peak, sigma*sqrt(i), kTRUE);
@@ -169,26 +207,36 @@ double LZWfunc::pmtfun(double *x, double *par){
   //delete myGaus;
   return amp*val*bw;
 }
-
-TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
+double LZWfunc::HVfun(double *x, double *par){
+    double val=0.;
+    double A=par[1];
+    double alpha=par[2];
+    double C=par[0];
+    //val = A*TMath::Power(x[0],beta);
+    val = TMath::Exp(C+x[0]*A*alpha);
+    return val;
+}
+TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
 {
     TH1 *hqdc = (TH1 *)h->Clone();
     hqdc->Draw();
     hqdc->Rebin(rbq);
     hqdc->SetLineColor(1);
-    TF1 *myGaus = new TF1("myGaus","gaus",0,u.R);
+    TF1 *myGaus = new TF1("myGaus","gaus",u.L,u.R);
     int ibin =  hqdc->GetMaximumBin();
     double pedMean = hqdc->GetBinCenter(ibin);
     //
     //* try to fit pedstal
-    hqdc->Fit(myGaus,"","",0, pedMean+6e-3);//???????????
+    hqdc->Fit(myGaus,"","",u.L, pedMean+pedMean);//???????????
     pedMean = myGaus->GetParameter(1);
     double pedSigma = myGaus->GetParameter(2);
     //
     //* fit pedstal formly
-    hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
+    hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+fac*pedSigma);
     pedMean = myGaus->GetParameter(1);
     pedSigma = myGaus->GetParameter(2);
+    cout<<" init. par.: pedmean = "<<pedMean<<"; pedsigma = "<<pedSigma<<endl;
+    //return myGaus;
     /*
     hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
     pedMean = myGaus->GetParameter(1);
@@ -196,40 +244,61 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
     */
 
     //TF1 *myFun = new TF1("myFun",pmtfun,u.L,u.R,7);
-    LZWfunc *myfunc = new LZWfunc();
-    TF1 *myFun = new TF1("myFun", myfunc, &LZWfunc::pmtfun, u.L, u.R, 7);
-    myFun->SetParNames("N","#lambda","#mu_{ped}","#sigma_{ped}","#mu","#sigma", "BW");
-    if(pedSigma>5) hqdc->GetXaxis()->SetRangeUser(pedMean+12*pedSigma,u.R);
-    else  hqdc->GetXaxis()->SetRangeUser(pedMean+6e-3,u.R);//????????????????
-//return;
+    //if(pedSigma>5e-3) hqdc->GetXaxis()->SetRangeUser(pedMean+12*pedSigma,u.R);
+    //else  
+    
+    //
+    //* find the position of SPE
+    hqdc->GetXaxis()->SetRangeUser(pedMean+fac*pedSigma,  u.R);
     ibin = hqdc->GetMaximumBin();
     double mean = hqdc->GetBinCenter(ibin)-pedMean;
-    double sigma = hqdc->GetRMS();
-
+    double sigma = hqdc->GetStdDev()/10;
     double mean2 = hqdc->GetMean()-pedMean;
     if(mean2/mean>5) mean = mean2;
 
+    myGaus->SetParameter(1,mean);
+    myGaus->SetParameter(2,sigma);
+    hqdc->Fit(myGaus,"","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+1*mean);
+    mean=myGaus->GetParameter(1);
+    sigma=myGaus->GetParameter(2);
     cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
+   //return myGaus;
+    
+    hqdc->GetXaxis()->SetRangeUser(u.L,  u.R);
+
+    LZWfunc *myfunc = new LZWfunc();
+    TF1 *myFun = new TF1("myFun", myfunc, &LZWfunc::pmtfun, u.L, u.R, 7);
+    //TF1 *myFun = new TF1("myFun", myfunc, &LZWfunc::mcpfun, u.L, u.R, 8);
+    myFun->SetParNames("N","#lambda","#mu_{ped}","#sigma_{ped}","#mu","#sigma", "BW");
 
      //Int_t ibin =  h->GetMaximumBin();
-  myFun->SetParameters(hqdc->GetEntries(), 0.1, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(5));
+  myFun->SetParameters(hqdc->GetEntries(),0.1, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(5));
   myFun->FixParameter(0, hqdc->GetEntries());//fix total yield
-  myFun->FixParameter(6, hqdc->GetBinWidth(1));//fix bin width
+  myFun->FixParameter(6, hqdc->GetBinWidth(5));//fix bin width
   myFun->SetParLimits(2, pedMean-0.0001,pedMean+0.0001);//fix pedestal mean
   myFun->SetParLimits(3, pedSigma-0.000001,pedSigma+0.000001);//fix pedestal sigma
-  myFun->SetParLimits(4, pedMean+1*pedSigma, u.R);//>10 for 1400V
-  myFun->SetParLimits(5, 0, u.R);
-  if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
-  else myFun->SetRange(pedMean+1*pedSigma,  mean+1*sigma);
+  myFun->SetParLimits(4, pedMean+fac*pedSigma, 2*mean);//>10 for 1400V
+  myFun->SetParLimits(5, 0, 2*sigma);
+  //if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
+  //else 
+  myFun->SetRange(pedMean+fac*pedSigma,  mean+1*sigma);
   cout<<" first fitting..."<<endl;
   hqdc->Fit(myFun,"R");
   //return myFun;
   mean=myFun->GetParameter(4);//return;
   sigma = myFun->GetParameter(5);
-  myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  u.R);
-  cout<<" second fitting..."<<endl;
+  //myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  u.R);
+  myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  pedMean+5*mean);
+  //myFun->SetParLimits(4,mean/2., u.R);
+  //myFun->SetParameter(4,mean);
+  //myFun->SetParameter(5,sigma);
   myFun->SetParLimits(4,mean/2., u.R);
+  
+  //myFun->SetRange(u.L,  u.R);
+  //cout<<" second fitting..."<<endl;
+  //myFun->SetParLimits(4,mean/2., u.R);
   hqdc->Fit(myFun,"R");
+  //return myFun;
   cout<<" fitting done"<<endl;
   mean = myFun->GetParameter(4);
   sigma = myFun->GetParameter(5);
@@ -248,7 +317,7 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
   else hqdc->GetXaxis()->SetRangeUser(xmin,pedMean+4*mean);
 
   hqdc->SetLineWidth(1.5);
-  myGaus->SetLineWidth(1);
+  myGaus->SetLineWidth(2);
   myGaus->SetLineColor(4);
   myGaus->Draw("same");
 
@@ -261,21 +330,107 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u)
   myFun->DrawCopy("same");
   myFun->SetLineStyle(1);
   myFun->SetLineWidth(3);
-  myFun->SetRange(pedMean-4*pedSigma, xmax);
+  myFun->SetRange(pedMean-4*pedSigma,u.R);
   //myFun->Draw("same");
 
   TF1 *peakFun[10];
-  for(int j=1;j<5;j++) {
+  for(int j=1;j<4;j++) {
     sprintf(buff,"peakFun%d",j);
-    peakFun[j] = new TF1(buff,"[0]*exp(-pow((x-[1])/[2],2)/2.)/sqrt(2.*TMath::Pi()*pow([2],2))",0,u.R);
+    peakFun[j] = new TF1(buff,"[0]*exp(-pow((x-[1])/[2],2)/2.)/sqrt(2.*TMath::Pi()*pow([2],2))",u.L,u.R);
+    //peakFun[j] = new TF1(buff,"gaus",u.L,u.R);
+    //if(j==0) peakFun[j]->SetParameters(par[1]*par[0]*par[7],par[3]+par[5], par[6]);
+    //else 
     peakFun[j]->SetParameters(TMath::PoissonI(j, par[1])*par[0]*par[6], par[2]+j*par[4], par[5]*sqrt(1.0*j));//CHANGED!!
-    peakFun[j]->SetLineColor(2);
+    //if(j==0) peakFun[j]->SetLineColor(6);
+    //else 
+    peakFun[j]->SetLineColor(6);
     peakFun[j]->SetLineWidth(2);
     peakFun[j]->Draw("same");
   }
 
   myFun->Draw("same");
   return myFun;
+}
+TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac)
+{
+    TH1 *hqdc = (TH1 *)h->Clone();
+    hqdc->Draw();
+    hqdc->Rebin(rbq);
+    hqdc->SetLineColor(1);
+    TF1 *pedGaus = new TF1("pedGaus","gaus",u.L,u.R);
+    int ibin =  hqdc->GetMaximumBin();
+    double pedMean = hqdc->GetBinCenter(ibin);
+    //
+    //* try to fit pedstal
+    hqdc->Fit(pedGaus,"","",0-pedMean, pedMean+1*pedMean);//???????????
+    pedMean = pedGaus->GetParameter(1);
+    double pedSigma = pedGaus->GetParameter(2);
+    //
+    //* fit pedstal formly
+    hqdc->Fit(pedGaus,"","",pedMean-10*pedSigma, pedMean+1*pedSigma);
+    pedMean = pedGaus->GetParameter(1);
+    pedSigma = pedGaus->GetParameter(2);
+    //return pedGaus;
+    /*
+    hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
+    pedMean = myGaus->GetParameter(1);
+    pedSigma = myGaus->GetParameter(2);
+    */
+
+    //TF1 *myFun = new TF1("myFun",pmtfun,u.L,u.R,7);
+    //if(pedSigma>5e-3) hqdc->GetXaxis()->SetRangeUser(pedMean+12*pedSigma,u.R);
+    //else  
+    
+    TF1 *SPEGaus = new TF1("SPEGaus","gaus",u.L,u.R);
+    //
+    //* find the position of SPE
+    hqdc->GetXaxis()->SetRangeUser(pedMean+fac*pedSigma,  u.R);
+    ibin = hqdc->GetMaximumBin();
+    double mean = hqdc->GetBinCenter(ibin)-pedMean;
+    double sigma = hqdc->GetStdDev()/10;
+    double mean2 = hqdc->GetMean()-pedMean;
+    if(mean2/mean>5) mean = mean2;
+
+    SPEGaus->SetParameter(1,mean);
+    SPEGaus->SetParameter(2,sigma);
+    hqdc->Fit(SPEGaus,"","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+1*mean);
+    cout<<" fit range.: L = "<<pedMean+fac*pedSigma<<"; R = "<<pedMean+fac*pedSigma+2*mean<<endl;
+    mean=SPEGaus->GetParameter(1);
+    sigma=SPEGaus->GetParameter(2);
+    cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
+    //return SPEGaus;
+  
+    hqdc->GetXaxis()->SetRangeUser(pedMean-2*fac*pedSigma,  pedMean+5*mean);
+    TF1*  myGaus = new TF1("myGaus", "gaus(0)+gaus(3)", u.L, u.R);
+    myGaus->SetParNames("C_{ped}", "#mu_{ped}", "#sigma_{ped}", "C_{PE}", "#mu_{PE}", "#sigma_{PE}");
+    //myGaus->SetParameter(0, pedGaus->GetParameter(0));
+    myGaus->FixParameter(0, pedGaus->GetParameter(0));
+    myGaus->FixParameter(1, pedMean);
+    myGaus->FixParameter(2, pedSigma);
+    //myGaus->SetParameter(3, SPEGaus->GetParameter(0));
+    myGaus->FixParameter(3, SPEGaus->GetParameter(0));
+    myGaus->FixParameter(4, mean);
+    myGaus->FixParameter(5, sigma);
+    hqdc->Fit(myGaus);
+   //return SPEGaus;
+  
+
+  
+  
+  hqdc->SetLineWidth(1.5);
+  SPEGaus->SetLineWidth(2);
+  SPEGaus->SetLineColor(2);
+  SPEGaus->Draw("same");
+  pedGaus->SetLineWidth(2);
+  pedGaus->SetLineColor(4);
+  pedGaus->Draw("same");
+
+  myGaus->SetLineWidth(2);
+  myGaus->SetLineColor(1);
+  myGaus->Draw("same");
+
+  
+  return myGaus;
 }
 
 TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE U)
@@ -865,7 +1020,8 @@ TF1 *LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, vector<charRANGE> ran
     double* Q[chN];
     for(int i=0;i<chN;i++){
 #ifndef G4_FLAG
-                    Q[i]=&(*ch.at(i)).Q;
+                    //Q[i]=&(*ch.at(i)).Q;
+                    Q[i]=&(*ch.at(i)).charge[0];
 #else
                     Q[i]=&(*ch.at(i)).Amp;
 #endif
@@ -1007,8 +1163,8 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
     int rbU = opt.rbu;
     RANGE t = range.at(0).t;
     vector<RANGE> U;
-    U.push_back(range.at(0).y);
-    U.push_back(range.at(1).y);
+    U.push_back(range.at(0).q);
+    U.push_back(range.at(1).q);
 
     RANGE initial_t;
     initial_t.L = t.L;
@@ -1031,7 +1187,8 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
     double* Q[chN];
     for(int i=0;i<chN;i++){
 #ifndef G4_FLAG
-                    Q[i]=&(*ch.at(i)).Q;
+                    //Q[i]=&(*ch.at(i)).Q;
+                    Q[i]=&(*ch.at(i)).charge[0];
 #else
                     Q[i]=&(*ch.at(i)).Amp;
 #endif
@@ -1083,7 +1240,10 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
                     //if(1){
                     //if((*A).A>0.3&&(*B).A>0.3){
                     if (abs(p[j]) < 1e-12)
+                    {
+                        //cout<<"There are "<<j<<" thredholds !"<<endl;
                         return fitAT;
+                    }
                     else
                     {
                         int il = 0; // if all boolean conditions are true , il==chN.
@@ -1092,6 +1252,8 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
                             if (!ifstat(*ch.at(il), cut.at(il)))
                                 break;
                         }
+                        //cout<<"There are "<<il<<" conditions have been meeted !"<<endl;
+
                         if (il == chN)
                         {
 
@@ -1101,18 +1263,18 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
                                 // average the time of all channels ;
                                 for (int iT = 0; iT < chN; iT++)
                                 {
-                                    T[i] += (*ch.at(iT)).time;
+                                    T[i] += (*ch.at(iT)).CFD[j];
                                 }
                                 T[i] = T[i] / chN;
                                 }
                              else
-                                T[i] = (*ch.at(0)).time - (*ch.at(1)).time;
+                                T[i] = (*ch.at(0)).CFD[j] - (*ch.at(1)).CFD[j];
 
                             }
 
                             else
                                 T[i] = T[i] - TAcor;
-
+                            //cout<<T[i]<<"\t"<<*Q[h]<<endl;
                             ht->Fill(T[i]);
                             hAT[h]->Fill(*Q[h], T[i]);
                         }
@@ -1495,10 +1657,17 @@ void LZWfunc::drawcharacter(TTree *t3, int chN, string *chname, vector<charRANGE
 bool LZWfunc::ifstat(EVENT ch, CUT cut)
 {
 #ifndef G4_FLAG
+/*cout<<ch.Amp <<"\t"<<cut.y.L<<"\t"<< cut.y.R <<endl;
+cout<<ch.charge[0] <<"\t"<<cut.q.L<<"\t"<< cut.q.R <<endl;
+cout<<ch.rise <<"\t" <<cut.r.L <<"\t"<< cut.r.R <<endl;
+cout<<ch.bl <<"\t"<<cut.bl.L <<"\t"<< cut.bl.R <<endl;
+cout<<ch.blrms <<"\t" <<cut.blrms.L <<"\t"<< cut.blrms.R <<endl;
+cout<<ch.x <<"\t" <<cut.x.L <<"\t"<< cut.x.R <<endl;
+*/
     if (ch.Amp > cut.y.L &&
         ch.Amp < cut.y.R &&
-        ch.Q > cut.q.L &&
-        ch.Q < cut.q.R &&
+        ch.charge[0] > cut.q.L &&
+        ch.charge[0] < cut.q.R &&
         ch.rise > cut.r.L &&
         ch.rise < cut.r.R &&
         ch.bl > cut.bl.L &&

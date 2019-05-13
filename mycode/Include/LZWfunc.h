@@ -60,7 +60,7 @@ struct gausPAR{
 
 #ifndef G4_FLAG
 struct EVENT{
-    double time,CFD[20],LED[20],Amp,Q,rise,bl,blrms,x;
+    double time,CFD[20],LED[20],Amp,charge[4],Q,rise,bl,blrms,x;
 };
 typedef struct charRANGE{
     RANGE x,y,q,r,bl,blrms,t;
@@ -84,9 +84,11 @@ class LZWfunc
 
     Double_t fpeaks(Double_t *x, Double_t *par);
     TF1* fpeaksfit(TH1 *ha,int npeaks,double res,double sigma, double thrd);
-    
+    double HVfun(double *x, double *par);
     double pmtfun(double *x,double *par);
-    TF1* SPSfit(TH1* h,int rbq,RANGE u);
+    double mcpfun(double *x, double *par);
+    TF1* SPSfit(TH1* h,int rbq,RANGE u, double fac);
+    TF1* mcpSPfit(TH1* h,int rbq,RANGE u,double fac);
 
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE U);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE* U);
