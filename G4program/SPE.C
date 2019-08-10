@@ -88,8 +88,8 @@ void SPE(){
     void DrawMyGraph(TGraph *datagraph, const char *xtitle, const char *ytitle, Float_t MSize=1, Int_t MStyle =28, Color_t MColor=1, Color_t LColor=1, Float_t LWidth=1, Int_t LStyle=1, Color_t FColor=16);
     void SetMyPad(TVirtualPad *pad,float left, float right, float top, float bottom);
     TLegend* DrawMyLeg(Double_t xlow=0.2, Double_t ylow=0.2, Double_t xup=0.5, Double_t yup=0.5, Int_t textFont=62, Size_t textSize=0.05);
-    Double_t RL = -5e-9;
-	Double_t RR = 55e-9;
+    Double_t RL = -10e-9;
+	Double_t RR = 150e-9;
 	Int_t range = 6e3;
     Double_t SPEpar[7];
     Double_t x[6000]={};
@@ -102,19 +102,19 @@ void SPE(){
 	double sum=0,Q=0,Q_act=0;
 	bool flag1 = 0,flag2 = 0;
 
- /*   
+    
  	//SiPM
     SPEpar[0]=2.4e6;  //Gain
 	SPEpar[1]=1.6e-19; //e
 	//SPEpar[2]=150e-12;  //Ca  ??
 	//SPEpar[3]=3e-12; //C
-	SPEpar[2]=26e-11;  //Ca  ??
-	SPEpar[3]=55e-11; //C
+	SPEpar[2]=1e-9;  //Ca  ??
+	SPEpar[3]=1.8e-9; //C
 	SPEpar[4]=10e3;    //R   ??
 	SPEpar[5]=50;      //Z
-	SPEpar[6]=0.5e-9;  //rise time
-*/
+	SPEpar[6]=1.5e-9;  //rise time
 
+/*
 	//MCP R10754
 	//rise time 180ps
 	//fall time 420ps
@@ -127,7 +127,7 @@ void SPE(){
 	SPEpar[4]=10e3;    //R   ??
 	SPEpar[5]=50;      //Z
 	SPEpar[6]=90e-12;  //rise time
-
+*/
 
     for(int j=0;j<range;j++){
 			x[j]=(RR-RL)/range*j+RL;
@@ -191,7 +191,7 @@ void SPE(){
     SetMyPad(c,0.18,0.1,0.1,0.15);
 	c->cd();
 	g->Draw("AL");
-       g->GetXaxis()->SetRangeUser(-1,3); 
+       //g->GetXaxis()->SetRangeUser(-1,130); 
         /*
 	TAxis *xA = g->GetXaxis();
 	TAxis *yA = g->GetYaxis();
