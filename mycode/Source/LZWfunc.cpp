@@ -486,6 +486,45 @@ TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE U)
         return fitU;
     }
 }
+TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE* U)
+{
+
+    double mean = 0;
+    double sigma = 0;
+    double max=0;
+    TH1 *hU = (TH1 *)h->Clone();
+    hU->Draw();
+    hU->Rebin(rbU);
+    hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
+    TF1 *fitU = new TF1("fitU", "gaus", (*U).L, (*U).R);
+    max = hU->GetBinCenter(hU->GetMaximumBin());
+    fitU->SetParLimits(0,0, hU->GetBinContent(hU->GetMaximumBin()));
+    fitU->SetParameter(1, max);
+    //cout << mean << "\t" << sigma << endl;
+    hU->Fit(fitU, "R");
+    mean = fitU->GetParameter(1);
+    sigma = fitU->GetParameter(2);
+
+    cout << mean << "\t" << sigma << endl;
+
+    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - fac * sigma, mean + fac * sigma);
+    //failed =1 means fit failed
+    if (failed)
+        return fitU = 0;
+
+    else
+    {
+
+        if ((*U).L < mean - 20 * sigma)
+            (*U).L = mean - 20 * sigma;
+        if ((*U).R > mean + 20 * sigma)
+            (*U).R = mean + 20 * sigma;
+
+        hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
+
+        return fitU;
+    }
+}
 TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U)
 {
 double mean = 0;
@@ -512,26 +551,25 @@ double mean = 0;
     else
     {
 
-        if ((*U).L < mean - 8 * sigma)
-            (*U).L = mean - 8 * sigma;
-        if ((*U).R > mean + 8 * sigma)
-            (*U).R = mean + 8 * sigma;
+        if ((*U).L < mean - 20 * sigma)
+            (*U).L = mean - 20 * sigma;
+        if ((*U).R > mean + 20 * sigma)
+            (*U).R = mean + 20 * sigma;
 
         hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
 
         return fitU;
     }
 }
-TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE *U)
+TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE U)
 {
-
-    double mean = 0;
+double mean = 0;
     double sigma = 0;
     TH1 *hU = (TH1 *)h->Clone();
     hU->Draw();
     hU->Rebin(rbU);
-    hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
-    TF1 *fitU = new TF1("fitU", "gaus", (*U).L, (*U).R);
+    hU->GetXaxis()->SetRangeUser(U.L, U.R);
+    TF1 *fitU = new TF1("fitU", "gaus", U.L, U.R);
     mean = hU->GetBinCenter(hU->GetMaximumBin());
     fitU->SetParameter(1, mean);
     cout << mean << "\t" << sigma << endl;
@@ -541,7 +579,7 @@ TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE *U)
 
     cout << mean << "\t" << sigma << endl;
 
-    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - fac * sigma, mean + fac * sigma);
+    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
     //failed =1 means fit failed
     if (failed)
         return fitU = 0;
@@ -549,18 +587,18 @@ TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE *U)
     else
     {
 
-        if ((*U).L < mean - 8 * sigma)
-            (*U).L = mean - 8 * sigma;
-        if ((*U).R > mean + 8 * sigma)
-            (*U).R = mean + 8 * sigma;
+        if (U.L < mean - 20 * sigma)
+            U.L = mean - 20 * sigma;
+        if (U.R > mean + 20 * sigma)
+            U.R = mean + 20 * sigma;
 
-        hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
+        hU->GetXaxis()->SetRangeUser(U.L, U.R);
 
         return fitU;
     }
 }
 
-TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE *t)
+TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE *t)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();
@@ -631,7 +669,7 @@ TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE *t)
     h->GetXaxis()->SetRangeUser((*t).L, (*t).R);
     return fit2;
 }
-TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE t)
+TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();

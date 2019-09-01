@@ -18,7 +18,497 @@
 #include "Include/DrawMyfunc.h"
 #include "Include/LZWfunc.h"
 
+const char path[2014]="/mnt/c/Subsys/work/Analysis/RootFile";
+
 using namespace std;
+void MCP_SPEchar(int mych=0,const char* rootname="KT881_2100_A5A6A7"){
+
+	gStyle->SetOptFit(1112);
+
+
+	
+//** Set your parameters**
+//*	
+	char name[1024];
+    char buff[1024];
+    
+	string Chname[3];
+	string str(rootname);
+    Chname[0]=str.substr(str.length()-6,2);
+    Chname[1]=str.substr(str.length()-4,2);
+    Chname[2]=str.substr(str.length()-2,2);
+cout<< " the ch name is: "<<Chname[0]<<"\t"<<Chname[1]<<"\t"<<Chname[2]<<endl;
+//return;
+
+    //**
+	//**
+
+	//double M=10;
+	double M=1;
+	int qN=0;
+	int rbu=4;
+	double facspe=6.5;
+	int rbq=4;
+	double spefac1 =12;
+	double spefac2 = 20;
+	double ampfac1 = 12;
+	double ampfac2 = 20;
+	RANGE def={-9999,9999};
+	RANGE x={0,100};
+	//RANGE y={-5e-3,100e-3};
+	RANGE y={-5e-3,50e-3};
+    //RANGE q={-0.1,1};
+    RANGE q={-0.01,1.0};
+	RANGE r={0,1};
+    //RANGE t={15,17};
+    RANGE t={32,35};
+	
+	//**
+	//** Hist range !! **
+    charRANGE chR={
+		x,
+        y,
+        q,
+        r,
+        def,
+        def,
+        t
+	};//x,y,q,r,bl,blrms,t
+	
+
+	//**
+	//** CUT RANGE !!**
+    charRANGE chcut={
+		def,
+        def,
+        def,
+        //{0.4,9999},
+        {0.3,9999},
+        def,
+        def,
+        def
+	};//blrms,y 
+
+	int rbt=128,rbU=16;
+	int rb=2;
+	double res=2;
+    double fac=1.8;
+	double fac2=0.4;
+    int iter=1;
+
+	OPTION opt={rb,rbU,iter,fac2};
+//*
+//** end **
+//
+
+    EVENT A[3];
+	EVENT B;
+    double t0;
+	double p[20];
+	//sprintf(buff,"/mnt/f/experiment/FTOF/SIPM/labtest/0108/BFP650_v2_s2/123.dat");
+	ofstream op;
+	//cout<<"Build your data file "<<endl;
+    DrawMyfunc draw;
+    LZWfunc lzw;
+
+	TCanvas *c[4];
+	for (int i=0;i<4;i++){
+    	sprintf(buff,"C%d",i);
+        c[i]= new TCanvas(buff,buff,800,600);
+    	draw.SetPad(gPad,0.12,0.12,0.1,0.1);
+	}
+//return;
+
+    TH1F *hq = new TH1F("hq",";charge (pC);Counts",1000,chR.q.L,chR.q.R);
+	draw.Hist(hq,"charge (pC)","Counts",2);
+
+	TH1F *ha = new TH1F("ha",";Amp(V);Counts",500,chR.y.L,chR.y.R);
+	draw.Hist(ha,"Amp(V)","Counts",2);
+	
+	TH1F *hr = new TH1F("hr",";risetime (ns);Counts",200,chR.r.L,chR.r.R);
+	draw.Hist(hr,"Risetime (ns)","Counts",2);
+	
+	TH1F *ht = new TH1F("ht","",400,chR.t.L,chR.t.R);
+	draw.Hist(ht,"STR (ps)","Counts",2);
+
+	TH1F *hbl = new TH1F("hbl","",400,chR.bl.L,chR.bl.R);
+	draw.Hist(hbl,"baseline (V)","Counts",2);
+	TGaxis::SetMaxDigits(3);
+	
+	TH1F *hblrms = new TH1F("hblrms","",800,chR.blrms.L,chR.blrms.R);
+	draw.Hist(hblrms,"baseline RMS (V)","Counts",2);
+
+	TH2F* hqy=new TH2F("hqy","",200,chR.y.L,chR.y.R,200,chR.q.L,chR.q.R);
+    draw.Hist(hqy,"Amp (V)","Charge (pC)");
+
+	TH1F *hx_origin = new TH1F("hx_origin",";Time (ns);Counts",2e3,chR.x.L,chR.x.R);
+	draw.Hist(hx_origin,"Time (ns)","Counts",2);
+	
+	sprintf(buff,"%s/%s.root",path,rootname);
+
+	cout<<"=====>> Start to read rootfile: "<<buff<<endl;
+	
+    TFile *f1 = new TFile(buff,"READ");
+    TTree *t1 = (TTree*)f1->Get("Pico");
+	//string path = f1->GetPath();
+	//path=path.substr(0,path.length()-7);
+	
+	
+	
+	//double Q[4];
+	//t1->SetBranchAddress("MCP2_CFDtime",&t0);
+	
+	for(int i = 0; i<3; i++){
+	sprintf(buff,"MCP%d_CFDtime",i+1);
+    t1->SetBranchAddress(buff,A[i].CFD);
+	sprintf(buff,"MCP%d_all_charge",i+1);
+	t1->SetBranchAddress(buff,A[i].charge);
+	sprintf(buff,"MCP%d_rise_time",i+1);
+	t1->SetBranchAddress(buff,&A[i].rise);
+	sprintf(buff,"MCP%d_global_maximum_y",i+1);
+	t1->SetBranchAddress(buff,&A[i].Amp);
+	sprintf(buff,"MCP%d_global_maximum_x",i+1);
+	t1->SetBranchAddress(buff,&A[i].x);
+	sprintf(buff,"MCP%d_baseline_rms",i+1);
+	t1->SetBranchAddress(buff,&A[i].blrms);
+	sprintf(buff,"MCP%d_baseline_level",i+1);
+	t1->SetBranchAddress(buff,&A[i].bl);
+	}
+	
+	t1->SetBranchAddress("MCP4_CFDfrac",p);
+	t1->SetBranchAddress("MCP4_CFDtime",B.CFD);
+	t1->SetBranchAddress("MCP4_all_charge",B.charge);
+	t1->SetBranchAddress("MCP4_rise_time",&B.rise);
+	t1->SetBranchAddress("MCP4_global_maximum_y",&B.Amp);
+	t1->SetBranchAddress("MCP4_global_maximum_x",&B.x);
+	t1->SetBranchAddress("MCP4_baseline_rms",&B.blrms);
+	t1->SetBranchAddress("MCP4_baseline_level",&B.bl);
+
+	//TCut c_x = "MCP2_global_maximum_x>410&&MCP2_global_maximum_x<412.5";
+	//TCut c_x = "MCP2_global_maximum_x>530&&MCP2_global_maximum_x<532";
+	//TCut c_blrms = "MCP2_baseline_rms<0.1e-3";
+	TH1F* hx=(TH1F*)hx_origin->Clone("hx");
+	hx->Draw();
+	//return;
+	//for(int j = mych ; j<mych+1; j++ ){
+	if(mych<0){
+RANGE xrange;
+	for(int j = 0 ; j<3; j++ ){
+	chcut.x = x;
+	xrange = x;
+	hq->Reset();
+	ha->Reset();
+	hr->Reset();
+	hbl->Reset();
+	hblrms->Reset();
+	hqy->Reset();
+	ht->Reset();
+	
+
+	cout<< "=====>> Analysis channel: "<<Chname[j]<<endl;
+
+	sprintf(buff,"%s/%s_%s.dat",path,rootname,Chname[j].c_str());
+	//op.open(buff,ios::app);
+	op.open(buff,ios::trunc);
+	cout<<"=====>> Start to open datafile: "<<buff<<endl;
+	
+	c[0]->cd();
+	hx->Reset();
+	
+	sprintf(buff,"MCP%d_global_maximum_x>>hx",j+1);
+	t1->Draw(buff);
+    //find the cut range;
+	
+	//hx->GetXaxis()->SetRangeUser(2,30);
+    xrange.L = hx->GetBinCenter(hx->GetMaximumBin())-1.5;
+    xrange.R = hx->GetBinCenter(hx->GetMaximumBin())+1.5;
+	cout<<xrange.L<<"\t"<<xrange.R<<endl;
+//return;
+    TF1* gx=lzw.gausfit(hx,1,1.5,xrange);
+//return;
+	
+    xrange.L = gx->GetParameter(1)-1.5*gx->GetParameter(2);
+	xrange.R = gx->GetParameter(1)+2.*gx->GetParameter(2);
+	cout<<"global maximum x cut range = "<<xrange.L<<"\t"<<xrange.R<<endl;
+	TLine* line1 = new TLine(xrange.L,gPad->VtoPixel(gPad->GetUymin()),xrange.L,gPad->VtoPixel(gPad->GetUymax()));
+    TLine* line2 = new TLine(xrange.R,gPad->VtoPixel(gPad->GetUymin()),xrange.R,gPad->VtoPixel(gPad->GetUymax()));
+    
+    line1->SetLineStyle(2);
+    line1->SetLineColor(6);
+    line1->Draw("same");
+    line2->SetLineStyle(2);
+    line2->SetLineColor(6);
+    line2->Draw("same");
+	sprintf(buff,"%s/%s_%s_Xcut.png",path,rootname,Chname[j].c_str());
+    c[0]->SaveAs(buff);
+	chcut.x.L = xrange.L;
+	chcut.x.R = xrange.R;
+	//return;
+
+
+	//gPad->Modified(); 
+	//gPad->Update(); 
+ 
+ //return;
+ 
+ int N=t1->GetEntries();
+	for(int i=0;i<N;i++){
+		t1->GetEntry(i);
+		//if(Q2>qlimit1&&Q2<qlimit2)
+
+
+        //pick up the true signal from noise
+			if (A[j].x>chcut.x.L&&
+            A[j].x<chcut.x.R&&
+            A[j].blrms>chcut.blrms.L&&
+            A[j].blrms<chcut.blrms.R&&
+            A[j].bl<chcut.bl.R&&
+            A[j].bl>chcut.bl.L&&
+			A[j].rise>chcut.r.L&&
+			A[j].rise<chcut.r.R
+
+			//&&A[j].Q>chcut.q.L
+			)
+			
+			{
+				hq->Fill(A[j].charge[qN]);
+				ha->Fill(A[j].Amp);
+				//cout<<Q[1]<<endl;
+				hbl->Fill(A[j].bl);
+				hblrms->Fill(A[j].blrms);
+				hqy->Fill(A[j].Amp,A[j].charge[qN]);
+				if(A[j].charge[0]>0.03) {
+					hr->Fill(A[j].rise);
+					ht->Fill(A[j].CFD[3]-B.CFD[3]);
+				}
+			}
+	}
+
+
+	//t1->Draw("MCP2_global_maximum_y>>ha",c_x&&c_blrms);	
+	//c[1]->cd();
+	cout<<"program running normly"<<endl;	
+
+//	Charge spectrum
+	c[2]->cd();
+	c[2]->SetLogy();
+	//sprintf(buff,"%s_charge",name);
+    //lzw.Set_name(buff);
+	//hq->Draw();
+	//return;
+	//TF1* fq=lzw.SPSfit(hq,4,chR.q,facspe);
+	TF1* fq=lzw.mcpSPfit(hq,rbq,chR.q,spefac1,spefac2);
+	double Gain=(fq->GetParameter(4)-fq->GetParameter(1))*1e-12/1.6e-19;
+	//double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
+	cout<<"Gain="<<Gain<<endl;
+	sprintf(buff,"Gain=%0.2e",Gain);
+	TLatex *l=draw.Latex(0.4,0.2,buff);
+	l->Draw();
+	sprintf(buff,"%s/%s_%s_charge.png",path,rootname,Chname[j].c_str());
+    c[2]->SaveAs(buff);
+//return;
+
+//	amplitude spectrum
+	sprintf(buff,"%s_amp",name);
+    lzw.Set_name(buff);
+	c[1]->cd();
+	ha->Draw();
+	c[1]->SetLogy();
+	TF1* fa=lzw.mcpSPfit(ha,2,chR.y,ampfac1,ampfac2);
+	double SPEAmp=(fa->GetParameter(4)-fa->GetParameter(1))*1e3;
+	cout<<"SPEAmp="<<SPEAmp<<endl;
+	sprintf(buff,"SPE Amp=%0.2f mV",SPEAmp);
+	TLatex *l1=draw.Latex(0.4,0.2,buff);
+	l1->Draw();
+	sprintf(buff,"%s/%s_%s_amp.png",path,rootname,Chname[j].c_str());
+    c[1]->SaveAs(buff);
+
+//	risetime spectrum
+	c[3]->cd();
+	TF1* r1=lzw.gausfit(hr,2,2,chcut.r);
+	//return;
+	double risetime=r1->GetParameter(1);
+	sprintf(buff,"%s/%s_%s_risetime.png",path,rootname,Chname[j].c_str());
+    c[3]->SaveAs(buff);
+
+//**	time resolution spectrum
+	c[0]->cd();
+	ht->Draw();
+	//TF1* gt=lzw.gausfit(ht,2,2,0.7,&chR.t);
+	TF1* gt=lzw.twogausfit(ht,0.4,2,chR.t);
+	sprintf(buff,"%s/%s_%s_TR.png",path,rootname,Chname[j].c_str());
+	c[0]->SaveAs(buff);
+	double TT=gt->GetParameter(1);
+	double TTS=gt->GetParameter(2);
+	op<<Gain<<endl;
+	op<<risetime<<endl;
+	op<<TT<<endl;
+	op<<TTS<<endl;
+	op.close();
+	}
+	}
+
+	else{
+	RANGE xrange;
+	for(int j = mych ; j<mych+1; j++ ){
+	chcut.x = x;
+	xrange = x;
+	hq->Reset();
+	ha->Reset();
+	hr->Reset();
+	hbl->Reset();
+	hblrms->Reset();
+	hqy->Reset();
+	ht->Reset();
+	
+
+	cout<< "=====>> Analysis channel: "<<Chname[j]<<endl;
+
+	sprintf(buff,"%s/%s_%s.dat",path,rootname,Chname[j].c_str());
+	//op.open(buff,ios::app);
+	op.open(buff,ios::trunc);
+	cout<<"=====>> Start to open datafile: "<<buff<<endl;
+	
+	c[0]->cd();
+	hx->Reset();
+	
+	sprintf(buff,"MCP%d_global_maximum_x>>hx",j+1);
+	t1->Draw(buff);
+    //find the cut range;
+	
+	//hx->GetXaxis()->SetRangeUser(2,30);
+    xrange.L = hx->GetBinCenter(hx->GetMaximumBin())-1.5;
+    xrange.R = hx->GetBinCenter(hx->GetMaximumBin())+1.5;
+	cout<<xrange.L<<"\t"<<xrange.R<<endl;
+//return;
+    TF1* gx=lzw.gausfit(hx,1,1.5,xrange);
+//return;
+	
+    xrange.L = gx->GetParameter(1)-3.*gx->GetParameter(2);
+	xrange.R = gx->GetParameter(1)+3.*gx->GetParameter(2);
+	cout<<"global maximum x cut range = "<<xrange.L<<"\t"<<xrange.R<<endl;
+	TLine* line1 = new TLine(xrange.L,gPad->VtoPixel(gPad->GetUymin()),xrange.L,gPad->VtoPixel(gPad->GetUymax()));
+    TLine* line2 = new TLine(xrange.R,gPad->VtoPixel(gPad->GetUymin()),xrange.R,gPad->VtoPixel(gPad->GetUymax()));
+    
+    line1->SetLineStyle(2);
+    line1->SetLineColor(6);
+    line1->Draw("same");
+    line2->SetLineStyle(2);
+    line2->SetLineColor(6);
+    line2->Draw("same");
+	sprintf(buff,"%s/%s_%s_Xcut.png",path,rootname,Chname[j].c_str());
+    c[0]->SaveAs(buff);
+	chcut.x.L = xrange.L;
+	chcut.x.R = xrange.R;
+	//return;
+
+
+	//gPad->Modified(); 
+	//gPad->Update(); 
+ 
+ //return;
+ 
+ int N=t1->GetEntries();
+	for(int i=0;i<N;i++){
+		t1->GetEntry(i);
+		//if(Q2>qlimit1&&Q2<qlimit2)
+
+
+        //pick up the true signal from noise
+			if (A[j].x>chcut.x.L&&
+            A[j].x<chcut.x.R&&
+            A[j].blrms>chcut.blrms.L&&
+            A[j].blrms<chcut.blrms.R&&
+            A[j].bl<chcut.bl.R&&
+            A[j].bl>chcut.bl.L&&
+			A[j].rise>chcut.r.L&&
+			A[j].rise<chcut.r.R
+
+			//&&A[j].Q>chcut.q.L
+			)
+			
+			{
+				hq->Fill(A[j].charge[qN]);
+				ha->Fill(A[j].Amp);
+				//cout<<Q[1]<<endl;
+				hbl->Fill(A[j].bl);
+				hblrms->Fill(A[j].blrms);
+				hqy->Fill(A[j].Amp,A[j].charge[qN]);
+				if(A[j].charge[0]>0.03) {
+					hr->Fill(A[j].rise);
+					ht->Fill(A[j].CFD[3]-B.CFD[3]);
+				}
+			}
+	}
+
+
+	//t1->Draw("MCP2_global_maximum_y>>ha",c_x&&c_blrms);	
+	//c[1]->cd();
+	cout<<"program running normly"<<endl;	
+
+//	Charge spectrum
+	c[2]->cd();
+	c[2]->SetLogy();
+	//sprintf(buff,"%s_charge",name);
+    //lzw.Set_name(buff);
+	//hq->Draw();
+	//return;
+	//TF1* fq=lzw.SPSfit(hq,4,chR.q,facspe);
+	TF1* fq=lzw.mcpSPfit(hq,rbq,chR.q,spefac1,spefac2);
+	double Gain=(fq->GetParameter(4)-fq->GetParameter(1))*1e-12/1.6e-19;
+	//double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
+	cout<<"Gain="<<Gain<<endl;
+	sprintf(buff,"Gain=%0.2e",Gain);
+	TLatex *l=draw.Latex(0.4,0.2,buff);
+	l->Draw();
+	sprintf(buff,"%s/%s_%s_charge.png",path,rootname,Chname[j].c_str());
+    c[2]->SaveAs(buff);
+//return;
+
+//	amplitude spectrum
+	sprintf(buff,"%s_amp",name);
+    lzw.Set_name(buff);
+	c[1]->cd();
+	ha->Draw();
+	c[1]->SetLogy();
+	TF1* fa=lzw.mcpSPfit(ha,2,chR.y,ampfac1,ampfac2);
+	double SPEAmp=(fa->GetParameter(4)-fa->GetParameter(1))*1e3;
+	cout<<"SPEAmp="<<SPEAmp<<endl;
+	sprintf(buff,"SPE Amp=%0.2f mV",SPEAmp);
+	TLatex *l1=draw.Latex(0.4,0.2,buff);
+	l1->Draw();
+	sprintf(buff,"%s/%s_%s_amp.png",path,rootname,Chname[j].c_str());
+    c[1]->SaveAs(buff);
+
+//	risetime spectrum
+	c[3]->cd();
+	TF1* r1=lzw.gausfit(hr,2,2,chcut.r);
+	//return;
+	double risetime=r1->GetParameter(1);
+	sprintf(buff,"%s/%s_%s_risetime.png",path,rootname,Chname[j].c_str());
+    c[3]->SaveAs(buff);
+
+//**	time resolution spectrum
+	c[0]->cd();
+	ht->Draw();
+	//TF1* gt=lzw.gausfit(ht,2,2,0.7,&chR.t);
+	TF1* gt=lzw.twogausfit(ht,0.4,2,chR.t);
+	sprintf(buff,"%s/%s_%s_TR.png",path,rootname,Chname[j].c_str());
+	c[0]->SaveAs(buff);
+	double TT=gt->GetParameter(1);
+	double TTS=gt->GetParameter(2);
+	op<<Gain<<endl;
+	op<<risetime<<endl;
+	op<<TT<<endl;
+	op<<TTS<<endl;
+	op.close();
+	}
+	}
+
+	f1->Close();
+	
+
+}
 void MCP_SPEchar(int colNum, int rowNum){
 
 	gStyle->SetOptFit(1112);
@@ -360,7 +850,7 @@ void MCP_SPEchar(int colNum, int rowNum){
 
 //	risetime spectrum
 	c[3]->cd();
-	TF1* r1=lzw.twoguasfit(hr,fac2,rb,chR.r);
+	TF1* r1=lzw.twogausfit(hr,fac2,rb,chR.r);
 	//return;
 	double risetime=r1->GetParameter(1);
 	sprintf(buff,"%s_risetime.png",name);
