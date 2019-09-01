@@ -19,7 +19,7 @@
 #include "Include/LZWfunc.h"
 
 using namespace std;
-void MCP_SPEchar(){
+void MCP_SPEchar(int colNum, int rowNum){
 
 	gStyle->SetOptFit(1112);
 
@@ -29,42 +29,106 @@ void MCP_SPEchar(){
 //*	
 	char name[1024];
     char buff[1024];
-    //const char* rootname="/mnt/f/experiment/FTOF/MCP/4-12/systemR3809-SPE";
-    const char* rootname="/mnt/f/experiment/FTOF/MCP/4-10/test/HV-SPE2200";
-	sprintf(name,"%s",rootname);
-  
+    
+    
+	//**
+	//********* G3 colum 1,1-7*******
+	//**
+	//const char* rootname="/mnt/f/MCP/7-26/KT0900_G3_Scanspot";
+
+    //**
+	//******** G3 colum 2,1-7****
+	//**
+	//const char* rootname="/mnt/f/MCP/7-27/KT0900_G3_scan/KT0900_G3_scanspot";
+	
+	//**
+	//******* G4 colum 1 & colum 2,0-5 ***
+	//**
+	//const char* rootname="/mnt/f/MCP/7-27/KT0900_scan/KT0900_scanG4_";
+
+  	//**
+	//******** G3 verify **********
+	//
+	//const char* rootname="/mnt/f/MCP/7-27/KT0900_G3_scan_verify/KT0900_G3_scan_verifyspot";
+
+	//**
+	//** colum 3 , 1-7
+	//**
+	//const char* rootname="/mnt/f/MCP/7-28/col/colspot";
+
+	//**
+	//** anode scan
+	//**
+	//const char* rootname="/mnt/f/MCP/7-28/scan/scanA";
+
+	//**
+	//** invert the tube, and scan column3
+	//**
+	//const char* rootname="/mnt/f/MCP/7-29/invert_spot";
+
+	//**
+	//** invert the tube, and scan column1
+	//**
+	//const char* rootname="/mnt/f/MCP/7-29/colum/columinvert_spot1_";
+
+	//**
+	//** invert the tube, and scan column1
+	//**
+	//const char* rootname="/mnt/f/MCP/7-30/base2/base2A";
+
+	//**
+	//** change the base to version 5_a, and scan column1, 0-3 of group 1
+	//**
+	//const char* rootname="/mnt/f/MCP/7-30/base5_a/base5_aA";
+
+
+    //**
+	//** change the base to version 5_a, and scan column1, 0-3 of group 1
+	//**
+	const char* rootname="/mnt/f/MCP/7-30/KT0881_base5_b/KT0881_base5_bG4_";
+
 	//double M=10;
 	double M=1;
 	int qN=0;
 	int rbu=4;
 	double facspe=6.5;
-
+	int rbq=4;
+	double spefac1 =12;
+	double spefac2 = 20;
 	RANGE def={-9999,9999};
-	RANGE x={0,100};
+	RANGE x={0,50};
 	//RANGE y={-5e-3,100e-3};
-	RANGE y={-5e-3,160e-3};
+	RANGE y={-5e-3,40e-3};
     //RANGE q={-0.1,1};
-    RANGE q={-0.01,2};
-    RANGE t=x;
+    RANGE q={-0.01,2.0};
+	RANGE r={0,1};
+    RANGE t={15,17};
+	
+	//**
+	//** Hist range !! **
     charRANGE chR={
 		x,
         y,
         q,
-        def,
+        r,
         def,
         def,
         t
 	};//x,y,q,r,bl,blrms,t
 	
+
+	//**
+	//** CUT RANGE !!**
     charRANGE chcut={
 		def,
         def,
         def,
-        def,
+        {0.4,9999},
         def,
         def,
         def
 	};//blrms,y 
+
 	int rbt=128,rbU=16;
 	int rb=2;
 	int maxpk=10;
@@ -74,52 +138,29 @@ void MCP_SPEchar(){
 	double thrd=0.01;
     double fac=1.8;
 	double fac2=0.4;
-    double iter=4;
+    int iter=1;
+
+	OPTION opt={rb,rbU,iter,fac2};
 //*
 //** end **
 //
 
+    EVENT A,B;
+    double t0;
+	double p[20];
 	//sprintf(buff,"/mnt/f/experiment/FTOF/SIPM/labtest/0108/BFP650_v2_s2/123.dat");
 	ofstream op;
 	//cout<<"Build your data file "<<endl;
-	sprintf(buff,"%s.root",name);
-    TFile *f1 = new TFile(buff,"READ");
-    TTree *t1 = (TTree*)f1->Get("Pico");
-	string path = f1->GetPath();
-	path=path.substr(0,path.length()-7);
-	sprintf(buff,"%s.dat",path.c_str());
-	op.open(buff,ios::app);
-	cout<<name<<endl;
-	
-	
-	
-    EVENT A;
-    //double t0;
-	double p[20];
-	double Q[4];
-	//t1->SetBranchAddress("MCP2_twentypercent_time",&t0);
-	
-    t1->SetBranchAddress("MCP2_CFDtime",A.CFD);
-	t1->SetBranchAddress("MCP2_CFDfrac",p);
-	t1->SetBranchAddress("MCP2_all_charge",Q);
-	t1->SetBranchAddress("MCP2_rise_time",&A.rise);
-	t1->SetBranchAddress("MCP2_global_maximum_y",&A.Amp);
-	t1->SetBranchAddress("MCP2_global_maximum_x",&A.x);
-	t1->SetBranchAddress("MCP2_baseline_rms",&A.blrms);
-	t1->SetBranchAddress("MCP2_baseline_level",&A.bl);
-	
-	//TCut c_x = "MCP2_global_maximum_x>410&&MCP2_global_maximum_x<412.5";
-	//TCut c_x = "MCP2_global_maximum_x>530&&MCP2_global_maximum_x<532";
-	//TCut c_blrms = "MCP2_baseline_rms<0.1e-3";
     DrawMyfunc draw;
     LZWfunc lzw;
 
-	TCanvas *c[7];
-	for (int i=0;i<3;i++){
+	TCanvas *c[4];
+	for (int i=0;i<4;i++){
     	sprintf(buff,"C%d",i);
         c[i]= new TCanvas(buff,buff,800,600);
     	draw.SetPad(gPad,0.12,0.12,0.1,0.1);
 	}
+//return;
 
     TH1F *hq = new TH1F("hq",";charge (pC);Counts",1000,chR.q.L,chR.q.R);
 	draw.Hist(hq,"charge (pC)","Counts",2);
@@ -130,7 +171,7 @@ void MCP_SPEchar(){
 	TH1F *hr = new TH1F("hr",";risetime (ns);Counts",200,chR.r.L,chR.r.R);
 	draw.Hist(hr,"Risetime (ns)","Counts",2);
 	
-	TH1F *ht = new TH1F("ht","",200,chR.t.L,chR.t.R);
+	TH1F *ht = new TH1F("ht","",400,chR.t.L,chR.t.R);
 	draw.Hist(ht,"STR (ps)","Counts",2);
 
 	TH1F *hbl = new TH1F("hbl","",400,chR.bl.L,chR.bl.R);
@@ -143,21 +184,66 @@ void MCP_SPEchar(){
 	TH2F* hqy=new TH2F("hqy","",200,chR.y.L,chR.y.R,200,chR.q.L,chR.q.R);
     draw.Hist(hqy,"Amp (V)","Charge (pC)");
 
-	TH1F *hx = new TH1F("hx",";Time (ns);Counts",2e3,chR.x.L,chR.x.R);
-	draw.Hist(hx,"Time (ns)","Counts",2);
+	TH1F *hx_origin = new TH1F("hx_origin",";Time (ns);Counts",2e3,chR.x.L,chR.x.R);
+	draw.Hist(hx_origin,"Time (ns)","Counts",2);
+	
+	//for (int k=0; k<7; k++){
+	for (int k=rowNum; k<rowNum+1; k++){
+	sprintf(name,"%s%d_%d",rootname,colNum,k);
+	//sprintf(name,"%s%d",rootname,k);
+
+	
+	sprintf(buff,"%s.root",name);
+    TFile *f1 = new TFile(buff,"READ");
+    TTree *t1 = (TTree*)f1->Get("Pico");
+	string path = f1->GetPath();
+	path=path.substr(0,path.length()-7);
+	sprintf(buff,"%s.dat",path.c_str());
+	//op.open(buff,ios::app);
+	op.open(buff,ios::trunc);
+	cout<<name<<endl;
+	
+	
+	
+	//double Q[4];
+	//t1->SetBranchAddress("MCP2_CFDtime",&t0);
+	
+    t1->SetBranchAddress("MCP1_CFDtime",A.CFD);
+	t1->SetBranchAddress("MCP1_CFDfrac",p);
+	t1->SetBranchAddress("MCP1_all_charge",A.charge);
+	t1->SetBranchAddress("MCP1_rise_time",&A.rise);
+	t1->SetBranchAddress("MCP1_global_maximum_y",&A.Amp);
+	t1->SetBranchAddress("MCP1_global_maximum_x",&A.x);
+	t1->SetBranchAddress("MCP1_baseline_rms",&A.blrms);
+	t1->SetBranchAddress("MCP1_baseline_level",&A.bl);
+	t1->SetBranchAddress("MCP2_CFDtime",B.CFD);
+	t1->SetBranchAddress("MCP2_all_charge",B.charge);
+	t1->SetBranchAddress("MCP2_rise_time",&B.rise);
+	t1->SetBranchAddress("MCP2_global_maximum_y",&B.Amp);
+	t1->SetBranchAddress("MCP2_global_maximum_x",&B.x);
+	t1->SetBranchAddress("MCP2_baseline_rms",&B.blrms);
+	t1->SetBranchAddress("MCP2_baseline_level",&B.bl);
+
+	//TCut c_x = "MCP2_global_maximum_x>410&&MCP2_global_maximum_x<412.5";
+	//TCut c_x = "MCP2_global_maximum_x>530&&MCP2_global_maximum_x<532";
+	//TCut c_blrms = "MCP2_baseline_rms<0.1e-3";
 
 	c[0]->cd();
+	TH1F* hx=(TH1F*)hx_origin->Clone("hx");
+	t1->Draw("MCP1_global_maximum_x>>hx");
 
     //find the cut range;
-	t1->Draw("MCP2_global_maximum_x>>hx");
-	hx->GetXaxis()->SetRangeUser(5,80);
-    chR.x.L=hx->GetBinCenter(hx->GetMaximumBin())-3;
-    chR.x.R = hx->GetBinCenter(hx->GetMaximumBin())+3;
+	
+	hx->GetXaxis()->SetRangeUser(28,30);
+    chR.x.L=hx->GetBinCenter(hx->GetMaximumBin())-0.5;
+    chR.x.R = hx->GetBinCenter(hx->GetMaximumBin())+0.5;
+	cout<<chR.x.L<<"\t"<<chR.x.R<<endl;
+//return;
     TF1* gx=lzw.gausfit(hx,1,1.5,&chR.x);
 //return;
 
-    chcut.x.L = gx->GetParameter(1)-2.5*gx->GetParameter(2);
-	chcut.x.R = gx->GetParameter(1)+2.5*gx->GetParameter(2);
+    chcut.x.L = gx->GetParameter(1)-3.*gx->GetParameter(2);
+	chcut.x.R = gx->GetParameter(1)+3.*gx->GetParameter(2);
 	cout<<"global maximum x cut range = "<<chcut.x.L<<"\t"<<chcut.x.R<<endl;
 
 
@@ -182,14 +268,16 @@ void MCP_SPEchar(){
             A.bl>chcut.bl.L
 			//&&A.Q>chcut.q.L
 			)
+			
 			{
-				hq->Fill(Q[qN]);
+				hq->Fill(A.charge[qN]);
 				ha->Fill(A.Amp);
 				//cout<<Q[1]<<endl;
 				hr->Fill(A.rise);
 				hbl->Fill(A.bl);
 				hblrms->Fill(A.blrms);
-				hqy->Fill(A.Amp,Q[qN]);
+				hqy->Fill(A.Amp,A.charge[qN]);
+				if(A.charge[0]>0.03) ht->Fill(A.CFD[3]-B.CFD[3]);
 				
 			}
 	}
@@ -223,15 +311,32 @@ void MCP_SPEchar(){
 	double *xpeaks;
 	xpeaks = s->GetPositionX();
 	*/
+//	Charge spectrum
+	c[2]->cd();
+	c[2]->SetLogy();
+	sprintf(buff,"%s_charge",name);
+    lzw.Set_name(buff);
+	//hq->Draw();
+	//return;
+	//TF1* fq=lzw.SPSfit(hq,4,chR.q,facspe);
+	TF1* fq=lzw.mcpSPfit(hq,rbq,chR.q,spefac1,spefac2);
+	double Gain=(fq->GetParameter(4)-fq->GetParameter(1))*1e-12/1.6e-19;
+	//double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
+	cout<<"Gain="<<Gain<<endl;
+	sprintf(buff,"Gain=%0.2e",Gain);
+	TLatex *l=draw.Latex(0.4,0.2,buff);
+	l->Draw();
+	sprintf(buff,"%s_charge.png",name);
+    c[2]->SaveAs(buff);
+//return;
 
-/*
 //	amplitude spectrum
 	sprintf(buff,"%s_amp",name);
     lzw.Set_name(buff);
 	c[1]->cd();
 	ha->Draw();
 	c[1]->SetLogy();
-	TF1* fa=lzw.mcpSPfit(ha,3,chR.y,20);
+	TF1* fa=lzw.mcpSPfit(ha,1,chR.y,8,5);
 	double SPEAmp=(fa->GetParameter(4)-fa->GetParameter(1))*1e3;
 	cout<<"SPEAmp="<<SPEAmp<<endl;
 	sprintf(buff,"SPE Amp=%0.2f mV",SPEAmp);
@@ -239,8 +344,8 @@ void MCP_SPEchar(){
 	l1->Draw();
 	sprintf(buff,"%s_amp.png",name);
     c[1]->SaveAs(buff);
-	return;
-*/
+
+
 
 /*	TF1* fa=lzw.fpeaksfit(ha,maxpk,res,sigmaA,thrd);
 	gausPAR* gPa = lzw.Get_PeakPar();
@@ -249,37 +354,62 @@ void MCP_SPEchar(){
 	chcut.y.R=gPa->m+2*gPa->s;
 	cout<<"chcut y left ="<<chcut.y.L<<", chcut y right ="<<chcut.y.R<<endl;
 */
-//	Charge spectrum
-	c[2]->cd();
-	//c[2]->SetLogy();
-	sprintf(buff,"%s_charge",name);
-    lzw.Set_name(buff);
-	//hq->Draw();
-	//return;
-	//TF1* fq=lzw.SPSfit(hq,4,chR.q,facspe);
-	TF1* fq=lzw.mcpSPfit(hq,rbu,chR.q,facspe);
-	double Gain=(fq->GetParameter(4)-fq->GetParameter(1))*1e-12/1.6e-19;
-	cout<<"Gain="<<Gain<<endl;
-	sprintf(buff,"Gain=%0.2e",Gain);
-	TLatex *l=draw.Latex(0.4,0.2,buff);
-	l->Draw();
-	sprintf(buff,"%s_charge.png",name);
-    c[2]->SaveAs(buff);
 
 	//gausPAR* gPq = lzw.Get_PeakPar();
 	//double speq=(gPq+1)->m-gPq->m;
 	//double G=speq*1e-12/1.6e-19;
-
-	return;
+	
 
 
 //	risetime spectrum
-	c[4]->cd();
+	c[3]->cd();
 	TF1* r1=lzw.twoguasfit(hr,fac2,rb,chR.r);
 	//return;
 	double risetime=r1->GetParameter(1);
 	sprintf(buff,"%s_risetime.png",name);
-    c[4]->SaveAs(buff);
+    c[3]->SaveAs(buff);
+
+//**	time resolution spectrum
+c[0]->cd();
+ht->Draw();
+TF1* gt=lzw.gausfit(ht,2,2,0.7,&chR.t);
+sprintf(buff,"%s_TR.png",name);
+c[0]->SaveAs(buff);
+double TT=gt->GetParameter(1);
+double TTS=gt->GetParameter(2);
+op<<Gain<<endl;
+op<<risetime<<endl;
+op<<TT<<endl;
+op<<TTS<<endl;
+op.close();
+}
+/* chcut.q.L=0.03;
+int N=t1->GetEntries();
+	for(int i=0;i<N;i++){
+		t1->GetEntry(i);
+		//if(Q2>qlimit1&&Q2<qlimit2)
+
+
+        //pick up the true signal from noise
+			if (A.x>chcut.x.L&&
+            A.x<chcut.x.R&&
+            A.blrms>chcut.blrms.L&&
+            A.blrms<chcut.blrms.R&&
+            A.bl<chcut.bl.R&&
+            A.bl>chcut.bl.L
+			&&A.Q>chcut.q.L
+			)
+			{
+				ht->Fill(A.CFD[3]-B.CFD[3]);
+				
+			}
+	}
+	//lzw.Set_charcut(chcut);
+    //lzw.CH2Correction(t1,ch,p,chR,chcut,opt,name);
+	//double STR=tt->GetParameter(2);
+	//double STRerr=tt->GetParError(2);
+	
+
 
 //	pedestal spectrum
 	c[5]->cd();
@@ -300,14 +430,9 @@ void MCP_SPEchar(){
 	hqy->Draw("colz");
 	sprintf(buff,"%s_Qvsy.png",name);
 	c[0]->SaveAs(buff);
+*/
 
 /*	
-//	time resolution spectrum
-	lzw.Set_charcut(chcut);
-    TF1* tt=lzw.CH1Correction(t1,&A,&t0,t,U,rbU,2*rbt,fac,iter);
-	double STR=tt->GetParameter(2);
-	double STRerr=tt->GetParError(2);
-	
 	
 	cout<<"The spe amplitude (mV) = "<<speA*1e3<<endl;
 	cout<<"The spe charge (pC) = "<<speq<<endl;

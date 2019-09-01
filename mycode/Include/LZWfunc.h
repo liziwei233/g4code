@@ -16,6 +16,7 @@
 #include "TVirtualFitter.h"
 #include "TPaveStats.h"
 #include "TList.h"
+#include "TLine.h"
 
 using namespace std;
 //*
@@ -88,10 +89,11 @@ class LZWfunc
     double pmtfun(double *x,double *par);
     double mcpfun(double *x, double *par);
     TF1* SPSfit(TH1* h,int rbq,RANGE u, double fac);
-    TF1* mcpSPfit(TH1* h,int rbq,RANGE u,double fac);
+    TF1* mcpSPfit(TH1* h,int rbq,RANGE u,double fac1, double fac2);
 
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE U);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE* U);
+    TF1* gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U);
     TF1* twoguasfit(TH1 *ht, double fac, int rbt, RANGE* t);
     TF1* twoguasfit(TH1 *ht, double fac, int rbt, RANGE t);
     TF1* profilefit(TH2 *Rt, double rbU, double rbt, RANGE t, RANGE U, char *name);
