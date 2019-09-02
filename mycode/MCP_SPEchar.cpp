@@ -21,6 +21,20 @@
 const char path[2014]="/mnt/c/Subsys/work/Analysis/RootFile";
 
 using namespace std;
+
+void drawline(float x1, float x2){
+
+	TLine* line1 = new TLine(x1,gPad->VtoPixel(gPad->GetUymin()),x1,gPad->VtoPixel(gPad->GetUymax()));
+    TLine* line2 = new TLine(x2,gPad->VtoPixel(gPad->GetUymin()),x2,gPad->VtoPixel(gPad->GetUymax()));
+    
+    line1->SetLineStyle(2);
+    line1->SetLineColor(6);
+    line1->Draw("same");
+    line2->SetLineStyle(2);
+    line2->SetLineColor(6);
+    line2->Draw("same");
+}
+
 void MCP_SPEchar(int mych=0,const char* rootname="KT881_2100_A5A6A7"){
 
 	gStyle->SetOptFit(1112);
@@ -191,9 +205,15 @@ cout<< " the ch name is: "<<Chname[0]<<"\t"<<Chname[1]<<"\t"<<Chname[2]<<endl;
 	hx->Draw();
 	//return;
 	//for(int j = mych ; j<mych+1; j++ ){
-	if(mych<0){
 RANGE xrange;
+int other1;
+int other2;
+	if(mych<0){
 	for(int j = 0 ; j<3; j++ ){
+	
+	other1 = j+1>=3? j+1-3:j+1;
+	other2 = j+2>=3? j+2-3:j+2;
+	
 	chcut.x = x;
 	xrange = x;
 	hq->Reset();
@@ -230,19 +250,16 @@ RANGE xrange;
     xrange.L = gx->GetParameter(1)-1.5*gx->GetParameter(2);
 	xrange.R = gx->GetParameter(1)+2.*gx->GetParameter(2);
 	cout<<"global maximum x cut range = "<<xrange.L<<"\t"<<xrange.R<<endl;
-	TLine* line1 = new TLine(xrange.L,gPad->VtoPixel(gPad->GetUymin()),xrange.L,gPad->VtoPixel(gPad->GetUymax()));
-    TLine* line2 = new TLine(xrange.R,gPad->VtoPixel(gPad->GetUymin()),xrange.R,gPad->VtoPixel(gPad->GetUymax()));
-    
-    line1->SetLineStyle(2);
-    line1->SetLineColor(6);
-    line1->Draw("same");
-    line2->SetLineStyle(2);
-    line2->SetLineColor(6);
-    line2->Draw("same");
+	chcut.x.L = 64.0;
+	chcut.x.R = 65.5;
+	
+	op<<chcut.x.L<<"\t"<<chcut.x.R<<endl;
+	drawline(chcut.x.L,chcut.x.R);
+	
 	sprintf(buff,"%s/%s_%s_Xcut.png",path,rootname,Chname[j].c_str());
     c[0]->SaveAs(buff);
-	chcut.x.L = xrange.L;
-	chcut.x.R = xrange.R;
+	//chcut.x.L = xrange.L;
+	//chcut.x.R = xrange.R;
 	//return;
 
 
@@ -266,6 +283,11 @@ RANGE xrange;
             A[j].bl>chcut.bl.L&&
 			A[j].rise>chcut.r.L&&
 			A[j].rise<chcut.r.R
+			&&A[other1].charge[0]<0.05
+			&&A[other2].charge[0]<0.05
+			//A[other1].rise>chcut.r.L&&
+			//A[other2].rise>chcut.r.L
+			
 
 			//&&A[j].Q>chcut.q.L
 			)
@@ -349,7 +371,6 @@ RANGE xrange;
 	}
 
 	else{
-	RANGE xrange;
 	for(int j = mych ; j<mych+1; j++ ){
 	chcut.x = x;
 	xrange = x;
