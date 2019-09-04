@@ -79,8 +79,8 @@ void DrawMyfunc::Graph(TGraph *datagraph, const char *xtitle, const char *ytitle
      datagraph->GetYaxis()->SetTitleSize(0.06);
      datagraph->GetXaxis()->SetTitleOffset(XTitleOffset);
      datagraph->GetYaxis()->SetTitleOffset(YTitleOffset);
-     datagraph->GetXaxis()->SetNdivisions(510);     
-     datagraph->GetYaxis()->SetNdivisions(505);
+     datagraph->GetXaxis()->SetNdivisions(505);     
+     datagraph->GetYaxis()->SetNdivisions(510);
 }
 
 void DrawMyfunc::Hist(TH1 *datahist, const char *xtitle,const char *ytitle, Float_t LWidth, Int_t LStyle, Color_t LColor, Color_t TitleColor){

@@ -615,7 +615,7 @@ TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE *t)
     if ((*t).L < mean - 5 * sigma || sigma > 1)
     {
         (*t).L = mean - 5 * sigma;
-        (*t).R = mean + 5 * sigma;
+        (*t).R = mean + 10 * sigma;
     }
     cout << h->GetName() << "\t" << (*t).L << "\t" << (*t).R << endl;
 
@@ -626,10 +626,11 @@ TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE *t)
     fit2->SetParameter(1, mean);
     fit2->SetParameter(2, sigma);
     fit2->SetParLimits(3, 0, fit->GetParameter(0) * fac);
-    fit2->SetParameter(4, mean);
-    fit2->SetParameter(5, 1.5 * sigma);
+    fit2->SetParameter(4, mean + sigma);
+    fit2->SetParameter(5, 2 * sigma);
 
-    h->Fit(fit2, "", "", mean - 5 * sigma, mean + 5 * sigma);
+    //h->Fit(fit2);
+    h->Fit(fit2, "", "", mean - 5 * sigma, mean + 8 * sigma);
     TF1 *fit_tr = new TF1("fit_tr", "gaus", (*t).L, (*t).R);
     fit_tr->SetParameter(0, fit2->GetParameter(0));
     fit_tr->SetParameter(1, fit2->GetParameter(1));
@@ -686,7 +687,7 @@ TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
     if (t.L < mean - 5 * sigma || sigma > 1)
     {
         t.L = mean - 5 * sigma;
-        t.R = mean + 5 * sigma;
+        t.R = mean + 10 * sigma;
     }
     cout << h->GetName() << "\t" << t.L << "\t" << t.R << endl;
 
@@ -696,11 +697,12 @@ TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
     fit2->SetParNames("C_{TR}", "#mu_{TR}", "#sigma_{TR}", "C_{bkgnd}", "#mu_{bkgnd}", "#sigma_{bkgnd}");
     fit2->SetParameter(1, mean);
     fit2->SetParameter(2, sigma);
-    fit2->SetParLimits(3, 0, fit->GetParameter(0) * fac);
-    fit2->SetParameter(4, mean);
-    fit2->SetParameter(5, 1.5 * sigma);
+    fit2->SetParLimits(3, 0, fit->GetParameter(0) * 0.4);
+    fit2->SetParameter(4, mean + sigma);
+    fit2->SetParameter(5, 2 * sigma);
 
-    h->Fit(fit2, "", "", mean - 5 * sigma, mean + 5 * sigma);
+    //h->Fit(fit2);
+    h->Fit(fit2, "", "", mean - 5 * sigma, mean + fac * sigma);
     TF1 *fit_tr = new TF1("fit_tr", "gaus", t.L, t.R);
     fit_tr->SetParameter(0, fit2->GetParameter(0));
     fit_tr->SetParameter(1, fit2->GetParameter(1));
