@@ -351,7 +351,7 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
   myFun->Draw("same");
   return myFun;
 }
-TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac)
+TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac1, double fac2)
 {
     TH1 *hqdc = (TH1 *)h->Clone();
     hqdc->Draw();
@@ -360,14 +360,19 @@ TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac)
     TF1 *pedGaus = new TF1("pedGaus","gaus",u.L,u.R);
     int ibin =  hqdc->GetMaximumBin();
     double pedMean = hqdc->GetBinCenter(ibin);
+    double pedfitrangeleft=0-pedMean;
+    double pedfitrangeright=pedMean+1*pedMean;
     //
     //* try to fit pedstal
-    hqdc->Fit(pedGaus,"","",0-pedMean, pedMean+1*pedMean);//???????????
+    hqdc->Fit(pedGaus,"","",pedfitrangeleft, pedfitrangeright);//???????????
     pedMean = pedGaus->GetParameter(1);
     double pedSigma = pedGaus->GetParameter(2);
     //
     //* fit pedstal formly
-    hqdc->Fit(pedGaus,"","",pedMean-10*pedSigma, pedMean+1*pedSigma);
+    pedfitrangeleft=pedMean-3*pedSigma;
+    pedfitrangeright=pedMean+2*pedSigma;
+    hqdc->Fit(pedGaus,"","",pedfitrangeleft, pedfitrangeright);
+    //return pedGaus;
     pedMean = pedGaus->GetParameter(1);
     pedSigma = pedGaus->GetParameter(2);
     //return pedGaus;
@@ -384,7 +389,7 @@ TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac)
     TF1 *SPEGaus = new TF1("SPEGaus","gaus",u.L,u.R);
     //
     //* find the position of SPE
-    hqdc->GetXaxis()->SetRangeUser(pedMean+fac*pedSigma,  u.R);
+    hqdc->GetXaxis()->SetRangeUser(pedMean+fac1*pedSigma,  u.R);
     ibin = hqdc->GetMaximumBin();
     double mean = hqdc->GetBinCenter(ibin)-pedMean;
     double sigma = hqdc->GetStdDev()/10;
@@ -393,14 +398,23 @@ TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac)
 
     SPEGaus->SetParameter(1,mean);
     SPEGaus->SetParameter(2,sigma);
-    hqdc->Fit(SPEGaus,"","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+1*mean);
-    cout<<" fit range.: L = "<<pedMean+fac*pedSigma<<"; R = "<<pedMean+fac*pedSigma+2*mean<<endl;
+    TLine* l1 = new TLine(pedMean+fac1*pedSigma,gPad->VtoPixel(gPad->GetUymin()),pedMean+fac1*pedSigma,gPad->VtoPixel(gPad->GetUymax()));
+    TLine* l2 = new TLine(pedMean+mean+fac1*pedSigma+fac2*sigma,gPad->VtoPixel(gPad->GetUymin()),pedMean+mean+fac1*pedSigma+fac2*sigma,gPad->VtoPixel(gPad->GetUymax()));
+    
+    l1->SetLineStyle(2);
+    l1->SetLineColor(6);
+    l1->Draw("same");
+    l2->SetLineStyle(2);
+    l2->SetLineColor(6);
+    l2->Draw("same");
+    hqdc->Fit(SPEGaus,"","",pedMean+fac1*pedSigma, pedMean+mean+fac1*pedSigma+fac2*sigma);
+    cout<<" fit range.: L = "<<pedMean+fac1*pedSigma<<"; R = "<<pedMean+mean+fac1*pedSigma+fac2*sigma<<endl;
     mean=SPEGaus->GetParameter(1);
     sigma=SPEGaus->GetParameter(2);
     cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
     //return SPEGaus;
   
-    hqdc->GetXaxis()->SetRangeUser(pedMean-2*fac*pedSigma,  pedMean+5*mean);
+    hqdc->GetXaxis()->SetRangeUser(pedMean-2*fac1*pedSigma,  pedMean+5*mean+3*sigma);
     TF1*  myGaus = new TF1("myGaus", "gaus(0)+gaus(3)", u.L, u.R);
     myGaus->SetParNames("C_{ped}", "#mu_{ped}", "#sigma_{ped}", "C_{PE}", "#mu_{PE}", "#sigma_{PE}");
     //myGaus->SetParameter(0, pedGaus->GetParameter(0));
@@ -472,11 +486,48 @@ TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE U)
         return fitU;
     }
 }
-
-TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE *U)
+TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE* U)
 {
 
     double mean = 0;
+    double sigma = 0;
+    double max=0;
+    TH1 *hU = (TH1 *)h->Clone();
+    hU->Draw();
+    hU->Rebin(rbU);
+    hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
+    TF1 *fitU = new TF1("fitU", "gaus", (*U).L, (*U).R);
+    max = hU->GetBinCenter(hU->GetMaximumBin());
+    fitU->SetParLimits(0,0, hU->GetBinContent(hU->GetMaximumBin()));
+    fitU->SetParameter(1, max);
+    //cout << mean << "\t" << sigma << endl;
+    hU->Fit(fitU, "R");
+    mean = fitU->GetParameter(1);
+    sigma = fitU->GetParameter(2);
+
+    cout << mean << "\t" << sigma << endl;
+
+    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - fac * sigma, mean + fac * sigma);
+    //failed =1 means fit failed
+    if (failed)
+        return fitU = 0;
+
+    else
+    {
+
+        if ((*U).L < mean - 20 * sigma)
+            (*U).L = mean - 20 * sigma;
+        if ((*U).R > mean + 20 * sigma)
+            (*U).R = mean + 20 * sigma;
+
+        hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
+
+        return fitU;
+    }
+}
+TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U)
+{
+double mean = 0;
     double sigma = 0;
     TH1 *hU = (TH1 *)h->Clone();
     hU->Draw();
@@ -492,7 +543,7 @@ TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE *U)
 
     cout << mean << "\t" << sigma << endl;
 
-    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - fac * sigma, mean + fac * sigma);
+    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
     //failed =1 means fit failed
     if (failed)
         return fitU = 0;
@@ -500,18 +551,54 @@ TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE *U)
     else
     {
 
-        if ((*U).L < mean - 8 * sigma)
-            (*U).L = mean - 8 * sigma;
-        if ((*U).R > mean + 8 * sigma)
-            (*U).R = mean + 8 * sigma;
+        if ((*U).L < mean - 20 * sigma)
+            (*U).L = mean - 20 * sigma;
+        if ((*U).R > mean + 20 * sigma)
+            (*U).R = mean + 20 * sigma;
 
         hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
 
         return fitU;
     }
 }
+TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE U)
+{
+double mean = 0;
+    double sigma = 0;
+    TH1 *hU = (TH1 *)h->Clone();
+    hU->Draw();
+    hU->Rebin(rbU);
+    hU->GetXaxis()->SetRangeUser(U.L, U.R);
+    TF1 *fitU = new TF1("fitU", "gaus", U.L, U.R);
+    mean = hU->GetBinCenter(hU->GetMaximumBin());
+    fitU->SetParameter(1, mean);
+    cout << mean << "\t" << sigma << endl;
+    hU->Fit(fitU, "R");
+    mean = fitU->GetParameter(1);
+    sigma = fitU->GetParameter(2);
 
-TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE *t)
+    cout << mean << "\t" << sigma << endl;
+
+    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
+    //failed =1 means fit failed
+    if (failed)
+        return fitU = 0;
+
+    else
+    {
+
+        if (U.L < mean - 20 * sigma)
+            U.L = mean - 20 * sigma;
+        if (U.R > mean + 20 * sigma)
+            U.R = mean + 20 * sigma;
+
+        hU->GetXaxis()->SetRangeUser(U.L, U.R);
+
+        return fitU;
+    }
+}
+
+TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE *t)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();
@@ -528,7 +615,7 @@ TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE *t)
     if ((*t).L < mean - 5 * sigma || sigma > 1)
     {
         (*t).L = mean - 5 * sigma;
-        (*t).R = mean + 5 * sigma;
+        (*t).R = mean + 10 * sigma;
     }
     cout << h->GetName() << "\t" << (*t).L << "\t" << (*t).R << endl;
 
@@ -539,10 +626,11 @@ TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE *t)
     fit2->SetParameter(1, mean);
     fit2->SetParameter(2, sigma);
     fit2->SetParLimits(3, 0, fit->GetParameter(0) * fac);
-    fit2->SetParameter(4, mean);
-    fit2->SetParameter(5, 1.5 * sigma);
+    fit2->SetParameter(4, mean + sigma);
+    fit2->SetParameter(5, 2 * sigma);
 
-    h->Fit(fit2, "", "", mean - 5 * sigma, mean + 5 * sigma);
+    //h->Fit(fit2);
+    h->Fit(fit2, "", "", mean - 5 * sigma, mean + 8 * sigma);
     TF1 *fit_tr = new TF1("fit_tr", "gaus", (*t).L, (*t).R);
     fit_tr->SetParameter(0, fit2->GetParameter(0));
     fit_tr->SetParameter(1, fit2->GetParameter(1));
@@ -582,7 +670,7 @@ TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE *t)
     h->GetXaxis()->SetRangeUser((*t).L, (*t).R);
     return fit2;
 }
-TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE t)
+TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();
@@ -599,7 +687,7 @@ TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE t)
     if (t.L < mean - 5 * sigma || sigma > 1)
     {
         t.L = mean - 5 * sigma;
-        t.R = mean + 5 * sigma;
+        t.R = mean + 10 * sigma;
     }
     cout << h->GetName() << "\t" << t.L << "\t" << t.R << endl;
 
@@ -609,11 +697,12 @@ TF1 *LZWfunc::twoguasfit(TH1 *ht, double fac, int rbt, RANGE t)
     fit2->SetParNames("C_{TR}", "#mu_{TR}", "#sigma_{TR}", "C_{bkgnd}", "#mu_{bkgnd}", "#sigma_{bkgnd}");
     fit2->SetParameter(1, mean);
     fit2->SetParameter(2, sigma);
-    fit2->SetParLimits(3, 0, fit->GetParameter(0) * fac);
-    fit2->SetParameter(4, mean);
-    fit2->SetParameter(5, 1.5 * sigma);
+    fit2->SetParLimits(3, 0, fit->GetParameter(0) * 0.4);
+    fit2->SetParameter(4, mean + sigma);
+    fit2->SetParameter(5, 2 * sigma);
 
-    h->Fit(fit2, "", "", mean - 5 * sigma, mean + 5 * sigma);
+    //h->Fit(fit2);
+    h->Fit(fit2, "", "", mean - 5 * sigma, mean + fac * sigma);
     TF1 *fit_tr = new TF1("fit_tr", "gaus", t.L, t.R);
     fit_tr->SetParameter(0, fit2->GetParameter(0));
     fit_tr->SetParameter(1, fit2->GetParameter(1));
@@ -1176,7 +1265,7 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
     //cout<<buff<<" has been built"<<endl;
 
     TCanvas *cCor = new TCanvas("cCor", "cCor", 800, 600);
-    TH1D *ht = new TH1D("ht", "Time Resolution;T (ps);Counts", 1e3, t.L, t.R);
+    TH1D *ht = new TH1D("ht", "Time Resolution;T (ns);Counts", 1e3, t.L, t.R);
 
     TF1 *fitT;
 
@@ -1207,7 +1296,8 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
     //ch[2]=&MCP;
     double L = 20;
     //cout<<"the number of values of fraction of CFD: "<<L<<endl;
-    for (int j = 0; j < L; j++)
+    //for (int j = 0; j < L; j++)
+    for (int j = 3; j < 4; j++)
     {
         //multi CFD fraction dicrimination
 
@@ -1303,7 +1393,7 @@ void LZWfunc::CH2Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<cha
                 }
                 sprintf(buff, "%s_ch%d_CFDfrac%g_TR_cor%d.png", name.c_str(), h, p[j], s);
                 cCor->SaveAs(buff);
-                if (!fitT)
+                if (fitT)
                     output << name.c_str() << "\t" << h << "\t" << p[j] << "\t" << s << "\t" << fitT->GetParameter(2) << "\t" << fitT->GetParError(2) << endl;
                 else
                     output << name.c_str() << "\t" << h << "\t" << p[j] << "\t" << s << "\t"
@@ -1481,8 +1571,8 @@ TF1 *LZWfunc::CH1Correction(TTree *t1, EVENT *A, double *t0, charRANGE range, CU
 
     double Q;
     RANGE initial_t;
-    initial_t.L = -5;
-    initial_t.R = 5;
+    initial_t.L = range.t.L;
+    initial_t.R = range.t.R;
 
     ofstream output;
     sprintf(buff, "%s.dat", name.c_str());
