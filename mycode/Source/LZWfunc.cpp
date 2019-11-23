@@ -216,7 +216,7 @@ double LZWfunc::HVfun(double *x, double *par){
     val = TMath::Exp(C+x[0]*A*alpha);
     return val;
 }
-TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
+TH1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
 {
     TH1 *hqdc = (TH1 *)h->Clone();
     hqdc->Draw();
@@ -225,17 +225,23 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
     TF1 *myGaus = new TF1("myGaus","gaus",u.L,u.R);
     int ibin =  hqdc->GetMaximumBin();
     double pedMean = hqdc->GetBinCenter(ibin);
+    double pedfitrangeleft=hqdc->GetBinCenter(ibin-1);
+    double pedfitrangeright=hqdc->GetBinCenter(ibin+1);
+    cout<<"pedstal first fit range:"<<pedfitrangeleft<<"\t"<<pedfitrangeright<<endl;
+    hqdc->GetXaxis()->SetRangeUser(pedfitrangeleft, pedfitrangeright);
     //
     //* try to fit pedstal
-    hqdc->Fit(myGaus,"","",u.L, pedMean+pedMean);//???????????
+    hqdc->Fit(myGaus,"","",pedfitrangeleft, pedfitrangeright);//???????????
     pedMean = myGaus->GetParameter(1);
     double pedSigma = myGaus->GetParameter(2);
     //
+    /*
     //* fit pedstal formly
     hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+fac*pedSigma);
     pedMean = myGaus->GetParameter(1);
     pedSigma = myGaus->GetParameter(2);
     cout<<" init. par.: pedmean = "<<pedMean<<"; pedsigma = "<<pedSigma<<endl;
+    */
     //return myGaus;
     /*
     hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
@@ -252,13 +258,14 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
     hqdc->GetXaxis()->SetRangeUser(pedMean+fac*pedSigma,  u.R);
     ibin = hqdc->GetMaximumBin();
     double mean = hqdc->GetBinCenter(ibin)-pedMean;
-    double sigma = hqdc->GetStdDev()/10;
+    //double sigma = hqdc->GetStdDev()/10;
+    double sigma = hqdc->GetStdDev();
     double mean2 = hqdc->GetMean()-pedMean;
     if(mean2/mean>5) mean = mean2;
 
     myGaus->SetParameter(1,mean);
     myGaus->SetParameter(2,sigma);
-    hqdc->Fit(myGaus,"","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+1*mean);
+    hqdc->Fit(myGaus,"N","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+1*mean);
     mean=myGaus->GetParameter(1);
     sigma=myGaus->GetParameter(2);
     cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
@@ -319,7 +326,7 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
   hqdc->SetLineWidth(1.5);
   myGaus->SetLineWidth(2);
   myGaus->SetLineColor(4);
-  myGaus->Draw("same");
+  //myGaus->Draw("same");
 
   myFun->SetNpx(1000);
   //myFun->SetLineWidth(1);
@@ -343,13 +350,13 @@ TF1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
     peakFun[j]->SetParameters(TMath::PoissonI(j, par[1])*par[0]*par[6], par[2]+j*par[4], par[5]*sqrt(1.0*j));//CHANGED!!
     //if(j==0) peakFun[j]->SetLineColor(6);
     //else 
-    peakFun[j]->SetLineColor(6);
+    peakFun[j]->SetLineColor(kRed+1);
     peakFun[j]->SetLineWidth(2);
     peakFun[j]->Draw("same");
   }
 
   myFun->Draw("same");
-  return myFun;
+  return hqdc;
 }
 TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac1, double fac2)
 {
@@ -360,22 +367,27 @@ TF1* LZWfunc::mcpSPfit(TH1* h,int rbq,RANGE u,double fac1, double fac2)
     TF1 *pedGaus = new TF1("pedGaus","gaus",u.L,u.R);
     int ibin =  hqdc->GetMaximumBin();
     double pedMean = hqdc->GetBinCenter(ibin);
-    double pedfitrangeleft=0-pedMean;
-    double pedfitrangeright=pedMean+1*pedMean;
+    double pedfitrangeleft=hqdc->GetBinCenter(ibin-1);
+    double pedfitrangeright=hqdc->GetBinCenter(ibin+1);
+    cout<<"pedstal first fit range:"<<pedfitrangeleft<<"\t"<<pedfitrangeright<<endl;
     //
     //* try to fit pedstal
+    hqdc->GetXaxis()->SetRangeUser(pedfitrangeleft, pedfitrangeright);
     hqdc->Fit(pedGaus,"","",pedfitrangeleft, pedfitrangeright);//???????????
     pedMean = pedGaus->GetParameter(1);
     double pedSigma = pedGaus->GetParameter(2);
+    //return pedGaus;
     //
+    /*
     //* fit pedstal formly
-    pedfitrangeleft=pedMean-3*pedSigma;
-    pedfitrangeright=pedMean+2*pedSigma;
+    pedfitrangeleft=pedMean-1*pedSigma;
+    pedfitrangeright=pedMean+1*pedSigma;
     hqdc->Fit(pedGaus,"","",pedfitrangeleft, pedfitrangeright);
     //return pedGaus;
     pedMean = pedGaus->GetParameter(1);
     pedSigma = pedGaus->GetParameter(2);
-    //return pedGaus;
+    return pedGaus;
+    */
     /*
     hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
     pedMean = myGaus->GetParameter(1);
@@ -525,7 +537,7 @@ TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double fac, RANGE* U)
         return fitU;
     }
 }
-TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U)
+TH1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U)
 {
 double mean = 0;
     double sigma = 0;
@@ -546,7 +558,7 @@ double mean = 0;
     TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
     //failed =1 means fit failed
     if (failed)
-        return fitU = 0;
+        return hU;
 
     else
     {
@@ -558,10 +570,10 @@ double mean = 0;
 
         hU->GetXaxis()->SetRangeUser((*U).L, (*U).R);
 
-        return fitU;
+        return hU;
     }
 }
-TF1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE U)
+TH1 *LZWfunc::gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE U)
 {
 double mean = 0;
     double sigma = 0;
@@ -582,7 +594,7 @@ double mean = 0;
     TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
     //failed =1 means fit failed
     if (failed)
-        return fitU = 0;
+        return hU;
 
     else
     {
@@ -594,7 +606,7 @@ double mean = 0;
 
         hU->GetXaxis()->SetRangeUser(U.L, U.R);
 
-        return fitU;
+        return hU;
     }
 }
 

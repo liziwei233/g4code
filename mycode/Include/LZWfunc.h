@@ -88,14 +88,14 @@ class LZWfunc
     double HVfun(double *x, double *par);
     double pmtfun(double *x,double *par);
     double mcpfun(double *x, double *par);
-    TF1* SPSfit(TH1* h,int rbq,RANGE u, double fac);
+    TH1* SPSfit(TH1* h,int rbq,RANGE u, double fac);
     TF1* mcpSPfit(TH1* h,int rbq,RANGE u,double fac1, double fac2);
 
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE U);
     TF1* gausfit(TH1 *h, int rbU, double fac, RANGE* U);
    
-    TF1* gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U);
-    TF1* gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE U);
+    TH1* gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U);
+    TH1* gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE U);
     TF1* twogausfit(TH1 *ht, double fac, int rbt, RANGE* t);
     TF1* twogausfit(TH1 *ht, double fac, int rbt, RANGE t);
     TF1* profilefit(TH2 *Rt, double rbU, double rbt, RANGE t, RANGE U, char *name);
