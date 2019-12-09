@@ -16,7 +16,9 @@
         "unname.C": "cpp",
         "drawfigure_simu.C": "cpp",
         "TR_TACor_SIMU.C": "cpp",
-        "drawfigure_simu1.C": "cpp"
+        "drawfigure_simu1.C": "cpp",
+        "MCP_TR.C": "cpp",
+        "MCP_TTS.C": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,

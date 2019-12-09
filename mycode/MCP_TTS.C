@@ -46,14 +46,15 @@ void MCP_TTS()
     char buff[1024];
     //const char* rootname="/mnt/f/experiment/FTOF/MCP/4-12/systemR3809-SPE";
     //const char* rootname="/mnt/f/experiment/FTOF/MCP/4-10/test/HV-SPE2200";
-    const char *rootname = "/mnt/c/Users/liziwei/OneDrive/Documents/paper/osc/MCP-PMT-SPE/MCP3100";
+    //const char *rootname = "/mnt/c/Users/liziwei/OneDrive/Documents/paper/osc/MCP-PMT-SPE/MCP3100";
+    const char *rootname = "/mnt/f/MCP/12-2/201901-A3";
     sprintf(name, "%s", rootname);
 
     //double M=10;
     double M = 1;
     int qN = 0;
-    int rbu = 4;
-    double facspe = 6.5;
+    int rbu = 2;
+    double facspe = 12;
     int rbq = 1;
     double spefac1 = 5;
     double spefac2 = 12;
@@ -61,9 +62,9 @@ void MCP_TTS()
     RANGE def = {-9999, 9999};
     RANGE x = {0, 20};
     //RANGE y={-5e-3,100e-3};
-    RANGE y = {-5e-3, 160e-3};
+    RANGE y = {-5e-3, 300e-3};
     //RANGE q={-0.1,1};
-    RANGE q = {-0.05, 2};
+    RANGE q = {-0.05, 12};
     RANGE t = {3.1,3.4};
     RANGE rcut = {0.1, 1};
     charRANGE chR = {
@@ -110,18 +111,19 @@ void MCP_TTS()
     cout << name << endl;
 
     EVENT A;
-    double t0;
+    double t0[20];
+    double Q;
 
-    t1->SetBranchAddress("MCP2_twentypercent_time", &t0);
+    //t1->SetBranchAddress("MCP2_twentypercent_time", &t0);
+    t1->SetBranchAddress("MCP1_CFDtime", t0);
 
-    t1->SetBranchAddress("MCP1_twentypercent_time", &A.time);
-
-    t1->SetBranchAddress("MCP1_all_charge", &A.Q);
-    t1->SetBranchAddress("MCP1_rise_time", &A.rise);
-    t1->SetBranchAddress("MCP1_global_maximum_y", &A.Amp);
-    t1->SetBranchAddress("MCP1_global_maximum_x", &A.x);
-    t1->SetBranchAddress("MCP1_baseline_rms", &A.blrms);
-    t1->SetBranchAddress("MCP1_baseline_level", &A.bl);
+    t1->SetBranchAddress("MCP4_CFDtime", A.CFD);
+    t1->SetBranchAddress("MCP4_all_charge", A.charge);
+    t1->SetBranchAddress("MCP4_rise_time", &A.rise);
+    t1->SetBranchAddress("MCP4_global_maximum_y", &A.Amp);
+    t1->SetBranchAddress("MCP4_global_maximum_x", &A.x);
+    t1->SetBranchAddress("MCP4_baseline_rms", &A.blrms);
+    t1->SetBranchAddress("MCP4_baseline_level", &A.bl);
 
     //TCut c_x = "MCP2_global_maximum_x>410&&MCP2_global_maximum_x<412.5";
     //TCut c_x = "MCP2_global_maximum_x>530&&MCP2_global_maximum_x<532";
@@ -185,6 +187,7 @@ void MCP_TTS()
     for (int i = 0; i < N; i++)
     {
         t1->GetEntry(i);
+        Q=A.charge[0];
         //if(Q2>qlimit1&&Q2<qlimit2)
 
         //pick up the true signal from noise
@@ -201,15 +204,15 @@ void MCP_TTS()
             */
         if (A.rise > chcut.r.L)
         {
-            hq->Fill(A.Q);
+            hq->Fill(Q);
             ha->Fill(A.Amp);
             //cout<<Q[1]<<endl;
             hr->Fill(A.rise);
             hbl->Fill(A.bl);
             hblrms->Fill(A.blrms);
-            hqy->Fill(A.Amp, A.Q);
-            if (A.Q > 20e-3)
-                ht->Fill(A.time - t0);
+            hqy->Fill(A.Amp, Q);
+            if (Q > 20e-3)
+                ht->Fill(A.CFD[3] - t0[3]);
         }
     }
 
