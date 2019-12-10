@@ -265,11 +265,11 @@ TH1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
 
     myGaus->SetParameter(1,mean);
     myGaus->SetParameter(2,sigma);
-    hqdc->Fit(myGaus,"N","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+1*mean);
+    hqdc->Fit(myGaus,"R","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+2*mean);
     mean=myGaus->GetParameter(1);
     sigma=myGaus->GetParameter(2);
     cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
-   //return myGaus;
+   //return hqdc;
     
     hqdc->GetXaxis()->SetRangeUser(u.L,  u.R);
 
@@ -279,19 +279,19 @@ TH1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
     myFun->SetParNames("N","#lambda","#mu_{ped}","#sigma_{ped}","#mu","#sigma", "BW");
 
      //Int_t ibin =  h->GetMaximumBin();
-  myFun->SetParameters(hqdc->GetEntries(),0.1, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(5));
+  myFun->SetParameters(hqdc->GetEntries(),0.01, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(5));
   myFun->FixParameter(0, hqdc->GetEntries());//fix total yield
   myFun->FixParameter(6, hqdc->GetBinWidth(5));//fix bin width
   myFun->SetParLimits(2, pedMean-0.0001,pedMean+0.0001);//fix pedestal mean
   myFun->SetParLimits(3, pedSigma-0.000001,pedSigma+0.000001);//fix pedestal sigma
-  myFun->SetParLimits(4, pedMean+fac*pedSigma, 2*mean);//>10 for 1400V
-  myFun->SetParLimits(5, 0, 2*sigma);
+  myFun->SetParLimits(4, pedMean+fac*pedSigma, 5*mean);//>10 for 1400V
+  myFun->SetParLimits(5, 0, 10*sigma);
   //if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
   //else 
   myFun->SetRange(pedMean+fac*pedSigma,  mean+1*sigma);
   cout<<" first fitting..."<<endl;
   hqdc->Fit(myFun,"R");
-  //return myFun;
+  return hqdc;
   mean=myFun->GetParameter(4);//return;
   sigma = myFun->GetParameter(5);
   //myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  u.R);
