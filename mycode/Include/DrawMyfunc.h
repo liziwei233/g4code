@@ -29,6 +29,7 @@ class DrawMyfunc
     void SetYTitleOffset(double y){ XTitleOffset=y;};
     void Setstat(TH1* datahist, double x1,double y1,double x2,double y2);
     TPad* BuildPad(const int Npad, double* ratio);
+    void drawline(float x1, float x2);
     private:
     double XTitleOffset;
     double YTitleOffset;

@@ -233,3 +233,16 @@ TPad* DrawMyfunc::BuildPad(const int Npad, double* ratio){
   }
   return pad[Npad];
 }
+
+void DrawMyfunc::drawline(float x1, float x2){
+
+	TLine* line1 = new TLine(x1,gPad->VtoPixel(gPad->GetUymin()),x1,gPad->VtoPixel(gPad->GetUymax()));
+    TLine* line2 = new TLine(x2,gPad->VtoPixel(gPad->GetUymin()),x2,gPad->VtoPixel(gPad->GetUymax()));
+    
+    line1->SetLineStyle(2);
+    line1->SetLineColor(6);
+    line1->Draw("same");
+    line2->SetLineStyle(2);
+    line2->SetLineColor(6);
+    line2->Draw("same");
+}
