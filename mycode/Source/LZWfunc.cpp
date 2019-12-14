@@ -234,6 +234,8 @@ TH1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
     hqdc->Fit(myGaus,"","",pedfitrangeleft, pedfitrangeright);//???????????
     pedMean = myGaus->GetParameter(1);
     double pedSigma = myGaus->GetParameter(2);
+    //return hqdc;
+
     //
     /*
     //* fit pedstal formly
@@ -242,7 +244,6 @@ TH1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
     pedSigma = myGaus->GetParameter(2);
     cout<<" init. par.: pedmean = "<<pedMean<<"; pedsigma = "<<pedSigma<<endl;
     */
-    //return myGaus;
     /*
     hqdc->Fit(myGaus,"","",pedMean-10*pedSigma, pedMean+3*pedSigma);
     pedMean = myGaus->GetParameter(1);
@@ -268,7 +269,7 @@ TH1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
     hqdc->Fit(myGaus,"R","",pedMean+fac*pedSigma, pedMean+fac*pedSigma+2*mean);
     mean=myGaus->GetParameter(1);
     sigma=myGaus->GetParameter(2);
-    cout<<" init. par.: mean = "<<mean<<"; sigma = "<<sigma<<endl;
+    cout<<" init. par.: SPEmean = "<<mean<<"; SPEsigma = "<<sigma<<endl;
    //return hqdc;
     
     hqdc->GetXaxis()->SetRangeUser(u.L,  u.R);
@@ -284,28 +285,33 @@ TH1* LZWfunc::SPSfit(TH1* h,int rbq,RANGE u,double fac)
   myFun->FixParameter(6, hqdc->GetBinWidth(5));//fix bin width
   myFun->SetParLimits(2, pedMean-0.0001,pedMean+0.0001);//fix pedestal mean
   myFun->SetParLimits(3, pedSigma-0.000001,pedSigma+0.000001);//fix pedestal sigma
-  myFun->SetParLimits(4, pedMean+fac*pedSigma, 5*mean);//>10 for 1400V
-  myFun->SetParLimits(5, 0, 10*sigma);
+  //myFun->SetParLimits(4, pedMean+fac*pedSigma, 5*mean);//>10 for 1400V
+  
+  myFun->FixParameter(4, mean);//>10 for 1400V
+  //myFun->SetParLimits(4, 0.7*mean, 5*mean);//>10 for 1400V
+  myFun->SetParLimits(5, 0.7*sigma, 1.1*sigma);
   //if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
   //else 
-  myFun->SetRange(pedMean+fac*pedSigma,  mean+1*sigma);
+  //myFun->SetRange(pedMean+fac*pedSigma,  mean+1*sigma);
+  myFun->SetRange(pedMean+fac*sigma,  pedMean+mean+1*sigma);
   cout<<" first fitting..."<<endl;
   hqdc->Fit(myFun,"R");
-  return hqdc;
+  //return hqdc;
   mean=myFun->GetParameter(4);//return;
   sigma = myFun->GetParameter(5);
   //myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  u.R);
-  myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  pedMean+5*mean);
+  myFun->SetRange(pedMean+fac*sigma,  pedMean+3*mean);
   //myFun->SetParLimits(4,mean/2., u.R);
-  //myFun->SetParameter(4,mean);
-  //myFun->SetParameter(5,sigma);
-  myFun->SetParLimits(4,mean/2., u.R);
+  myFun->SetParameter(4,mean);
+  myFun->SetParameter(5,sigma);
+  myFun->SetParLimits(4,mean, u.R);
+  myFun->SetParLimits(5,sigma, 10*sigma);
   
   //myFun->SetRange(u.L,  u.R);
   //cout<<" second fitting..."<<endl;
   //myFun->SetParLimits(4,mean/2., u.R);
   hqdc->Fit(myFun,"R");
-  //return myFun;
+  //return hqdc;
   cout<<" fitting done"<<endl;
   mean = myFun->GetParameter(4);
   sigma = myFun->GetParameter(5);
@@ -610,7 +616,7 @@ double mean = 0;
     }
 }
 
-TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE *t)
+TH1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE *t)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();
@@ -680,9 +686,9 @@ TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE *t)
 
     cout << h->GetName() << "\t" << (*t).L << "\t" << (*t).R << endl;
     h->GetXaxis()->SetRangeUser((*t).L, (*t).R);
-    return fit2;
+    return h;
 }
-TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
+TH1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();
@@ -707,14 +713,15 @@ TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
 
     TF1 *fit2 = new TF1("fit2", "gaus(0)+gaus(3)", t.L, t.R);
     fit2->SetParNames("C_{TR}", "#mu_{TR}", "#sigma_{TR}", "C_{bkgnd}", "#mu_{bkgnd}", "#sigma_{bkgnd}");
+    
     fit2->SetParameter(1, mean);
     fit2->SetParameter(2, sigma);
-    fit2->SetParLimits(3, 0, fit->GetParameter(0) * 0.4);
-    fit2->SetParameter(4, mean + sigma);
-    fit2->SetParameter(5, 2 * sigma);
+    fit2->SetParLimits(3, 0, fit->GetParameter(0) * fac);
+    fit2->SetParameter(4, mean + 2*sigma);
+    fit2->SetParameter(5, sigma);
 
     //h->Fit(fit2);
-    h->Fit(fit2, "", "", mean - 5 * sigma, mean + fac * sigma);
+    h->Fit(fit2, "", "", mean - 5 * sigma, mean + 8 * sigma);
     TF1 *fit_tr = new TF1("fit_tr", "gaus", t.L, t.R);
     fit_tr->SetParameter(0, fit2->GetParameter(0));
     fit_tr->SetParameter(1, fit2->GetParameter(1));
@@ -752,7 +759,7 @@ TF1 *LZWfunc::twogausfit(TH1 *ht, double fac, int rbt, RANGE t)
 
     cout << h->GetName() << "\t" << t.L << "\t" << t.R << endl;
     h->GetXaxis()->SetRangeUser(t.L, t.R);
-    return fit2;
+    return h;
 }
 
 TF1 *LZWfunc::profilefit(TH2 *Rt, double rbU, double rbt, RANGE t, RANGE U, char *name)

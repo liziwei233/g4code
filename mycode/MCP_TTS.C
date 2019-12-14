@@ -47,14 +47,15 @@ void MCP_TTS()
     //const char* rootname="/mnt/f/experiment/FTOF/MCP/4-12/systemR3809-SPE";
     //const char* rootname="/mnt/f/experiment/FTOF/MCP/4-10/test/HV-SPE2200";
     //const char *rootname = "/mnt/c/Users/liziwei/OneDrive/Documents/paper/osc/MCP-PMT-SPE/MCP3100";
-    const char *rootname = "/mnt/f/MCP/12-2/201901-A3";
+    //const char *rootname = "/mnt/f/MCP/12-2/201901-A3";
+    const char *rootname = "/mnt/d/OneDrive - mail.ustc.edu.cn/AnalysisRawData/Labtest/12-2/201901-A3";
     sprintf(name, "%s", rootname);
 
     //double M=10;
     double M = 1;
     int qN = 0;
     int rbu = 2;
-    double facspe = 12;
+    double facspe = 0.2;
     int rbq = 1;
     double spefac1 = 5;
     double spefac2 = 12;
@@ -64,8 +65,8 @@ void MCP_TTS()
     //RANGE y={-5e-3,100e-3};
     RANGE y = {-5e-3, 300e-3};
     //RANGE q={-0.1,1};
-    RANGE q = {-0.05, 12};
-    RANGE t = {3.1,3.4};
+    RANGE q = {-1, 12};
+    RANGE t = {17.5,18.5};
     RANGE rcut = {0.1, 1};
     charRANGE chR = {
         x,
@@ -92,7 +93,7 @@ void MCP_TTS()
     double sigmaq = 2;
     double thrd = 0.01;
     double fac = 1.8;
-    double fac2 = 0.4;
+    double fac2 = 0.2;
     double iter = 4;
     //*
     //** end **
@@ -305,7 +306,8 @@ void MCP_TTS()
     c[1]->cd();
     ht->Draw();
     //return;
-    TH1* htsave=lzw.gausfit(ht,1,2,2,&chR.t);
+    //TH1* htsave=lzw.gausfit(ht,1,2,2,&chR.t);
+    TH1* htsave=lzw.twogausfit(ht,fac2,2,chR.t);
     TF1* gt=htsave->GetFunction("fitU");
     sfile->WriteTObject(htsave);
     //TF1 *gt = lzw.gausfit(ht, fac2gaus, 2, chR.t);
@@ -320,7 +322,8 @@ void MCP_TTS()
     //	**Risetime Spectrum**
     //
     c[4]->cd();
-    TF1 *r1 = lzw.twogausfit(hr, fac2, rb, chR.r);
+    TH1 *hrsave = lzw.twogausfit(hr, fac2, rb, chR.r);
+    TF1* r1=hrsave->GetFunction("fitU");
     //return;
     double risetime = r1->GetParameter(1);
     sprintf(buff, "%s_risetime.png", name);
@@ -329,7 +332,9 @@ void MCP_TTS()
     //	**Pedestal Spectrum**
     //
     c[5]->cd();
-    TF1 *b1 = lzw.twogausfit(hbl, fac2, rb, chR.bl);
+    TH1 *hblsave = lzw.twogausfit(hbl, fac2, rb, chR.bl);
+    TF1* b1=hblsave->GetFunction("fitU");
+    
     double pedmean = b1->GetParameter(1) * 1e3;
     double pedmeansigma = b1->GetParameter(2) * 1e3;
     sprintf(buff, "%s_baseline.png", name);
@@ -338,7 +343,8 @@ void MCP_TTS()
     //	**Pedestal RMS Spectrum**
     //
     c[6]->cd();
-    TF1 *b2 = lzw.twogausfit(hblrms, fac2, rb * 2, chR.blrms);
+    TH1 *hblrmssave = lzw.twogausfit(hblrms, fac2, rb * 2, chR.blrms);
+    TF1* b2=hblrmssave->GetFunction("fitU");
     double pedRMS = b2->GetParameter(1) * 1e3;
     sprintf(buff, "%s_baselinerms.png", name);
     c[6]->SaveAs(buff);

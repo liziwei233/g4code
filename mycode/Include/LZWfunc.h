@@ -96,8 +96,8 @@ class LZWfunc
    
     TH1* gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE* U);
     TH1* gausfit(TH1 *h, int rbU, double facleft,double facright, RANGE U);
-    TF1* twogausfit(TH1 *ht, double fac, int rbt, RANGE* t);
-    TF1* twogausfit(TH1 *ht, double fac, int rbt, RANGE t);
+    TH1* twogausfit(TH1 *ht, double fac, int rbt, RANGE* t);
+    TH1* twogausfit(TH1 *ht, double fac, int rbt, RANGE t);
     TF1* profilefit(TH2 *Rt, double rbU, double rbt, RANGE t, RANGE U, char *name);
     
     void CH3Correction(TTree *t1, vector<EVENT *> ch, double *p, vector<charRANGE> range, vector<CUT> cut, OPTION opt, string name);

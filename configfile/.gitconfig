@@ -1,0 +1,24 @@
+[user]
+        name = liziwei
+        email = liziwei@mail.ustc.edu.cn
+[alias]
+        cam = commit -a -m
+        co = checkout
+[alias]
+
+# show all branches log 
+ 
+ll = log --branches --remotes --tags --graph --pretty --oneline --decorate --notes HEAD
+
+# commit & add modified 
+
+cam = commit -a -m
+
+[alias]
+
+# Time 'ago' 
+
+llt = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+# Full Timestamp 
+
+llft = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(re
