@@ -18,7 +18,8 @@
         "TR_TACor_SIMU.C": "cpp",
         "drawfigure_simu1.C": "cpp",
         "MCP_TR.C": "cpp",
-        "MCP_TTS.C": "cpp"
+        "MCP_TTS.C": "cpp",
+        "MyClass.C": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,
