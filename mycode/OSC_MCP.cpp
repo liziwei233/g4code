@@ -1,18 +1,21 @@
-#include "OSC_MCP.h"
+#include "Include/DrawMyClass.h"
 #define MyClass_cxx
 #include "MyClass.h"
 
-char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2/201901-A3";
+//char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2/201901-A3";
+char path[1024] = "/mnt/f/MCP/12-15";
 
+TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 2e3, -1, 20);
 
-TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 2e3, 0, 20);
-TH1F *ha = new TH1F("ha", ";Amp(V);Counts", 1e3, 0, 1);
+TH1F *ha = new TH1F("ha", ";Amp(V);Counts", 1e3, -1, 1);
 TH1F *hr = new TH1F("hr", ";risetime (ns);Counts", 1e3, 0, 1);
-TH1F *ht = new TH1F("ht", ";time (ns);Counts", 2e3, 0, 100);
-TH1F *hbl = new TH1F("hbl", ";baseline (V);Counts", 400, 0, 100e-6);
+TH1F *ht = new TH1F("ht", ";time (ns);Counts", 50e3, 0, 50); // 1ps/bin
+TH1F *hbl = new TH1F("hbl", ";baseline (V);Counts", 400, -10e-6, 100e-6);
 TH1F *hblrms = new TH1F("hblrms", ";baselineRMS (V);Counts", 400, 0, 100e-6);
 
-void gethist()
+TTree *t1 = new TTree();
+
+void gethist(const char *name = "201901-A3re")
 {
     TGaxis::SetMaxDigits(3);
 
@@ -24,10 +27,11 @@ void gethist()
     double ftime;
     double freftime;
 
-    double riseth=0.2; //Unit: ns.
+    double riseth = 0.;   //Unit: ns.
     double chargeth = 0.5; //Unit: pC.
-    MyClass t;
-    TTree *t1 = (TTree *)t.fChain;
+    sprintf(buff, "%s/%s.root", path, name);
+    MyClass t(buff);
+    t1 = (TTree *)t.fChain;
     int N = t1->GetEntries();
     for (int i = 0; i < N; i++)
     {
@@ -46,11 +50,13 @@ void gethist()
             hq->Fill(fcharge);
             ha->Fill(famplitude);
             //cout<<Q[1]<<endl;
-            hr->Fill(frise);
             hbl->Fill(fbaseline);
             hblrms->Fill(fbaselinerms);
             if (fcharge > chargeth)
+            {
                 ht->Fill(ftime - freftime);
+                hr->Fill(frise);
+            }
         }
     }
 }
@@ -144,8 +150,8 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
     myFun->SetParLimits(3, pedSigma - 0.000001, pedSigma + 0.000001); //fix pedestal sigma
     //myFun->SetParLimits(4, pedMean+fac*pedSigma, 5*mean);//>10 for 1400V
 
-    myFun->FixParameter(4, mean); //>10 for 1400V
-    //myFun->SetParLimits(4, 0.7*mean, 5*mean);//>10 for 1400V
+    //myFun->FixParameter(4, mean); //>10 for 1400V
+    myFun->SetParLimits(4, mean - pedMean, 1.5 * (mean - pedMean)); //>10 for 1400V
     myFun->SetParLimits(5, 0.7 * sigma, 1.1 * sigma);
     //if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
     //else
@@ -179,7 +185,7 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
         parErr[j] = myFun->GetParError(j);
     }
 
-    Double_t xmin = 0, xmax = 0;
+    Double_t xmin = u.L, xmax = 0;
     if ((pedMean - 15 * pedSigma) > 0)
         xmin = pedMean - 12 * pedSigma;
     if (par[1] > 2)
@@ -232,17 +238,98 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
 
 void drawSPE()
 {
+    if (!hq->GetEntries())
+        gethist("201901-A3re");
+    setgStyle();
     TCanvas *c1 = cdC(1);
     c1->SetLogy();
-    RANGE qrange={-1,12};
-    hq = (TH1F*)SPSfit(hq, 1, qrange,3);
-    TF1* fq = hq->GetFunction("myFun");
+    RANGE qrange = {-1, 12};
+    hq = (TH1F *)SPSfit(hq, 4, qrange, 3);
+    DrawMyHist(hq, "", "",1,3);
+
+    TF1 *fq = hq->GetFunction("myFun");
     double Gain = (fq->GetParameter(4) - fq->GetParameter(1)) * 1e-12 / 1.6e-19;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "Gain=" << Gain << endl;
     sprintf(buff, "Gain=%0.2e", Gain);
-    TLatex *l = DrawMyLatex(buff,0.4, 0.2);
+    TLatex *l = DrawMyLatex(buff, 0.4, 0.2);
     l->Draw();
-    sprintf(buff, "charge.png");
+    sprintf(buff, "%s/charge.png", path);
+    c1->SaveAs(buff);
+}
+
+void drawTR()
+{
+    if (!ht->GetEntries())
+    {
+
+        gethist("201901-A3re");
+        cout << "Get hist ......" << endl;
+    }
+    setgStyle();
+    TCanvas *c1 = cdC(1);
+    ht->Draw();
+    double tL = ht->GetBinCenter(ht->GetMaximumBin() - 800);
+    double tR = ht->GetBinCenter(ht->GetMaximumBin() + 800);
+    //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
+    //cout<< tL <<"\t"<< tR<<endl;
+    ht = (TH1F *)twogausfit(ht, 0.2, 4, 8, tL, tR);
+    DrawMyHist(ht, "", "",1,3);
+    TF1 *f = (TF1 *)ht->GetFunction("fit2");
+    double sigma = f->GetParameter(2) * 1e3;
+    sprintf(buff, "#sigma=%.0fps", sigma);
+    TLatex *l = DrawMyLatex(buff, 0.2, 0.5);
+    l->Draw();
+    sprintf(buff, "%s/TR.png", path);
+    c1->SaveAs(buff);
+}
+void drawrise()
+{
+    if (!hr->GetEntries())
+    {
+
+        gethist("201901-A3re");
+        cout << "Get hist ......" << endl;
+    }
+    setgStyle();
+    TCanvas *c1 = cdC(1);
+    hr->Draw();
+    double tL = hr->GetBinCenter(hr->GetMaximumBin() - 600);
+    double tR = hr->GetBinCenter(hr->GetMaximumBin() + 600);
+    //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
+    //cout<< tL <<"\t"<< tR<<endl;
+    hr = (TH1F *)gausfit(hr, 2.5, 1.8, 4, tL, tR);
+    DrawMyHist(hq, "", "",1,3);
+    TF1 *f = (TF1 *)hr->GetFunction("fitU");
+    double mean = f->GetParameter(1) * 1e3;
+    sprintf(buff, "Risetime=%.0fps", mean);
+    TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
+    l->Draw();
+    sprintf(buff, "%s/Risetime.png", path);
+    c1->SaveAs(buff);
+}
+
+void drawblrms()
+{
+    if (!hblrms->GetEntries())
+    {
+
+        gethist("201901-A3re");
+        cout << "Get hist ......" << endl;
+    }
+    setgStyle();
+    TCanvas *c1 = cdC(1);
+    hblrms->Draw();
+    double tL = hr->GetBinCenter(hr->GetMaximumBin() - 600);
+    double tR = hr->GetBinCenter(hr->GetMaximumBin() + 600);
+    //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
+    //cout<< tL <<"\t"<< tR<<endl;
+    hr = (TH1F *)gausfit(hr, 2.5, 1.8, 4, tL, tR);
+    TF1 *f = (TF1 *)hr->GetFunction("fitU");
+    double mean = f->GetParameter(1) * 1e3;
+    sprintf(buff, "Risetime=%.0fps", mean);
+    TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
+    l->Draw();
+    sprintf(buff, "%s/Risetime.png", path);
     c1->SaveAs(buff);
 }

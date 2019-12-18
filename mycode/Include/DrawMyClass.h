@@ -1,5 +1,5 @@
-#ifndef OSC_MCP_h
-#define OSC_MCP_h
+#ifndef DrawMyClass_h
+#define DrawMyClass_h
 
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -21,13 +21,15 @@ int counter = 0;
 TFile *sfile = NULL;
 TFile *prefile = NULL;
 
-typedef struct POSITION{
+typedef struct POSITION
+{
     double x;
     double y;
     double z;
-}DIRECTION;
+} DIRECTION;
 
-struct RANGE{
+struct RANGE
+{
     double L;
     double R;
 };
@@ -39,6 +41,7 @@ void setgStyle()
     //gStyle->SetFrameBorderSize(2);
     gStyle->SetTickLength(0.04);
     gStyle->SetOptTitle(0);
+    gStyle->SetOptFit(1111);
     gStyle->SetOptStat(1111);
     gStyle->SetErrorX(1);
     gStyle->SetEndErrorSize(4);
@@ -82,8 +85,12 @@ void DrawMyHist(TH1 *datahist, char *xtitle, char *ytitle, Color_t LColor = 1, W
     datahist->SetLineColor(LColor);
     datahist->SetLineWidth(LWidth);
 
+    if(strlen(xtitle)
     datahist->GetXaxis()->SetTitle(xtitle);
+    if(strlen(ytitle))
     datahist->GetYaxis()->SetTitle(ytitle);
+     
+
     datahist->GetXaxis()->SetAxisColor(1);
     datahist->GetYaxis()->SetAxisColor(1);
     datahist->GetXaxis()->SetLabelColor(1);
@@ -116,8 +123,11 @@ void DrawMy2dHist(TH2 *datahist, char *xtitle, char *ytitle, Color_t LColor = 1,
 {
     datahist->SetLineColor(LColor);
     datahist->SetLineWidth(LWidth);
-      datahist->GetXaxis()->SetTitle(xtitle);
+    if(strlen(xtitle)
+    datahist->GetXaxis()->SetTitle(xtitle);
+    if(strlen(ytitle))
     datahist->GetYaxis()->SetTitle(ytitle);
+    
     datahist->GetXaxis()->SetAxisColor(1);
     datahist->GetYaxis()->SetAxisColor(1);
     datahist->GetXaxis()->SetLabelColor(1);
@@ -241,7 +251,7 @@ TCanvas *cdC(int n)
     return c;
 }
 
-TF1 *gausfit(TH1 *h, double facleft, double facright, int rbU, double UL, double UR)
+TH1 *gausfit(TH1 *h, double facleft, double facright, int rbU, double UL, double UR)
 {
     double mean = 0;
     double sigma = 0;
@@ -262,7 +272,7 @@ TF1 *gausfit(TH1 *h, double facleft, double facright, int rbU, double UL, double
     TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
     //failed =1 means fit failed
     if (failed)
-        return fitU = 0;
+        return hU = NULL;
 
     else
     {
@@ -273,12 +283,11 @@ TF1 *gausfit(TH1 *h, double facleft, double facright, int rbU, double UL, double
             UR = mean + 20 * sigma;
 
         hU->GetXaxis()->SetRangeUser(UL, UR);
-        sfile->WriteTObject(hU);
-        return fitU;
+        return hU;
     }
 }
 
-TF1 *twogausfit(TH1 *ht, double fac, double rangefac, int rbt, double tL, double tR)
+TH1 *twogausfit(TH1 *ht, double fac, double rangefac, int rbt, double tL, double tR)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();
@@ -348,7 +357,7 @@ TF1 *twogausfit(TH1 *ht, double fac, double rangefac, int rbt, double tL, double
 
     cout << h->GetName() << "\t" << tL << "\t" << tR << endl;
     h->GetXaxis()->SetRangeUser(tL, tR);
-    return fit2;
+    return h;
 }
 
 TF1 *profilefit(TH2 *Rt, double rbU, double rbt, double tL, double tR, double UL, double UR, char *name)
