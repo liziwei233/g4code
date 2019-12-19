@@ -1,21 +1,29 @@
 #include "Include/DrawMyClass.h"
 #define MyClass_cxx
-#include "MyClass.h"
+//#include "MyClass.h"
+#include "MyClass4ch.h"
 
-//char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2/201901-A3";
-char path[1024] = "/mnt/f/MCP/12-15";
-
+char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
+//char path[1024] = "/mnt/f/MCP/12-15";
+char name[1024] = "201901-A3";
 TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 2e3, -1, 20);
 
 TH1F *ha = new TH1F("ha", ";Amp(V);Counts", 1e3, -1, 1);
 TH1F *hr = new TH1F("hr", ";risetime (ns);Counts", 1e3, 0, 1);
 TH1F *ht = new TH1F("ht", ";time (ns);Counts", 50e3, 0, 50); // 1ps/bin
-TH1F *hbl = new TH1F("hbl", ";baseline (V);Counts", 400, -10e-6, 100e-6);
-TH1F *hblrms = new TH1F("hblrms", ";baselineRMS (V);Counts", 400, 0, 100e-6);
-
+TH1F *hbl = new TH1F("hbl", ";baseline (V);Counts", 400, -10e-3, 10e-3);
+TH1F *hblrms = new TH1F("hblrms", ";baselineRMS (V);Counts", 2e3, 0, 20e-3);
+TH1F *hctratio = new TH1F("hctratio", ";Crosstalk ratio;Counts", 11e3, -1, 10);
 TTree *t1 = new TTree();
 
-void gethist(const char *name = "201901-A3re")
+void getrootname(const char *rootname = "201901-A3re")
+{
+    sprintf(name,"%s",rootname);
+    cout<< "your file name is: "<<name<<endl; 
+}
+
+
+void gethist()
 {
     TGaxis::SetMaxDigits(3);
 
@@ -24,6 +32,7 @@ void gethist(const char *name = "201901-A3re")
     double fbaseline;
     double fbaselinerms;
     double famplitude;
+    double fampnerbor;
     double ftime;
     double freftime;
 
@@ -36,14 +45,15 @@ void gethist(const char *name = "201901-A3re")
     for (int i = 0; i < N; i++)
     {
         t1->GetEntry(i);
-        fcharge = t.MCP2_all_charge[0];
-        frise = t.MCP2_rise_time;
-        fbaseline = t.MCP2_baseline_level;
-        fbaselinerms = t.MCP2_baseline_rms;
-        famplitude = t.MCP2_global_maximum_y;
-        ftime = t.MCP2_CFDtime[3];
+        fcharge =       t.MCP4_all_charge[0];
+        frise =         t.MCP4_rise_time;
+        fbaseline =     t.MCP4_baseline_level;
+        fbaselinerms =  t.MCP4_baseline_rms;
+        famplitude =    t.MCP4_global_maximum_y;
+        ftime =         t.MCP4_CFDtime[3];
 
-        freftime = t.MCP1_CFDtime[3];
+        freftime =      t.MCP1_CFDtime[3];
+        fampnerbor =    t.MCP3_global_maximum_y;
 
         if (frise > riseth)
         {
@@ -56,6 +66,7 @@ void gethist(const char *name = "201901-A3re")
             {
                 ht->Fill(ftime - freftime);
                 hr->Fill(frise);
+                hctratio->Fill(fampnerbor/famplitude);
             }
         }
     }
@@ -239,7 +250,7 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
 void drawSPE()
 {
     if (!hq->GetEntries())
-        gethist("201901-A3re");
+        gethist();
     setgStyle();
     TCanvas *c1 = cdC(1);
     c1->SetLogy();
@@ -263,7 +274,7 @@ void drawTR()
     if (!ht->GetEntries())
     {
 
-        gethist("201901-A3re");
+        gethist();
         cout << "Get hist ......" << endl;
     }
     setgStyle();
@@ -288,7 +299,7 @@ void drawrise()
     if (!hr->GetEntries())
     {
 
-        gethist("201901-A3re");
+        gethist();
         cout << "Get hist ......" << endl;
     }
     setgStyle();
@@ -314,22 +325,55 @@ void drawblrms()
     if (!hblrms->GetEntries())
     {
 
-        gethist("201901-A3re");
+        gethist();
         cout << "Get hist ......" << endl;
     }
     setgStyle();
     TCanvas *c1 = cdC(1);
     hblrms->Draw();
-    double tL = hr->GetBinCenter(hr->GetMaximumBin() - 600);
-    double tR = hr->GetBinCenter(hr->GetMaximumBin() + 600);
+    double tL = hblrms->GetBinCenter(hblrms->GetMaximumBin() - 600);
+    double tR = hblrms->GetBinCenter(hblrms->GetMaximumBin() + 600);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     //cout<< tL <<"\t"<< tR<<endl;
-    hr = (TH1F *)gausfit(hr, 2.5, 1.8, 4, tL, tR);
-    TF1 *f = (TF1 *)hr->GetFunction("fitU");
+    hblrms = (TH1F *)gausfit(hblrms, 2.5, 1.8, 2, tL, tR);
+    TF1 *f = (TF1 *)hblrms->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
-    sprintf(buff, "Risetime=%.0fps", mean);
+    sprintf(buff, "BaselineRMS=%.0fmV", mean*1e3);
     TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
     l->Draw();
-    sprintf(buff, "%s/Risetime.png", path);
+    sprintf(buff, "%s/blrms.png", path);
     c1->SaveAs(buff);
+}
+void drawctratio()
+{
+        if (!hctratio->GetEntries())
+    {
+
+        gethist();
+        cout << "Get hist ......" << endl;
+    }
+    setgStyle();
+    TCanvas *c1 = cdC(1);
+    hctratio->Draw();
+    double tL = hctratio->GetBinCenter(hctratio->GetMaximumBin() - 600);
+    double tR = hctratio->GetBinCenter(hctratio->GetMaximumBin() + 600);
+    //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
+    //cout<< tL <<"\t"<< tR<<endl;
+    hctratio = (TH1F *)gausfit(hctratio, 2.5, 1.2, 1, tL, tR);
+    TF1 *f = (TF1 *)hctratio->GetFunction("fitU");
+    double mean = f->GetParameter(1);
+    double sigma = f->GetParameter(2);
+    sprintf(buff, "CrosstalkRatio=%.0f%%", mean*100);
+    TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
+    l->Draw();
+
+    Drawxline(mean+5*sigma,3,7,2);
+    double purity = hctratio->Integral(0,hctratio->FindBin(mean+5*sigma))/hctratio->Integral();
+    
+    sprintf(buff, "SignalPurity=%.2f%%", purity*100);
+    TLatex *l2 = DrawMyLatex(buff, 0.55, 0.45);
+    l2->Draw();
+    sprintf(buff, "%s/Crosstalkratio.png", path);
+    c1->SaveAs(buff);
+
 }

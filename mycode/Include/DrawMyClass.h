@@ -85,7 +85,7 @@ void DrawMyHist(TH1 *datahist, char *xtitle, char *ytitle, Color_t LColor = 1, W
     datahist->SetLineColor(LColor);
     datahist->SetLineWidth(LWidth);
 
-    if(strlen(xtitle)
+    if(strlen(xtitle))
     datahist->GetXaxis()->SetTitle(xtitle);
     if(strlen(ytitle))
     datahist->GetYaxis()->SetTitle(ytitle);
@@ -123,7 +123,7 @@ void DrawMy2dHist(TH2 *datahist, char *xtitle, char *ytitle, Color_t LColor = 1,
 {
     datahist->SetLineColor(LColor);
     datahist->SetLineWidth(LWidth);
-    if(strlen(xtitle)
+    if(strlen(xtitle))
     datahist->GetXaxis()->SetTitle(xtitle);
     if(strlen(ytitle))
     datahist->GetYaxis()->SetTitle(ytitle);
@@ -185,7 +185,7 @@ void DrawMyfun(TF1 *datafunc, char *xtitle, char *ytitle, Color_t LColor = 1, Wi
     datafunc->GetYaxis()->CenterTitle(1);
      
 }
-void Drawline(float x1, float x2, Width_t LWidth = 1, Style_t LStyle = 1, Color_t LColor = 6)
+void Drawxline(float x1, Width_t LWidth = 1, Style_t LStyle = 1, Color_t LColor = 6)
 {
 
     //TLine* line1 = new TLine(x1,gPad->VtoPixel(gPad->GetUymin()),x1,gPad->VtoPixel(gPad->GetUymax()));
@@ -193,16 +193,25 @@ void Drawline(float x1, float x2, Width_t LWidth = 1, Style_t LStyle = 1, Color_
     gPad->Update();
     gPad->Modified();
     TLine *line1 = new TLine(x1, gPad->GetUymin(), x1, gPad->GetUymax());
-    TLine *line2 = new TLine(x2, gPad->GetUymin(), x2, gPad->GetUymax());
 
     line1->SetLineWidth(LWidth);
     line1->SetLineStyle(LStyle);
     line1->SetLineColor(LColor);
     line1->Draw("same");
-    line2->SetLineWidth(LWidth);
-    line2->SetLineStyle(LStyle);
-    line2->SetLineColor(LColor);
-    line2->Draw("same");
+}
+void Drawyline(float y1, Width_t LWidth = 1, Style_t LStyle = 1, Color_t LColor = 6)
+{
+
+    //TLine* line1 = new TLine(x1,gPad->VtoPixel(gPad->GetUymin()),x1,gPad->VtoPixel(gPad->GetUymax()));
+    //TLine* line2 = new TLine(x2,gPad->VtoPixel(gPad->GetUymin()),x2,gPad->VtoPixel(gPad->GetUymax()));
+    gPad->Update();
+    gPad->Modified();
+    TLine *line1 = new TLine(gPad->GetUxmin(), y1, gPad->GetUxmax(),y1);
+
+    line1->SetLineWidth(LWidth);
+    line1->SetLineStyle(LStyle);
+    line1->SetLineColor(LColor);
+    line1->Draw("same");
 }
 
 TLegend *DrawMyLeg(Double_t xlow = 0.3, Double_t ylow = 0.6, Double_t xup = 0.6, Double_t yup = 0.9, Int_t textFont = 62, Double_t textSize = 0.03)

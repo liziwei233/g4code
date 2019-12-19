@@ -1,0 +1,282 @@
+//////////////////////////////////////////////////////////
+// This class has been automatically generated on
+// Mon Dec 16 11:12:34 2019 by ROOT version 6.14/02
+// from TTree Pico/Analysis Output
+// found on file: 201901-A3.root
+//////////////////////////////////////////////////////////
+
+#ifndef MyClass4ch_h
+#define MyClass4ch_h
+
+#include <TROOT.h>
+#include <TChain.h>
+#include <TFile.h>
+
+// Header file for the classes stored in the TTree if any.
+
+class MyClass
+{
+public:
+   TTree *fChain;  //!pointer to the analyzed TTree or TChain
+   Int_t fCurrent; //!current Tree number in a TChain
+
+   // Fixed size dimensions of array or collections stored in the TTree if any.
+
+   // Declaration of leaf types
+   Int_t Baseline_Window;
+   Double_t MCP1_baseline_level;
+   Double_t MCP1_baseline_rms;
+   Double_t MCP1_global_maximum_y;
+   Double_t MCP1_global_maximum_x;
+   Double_t MCP1_all_charge[4];
+   Double_t MCP1_rise_time;
+   Double_t MCP1_CFDtime[8];
+   Double_t MCP1_CFDfrac[8];
+   Bool_t MCP1_CFDfailed[8];
+   Double_t MCP1_LEDtime[14];
+   Double_t MCP1_LEDthrd[14];
+   Bool_t MCP1_LEDfailed[14];
+   Double_t MCP2_baseline_level;
+   Double_t MCP2_baseline_rms;
+   Double_t MCP2_global_maximum_y;
+   Double_t MCP2_global_maximum_x;
+   Double_t MCP2_all_charge[4];
+   Double_t MCP2_rise_time;
+   Double_t MCP2_CFDtime[8];
+   Double_t MCP2_CFDfrac[8];
+   Bool_t MCP2_CFDfailed[8];
+   Double_t MCP2_LEDtime[14];
+   Double_t MCP2_LEDthrd[14];
+   Bool_t MCP2_LEDfailed[14];
+   Double_t MCP3_baseline_level;
+   Double_t MCP3_baseline_rms;
+   Double_t MCP3_global_maximum_y;
+   Double_t MCP3_global_maximum_x;
+   Double_t MCP3_all_charge[4];
+   Double_t MCP3_rise_time;
+   Double_t MCP3_CFDtime[8];
+   Double_t MCP3_CFDfrac[8];
+   Bool_t MCP3_CFDfailed[8];
+   Double_t MCP3_LEDtime[14];
+   Double_t MCP3_LEDthrd[14];
+   Bool_t MCP3_LEDfailed[14];
+   Double_t MCP4_baseline_level;
+   Double_t MCP4_baseline_rms;
+   Double_t MCP4_global_maximum_y;
+   Double_t MCP4_global_maximum_x;
+   Double_t MCP4_all_charge[4];
+   Double_t MCP4_rise_time;
+   Double_t MCP4_CFDtime[8];
+   Double_t MCP4_CFDfrac[8];
+   Bool_t MCP4_CFDfailed[8];
+   Double_t MCP4_LEDtime[14];
+   Double_t MCP4_LEDthrd[14];
+   Bool_t MCP4_LEDfailed[14];
+
+   // List of branches
+   TBranch *b_Baseline_Window;       //!
+   TBranch *b_MCP1_baseline_level;   //!
+   TBranch *b_MCP1_baseline_rms;     //!
+   TBranch *b_MCP1_global_maximum_y; //!
+   TBranch *b_MCP1_global_maximum_x; //!
+   TBranch *b_MCP1_all_charge;       //!
+   TBranch *b_MCP1_rise_time;        //!
+   TBranch *b_MCP1_CFDtime;          //!
+   TBranch *b_MCP1_CFDfrac;          //!
+   TBranch *b_MCP1_CFDfailed;        //!
+   TBranch *b_MCP1_LEDtime;          //!
+   TBranch *b_MCP1_LEDthrd;          //!
+   TBranch *b_MCP1_LEDfailed;        //!
+   TBranch *b_MCP2_baseline_level;   //!
+   TBranch *b_MCP2_baseline_rms;     //!
+   TBranch *b_MCP2_global_maximum_y; //!
+   TBranch *b_MCP2_global_maximum_x; //!
+   TBranch *b_MCP2_all_charge;       //!
+   TBranch *b_MCP2_rise_time;        //!
+   TBranch *b_MCP2_CFDtime;          //!
+   TBranch *b_MCP2_CFDfrac;          //!
+   TBranch *b_MCP2_CFDfailed;        //!
+   TBranch *b_MCP2_LEDtime;          //!
+   TBranch *b_MCP2_LEDthrd;          //!
+   TBranch *b_MCP2_LEDfailed;        //!
+   TBranch *b_MCP3_baseline_level;   //!
+   TBranch *b_MCP3_baseline_rms;     //!
+   TBranch *b_MCP3_global_maximum_y; //!
+   TBranch *b_MCP3_global_maximum_x; //!
+   TBranch *b_MCP3_all_charge;       //!
+   TBranch *b_MCP3_rise_time;        //!
+   TBranch *b_MCP3_CFDtime;          //!
+   TBranch *b_MCP3_CFDfrac;          //!
+   TBranch *b_MCP3_CFDfailed;        //!
+   TBranch *b_MCP3_LEDtime;          //!
+   TBranch *b_MCP3_LEDthrd;          //!
+   TBranch *b_MCP3_LEDfailed;        //!
+   TBranch *b_MCP4_baseline_level;   //!
+   TBranch *b_MCP4_baseline_rms;     //!
+   TBranch *b_MCP4_global_maximum_y; //!
+   TBranch *b_MCP4_global_maximum_x; //!
+   TBranch *b_MCP4_all_charge;       //!
+   TBranch *b_MCP4_rise_time;        //!
+   TBranch *b_MCP4_CFDtime;          //!
+   TBranch *b_MCP4_CFDfrac;          //!
+   TBranch *b_MCP4_CFDfailed;        //!
+   TBranch *b_MCP4_LEDtime;          //!
+   TBranch *b_MCP4_LEDthrd;          //!
+   TBranch *b_MCP4_LEDfailed;        //!
+
+   MyClass(const char *rootname = "", TTree *tree = 0);
+   virtual ~MyClass();
+   virtual Int_t Cut(Long64_t entry);
+   virtual Int_t GetEntry(Long64_t entry);
+   virtual Long64_t LoadTree(Long64_t entry);
+   virtual void Init(TTree *tree);
+   //virtual void     Loop();
+   virtual Bool_t Notify();
+   virtual void Show(Long64_t entry = -1);
+};
+
+#endif
+
+#ifdef MyClass_cxx
+MyClass::MyClass(const char *rootname, TTree *tree) : fChain(0)
+{
+   // if parameter tree is not specified (or zero), connect the file
+   // used to generate this class and read the Tree.
+   if (tree == 0)
+   {
+      TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject(rootname);
+      if (!f || !f->IsOpen())
+      {
+         f = new TFile(rootname);
+      }
+      f->GetObject("Pico", tree);
+   }
+   Init(tree);
+}
+
+MyClass::~MyClass()
+{
+   if (!fChain)
+      return;
+   delete fChain->GetCurrentFile();
+}
+
+Int_t MyClass::GetEntry(Long64_t entry)
+{
+   // Read contents of entry.
+   if (!fChain)
+      return 0;
+   return fChain->GetEntry(entry);
+}
+Long64_t MyClass::LoadTree(Long64_t entry)
+{
+   // Set the environment to read one entry
+   if (!fChain)
+      return -5;
+   Long64_t centry = fChain->LoadTree(entry);
+   if (centry < 0)
+      return centry;
+   if (fChain->GetTreeNumber() != fCurrent)
+   {
+      fCurrent = fChain->GetTreeNumber();
+      Notify();
+   }
+   return centry;
+}
+
+void MyClass::Init(TTree *tree)
+{
+   // The Init() function is called when the selector needs to initialize
+   // a new tree or chain. Typically here the branch addresses and branch
+   // pointers of the tree will be set.
+   // It is normally not necessary to make changes to the generated
+   // code, but the routine can be extended by the user if needed.
+   // Init() will be called many times when running on PROOF
+   // (once per file to be processed).
+
+   // Set branch addresses and branch pointers
+   if (!tree)
+      return;
+   fChain = tree;
+   fCurrent = -1;
+   fChain->SetMakeClass(1);
+
+   fChain->SetBranchAddress("Baseline_Window", &Baseline_Window, &b_Baseline_Window);
+   fChain->SetBranchAddress("MCP1_baseline_level", &MCP1_baseline_level, &b_MCP1_baseline_level);
+   fChain->SetBranchAddress("MCP1_baseline_rms", &MCP1_baseline_rms, &b_MCP1_baseline_rms);
+   fChain->SetBranchAddress("MCP1_global_maximum_y", &MCP1_global_maximum_y, &b_MCP1_global_maximum_y);
+   fChain->SetBranchAddress("MCP1_global_maximum_x", &MCP1_global_maximum_x, &b_MCP1_global_maximum_x);
+   fChain->SetBranchAddress("MCP1_all_charge", MCP1_all_charge, &b_MCP1_all_charge);
+   fChain->SetBranchAddress("MCP1_rise_time", &MCP1_rise_time, &b_MCP1_rise_time);
+   fChain->SetBranchAddress("MCP1_CFDtime", MCP1_CFDtime, &b_MCP1_CFDtime);
+   fChain->SetBranchAddress("MCP1_CFDfrac", MCP1_CFDfrac, &b_MCP1_CFDfrac);
+   fChain->SetBranchAddress("MCP1_CFDfailed", MCP1_CFDfailed, &b_MCP1_CFDfailed);
+   fChain->SetBranchAddress("MCP1_LEDtime", MCP1_LEDtime, &b_MCP1_LEDtime);
+   fChain->SetBranchAddress("MCP1_LEDthrd", MCP1_LEDthrd, &b_MCP1_LEDthrd);
+   fChain->SetBranchAddress("MCP1_LEDfailed", MCP1_LEDfailed, &b_MCP1_LEDfailed);
+   fChain->SetBranchAddress("MCP2_baseline_level", &MCP2_baseline_level, &b_MCP2_baseline_level);
+   fChain->SetBranchAddress("MCP2_baseline_rms", &MCP2_baseline_rms, &b_MCP2_baseline_rms);
+   fChain->SetBranchAddress("MCP2_global_maximum_y", &MCP2_global_maximum_y, &b_MCP2_global_maximum_y);
+   fChain->SetBranchAddress("MCP2_global_maximum_x", &MCP2_global_maximum_x, &b_MCP2_global_maximum_x);
+   fChain->SetBranchAddress("MCP2_all_charge", MCP2_all_charge, &b_MCP2_all_charge);
+   fChain->SetBranchAddress("MCP2_rise_time", &MCP2_rise_time, &b_MCP2_rise_time);
+   fChain->SetBranchAddress("MCP2_CFDtime", MCP2_CFDtime, &b_MCP2_CFDtime);
+   fChain->SetBranchAddress("MCP2_CFDfrac", MCP2_CFDfrac, &b_MCP2_CFDfrac);
+   fChain->SetBranchAddress("MCP2_CFDfailed", MCP2_CFDfailed, &b_MCP2_CFDfailed);
+   fChain->SetBranchAddress("MCP2_LEDtime", MCP2_LEDtime, &b_MCP2_LEDtime);
+   fChain->SetBranchAddress("MCP2_LEDthrd", MCP2_LEDthrd, &b_MCP2_LEDthrd);
+   fChain->SetBranchAddress("MCP2_LEDfailed", MCP2_LEDfailed, &b_MCP2_LEDfailed);
+   fChain->SetBranchAddress("MCP3_baseline_level", &MCP3_baseline_level, &b_MCP3_baseline_level);
+   fChain->SetBranchAddress("MCP3_baseline_rms", &MCP3_baseline_rms, &b_MCP3_baseline_rms);
+   fChain->SetBranchAddress("MCP3_global_maximum_y", &MCP3_global_maximum_y, &b_MCP3_global_maximum_y);
+   fChain->SetBranchAddress("MCP3_global_maximum_x", &MCP3_global_maximum_x, &b_MCP3_global_maximum_x);
+   fChain->SetBranchAddress("MCP3_all_charge", MCP3_all_charge, &b_MCP3_all_charge);
+   fChain->SetBranchAddress("MCP3_rise_time", &MCP3_rise_time, &b_MCP3_rise_time);
+   fChain->SetBranchAddress("MCP3_CFDtime", MCP3_CFDtime, &b_MCP3_CFDtime);
+   fChain->SetBranchAddress("MCP3_CFDfrac", MCP3_CFDfrac, &b_MCP3_CFDfrac);
+   fChain->SetBranchAddress("MCP3_CFDfailed", MCP3_CFDfailed, &b_MCP3_CFDfailed);
+   fChain->SetBranchAddress("MCP3_LEDtime", MCP3_LEDtime, &b_MCP3_LEDtime);
+   fChain->SetBranchAddress("MCP3_LEDthrd", MCP3_LEDthrd, &b_MCP3_LEDthrd);
+   fChain->SetBranchAddress("MCP3_LEDfailed", MCP3_LEDfailed, &b_MCP3_LEDfailed);
+   fChain->SetBranchAddress("MCP4_baseline_level", &MCP4_baseline_level, &b_MCP4_baseline_level);
+   fChain->SetBranchAddress("MCP4_baseline_rms", &MCP4_baseline_rms, &b_MCP4_baseline_rms);
+   fChain->SetBranchAddress("MCP4_global_maximum_y", &MCP4_global_maximum_y, &b_MCP4_global_maximum_y);
+   fChain->SetBranchAddress("MCP4_global_maximum_x", &MCP4_global_maximum_x, &b_MCP4_global_maximum_x);
+   fChain->SetBranchAddress("MCP4_all_charge", MCP4_all_charge, &b_MCP4_all_charge);
+   fChain->SetBranchAddress("MCP4_rise_time", &MCP4_rise_time, &b_MCP4_rise_time);
+   fChain->SetBranchAddress("MCP4_CFDtime", MCP4_CFDtime, &b_MCP4_CFDtime);
+   fChain->SetBranchAddress("MCP4_CFDfrac", MCP4_CFDfrac, &b_MCP4_CFDfrac);
+   fChain->SetBranchAddress("MCP4_CFDfailed", MCP4_CFDfailed, &b_MCP4_CFDfailed);
+   fChain->SetBranchAddress("MCP4_LEDtime", MCP4_LEDtime, &b_MCP4_LEDtime);
+   fChain->SetBranchAddress("MCP4_LEDthrd", MCP4_LEDthrd, &b_MCP4_LEDthrd);
+   fChain->SetBranchAddress("MCP4_LEDfailed", MCP4_LEDfailed, &b_MCP4_LEDfailed);
+   Notify();
+}
+
+Bool_t MyClass::Notify()
+{
+   // The Notify() function is called when a new file is opened. This
+   // can be either for a new TTree in a TChain or when when a new TTree
+   // is started when using PROOF. It is normally not necessary to make changes
+   // to the generated code, but the routine can be extended by the
+   // user if needed. The return value is currently not used.
+
+   return kTRUE;
+}
+
+void MyClass::Show(Long64_t entry)
+{
+   // Print contents of entry.
+   // If entry is not specified, print current entry
+   if (!fChain)
+      return;
+   fChain->Show(entry);
+}
+Int_t MyClass::Cut(Long64_t entry)
+{
+   // This function may be called from Loop.
+   // returns  1 if entry is accepted.
+   // returns -1 otherwise.
+   return 1;
+}
+#endif // #ifdef MyClass_cxx
