@@ -310,9 +310,10 @@ TH1 *twogausfit(TH1 *ht, double fac, double rangefac, int rbt, double tL, double
     h->Fit(fit);
     mean = fit->GetParameter(1);
     sigma = TMath::Abs(fit->GetParameter(2));
+    //return h;
     if (tL < mean - 5 * sigma || sigma > 1)
     {
-        tL = mean - 5 * sigma;
+        tL = mean - 10 * sigma;
         tR = mean + 10 * sigma;
     }
     cout << h->GetName() << "\t" << tL << "\t" << tR << endl;
@@ -324,8 +325,10 @@ TH1 *twogausfit(TH1 *ht, double fac, double rangefac, int rbt, double tL, double
     fit2->SetParameter(1, mean);
     fit2->SetParameter(2, sigma);
     fit2->SetParLimits(3, 0, fit->GetParameter(0) * fac);
-    fit2->SetParameter(4, mean);
+    fit2->SetParameter(4, mean-sigma);
+    fit2->SetParLimits(4, mean-3*sigma,mean+5*sigma);
     fit2->SetParameter(5, 2 * sigma);
+    fit2->SetParLimits(5, sigma, 3*sigma);
 
     //h->Fit(fit2);
     h->Fit(fit2, "", "", mean - rangefac * sigma, mean + rangefac * sigma);

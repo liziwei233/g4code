@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Dec 16 11:12:34 2019 by ROOT version 6.14/02
+// Fri Dec 20 13:24:24 2019 by ROOT version 6.12/06
 // from TTree Pico/Analysis Output
-// found on file: 201901-A3.root
+// found on file: A3-light1.root
 //////////////////////////////////////////////////////////
 
-#ifndef MyClass4ch_h
-#define MyClass4ch_h
+#ifndef MyClass_h
+#define MyClass_h
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -14,125 +14,156 @@
 
 // Header file for the classes stored in the TTree if any.
 
-class MyClass
-{
-public:
-   TTree *fChain;  //!pointer to the analyzed TTree or TChain
-   Int_t fCurrent; //!current Tree number in a TChain
+class MyClass {
+public :
+   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+   Int_t           fCurrent; //!current Tree number in a TChain
 
-   // Fixed size dimensions of array or collections stored in the TTree if any.
+// Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
-   Int_t Baseline_Window;
-   Double_t MCP1_baseline_level;
-   Double_t MCP1_baseline_rms;
-   Double_t MCP1_global_maximum_y;
-   Double_t MCP1_global_maximum_x;
-   Double_t MCP1_all_charge[4];
-   Double_t MCP1_rise_time;
-   Double_t MCP1_CFDtime[8];
-   Double_t MCP1_CFDfrac[8];
-   Bool_t MCP1_CFDfailed[8];
-   Double_t MCP1_LEDtime[14];
-   Double_t MCP1_LEDthrd[14];
-   Bool_t MCP1_LEDfailed[14];
-   Double_t MCP2_baseline_level;
-   Double_t MCP2_baseline_rms;
-   Double_t MCP2_global_maximum_y;
-   Double_t MCP2_global_maximum_x;
-   Double_t MCP2_all_charge[4];
-   Double_t MCP2_rise_time;
-   Double_t MCP2_CFDtime[8];
-   Double_t MCP2_CFDfrac[8];
-   Bool_t MCP2_CFDfailed[8];
-   Double_t MCP2_LEDtime[14];
-   Double_t MCP2_LEDthrd[14];
-   Bool_t MCP2_LEDfailed[14];
-   Double_t MCP3_baseline_level;
-   Double_t MCP3_baseline_rms;
-   Double_t MCP3_global_maximum_y;
-   Double_t MCP3_global_maximum_x;
-   Double_t MCP3_all_charge[4];
-   Double_t MCP3_rise_time;
-   Double_t MCP3_CFDtime[8];
-   Double_t MCP3_CFDfrac[8];
-   Bool_t MCP3_CFDfailed[8];
-   Double_t MCP3_LEDtime[14];
-   Double_t MCP3_LEDthrd[14];
-   Bool_t MCP3_LEDfailed[14];
-   Double_t MCP4_baseline_level;
-   Double_t MCP4_baseline_rms;
-   Double_t MCP4_global_maximum_y;
-   Double_t MCP4_global_maximum_x;
-   Double_t MCP4_all_charge[4];
-   Double_t MCP4_rise_time;
-   Double_t MCP4_CFDtime[8];
-   Double_t MCP4_CFDfrac[8];
-   Bool_t MCP4_CFDfailed[8];
-   Double_t MCP4_LEDtime[14];
-   Double_t MCP4_LEDthrd[14];
-   Bool_t MCP4_LEDfailed[14];
+   Int_t           Baseline_Window;
+   Double_t        MCP1_baseline_level;
+   Double_t        MCP1_baseline_rms;
+   Double_t        MCP1_global_maximum_y;
+   Double_t        MCP1_global_maximum_x;
+   Double_t        MCP1_start_x;
+   Double_t        MCP1_end_x;
+   Double_t        MCP1_invert_maximum_x;
+   Double_t        MCP1_invert_maximum_y;
+   Double_t        MCP1_all_charge[4];
+   Double_t        MCP1_rise_time;
+   Double_t        MCP1_CFDtime[8];
+   Double_t        MCP1_CFDfrac[8];
+   Bool_t          MCP1_CFDfailed[8];
+   Double_t        MCP1_LEDtime[14];
+   Double_t        MCP1_LEDthrd[14];
+   Bool_t          MCP1_LEDfailed[14];
+   Double_t        MCP2_baseline_level;
+   Double_t        MCP2_baseline_rms;
+   Double_t        MCP2_global_maximum_y;
+   Double_t        MCP2_global_maximum_x;
+   Double_t        MCP2_start_x;
+   Double_t        MCP2_end_x;
+   Double_t        MCP2_invert_maximum_x;
+   Double_t        MCP2_invert_maximum_y;
+   Double_t        MCP2_all_charge[4];
+   Double_t        MCP2_rise_time;
+   Double_t        MCP2_CFDtime[8];
+   Double_t        MCP2_CFDfrac[8];
+   Bool_t          MCP2_CFDfailed[8];
+   Double_t        MCP2_LEDtime[14];
+   Double_t        MCP2_LEDthrd[14];
+   Bool_t          MCP2_LEDfailed[14];
+   Double_t        MCP3_baseline_level;
+   Double_t        MCP3_baseline_rms;
+   Double_t        MCP3_global_maximum_y;
+   Double_t        MCP3_global_maximum_x;
+   Double_t        MCP3_start_x;
+   Double_t        MCP3_end_x;
+   Double_t        MCP3_invert_maximum_x;
+   Double_t        MCP3_invert_maximum_y;
+   Double_t        MCP3_all_charge[4];
+   Double_t        MCP3_rise_time;
+   Double_t        MCP3_CFDtime[8];
+   Double_t        MCP3_CFDfrac[8];
+   Bool_t          MCP3_CFDfailed[8];
+   Double_t        MCP3_LEDtime[14];
+   Double_t        MCP3_LEDthrd[14];
+   Bool_t          MCP3_LEDfailed[14];
+   Double_t        MCP4_baseline_level;
+   Double_t        MCP4_baseline_rms;
+   Double_t        MCP4_global_maximum_y;
+   Double_t        MCP4_global_maximum_x;
+   Double_t        MCP4_start_x;
+   Double_t        MCP4_end_x;
+   Double_t        MCP4_invert_maximum_x;
+   Double_t        MCP4_invert_maximum_y;
+   Double_t        MCP4_all_charge[4];
+   Double_t        MCP4_rise_time;
+   Double_t        MCP4_CFDtime[8];
+   Double_t        MCP4_CFDfrac[8];
+   Bool_t          MCP4_CFDfailed[8];
+   Double_t        MCP4_LEDtime[14];
+   Double_t        MCP4_LEDthrd[14];
+   Bool_t          MCP4_LEDfailed[14];
 
    // List of branches
-   TBranch *b_Baseline_Window;       //!
-   TBranch *b_MCP1_baseline_level;   //!
-   TBranch *b_MCP1_baseline_rms;     //!
-   TBranch *b_MCP1_global_maximum_y; //!
-   TBranch *b_MCP1_global_maximum_x; //!
-   TBranch *b_MCP1_all_charge;       //!
-   TBranch *b_MCP1_rise_time;        //!
-   TBranch *b_MCP1_CFDtime;          //!
-   TBranch *b_MCP1_CFDfrac;          //!
-   TBranch *b_MCP1_CFDfailed;        //!
-   TBranch *b_MCP1_LEDtime;          //!
-   TBranch *b_MCP1_LEDthrd;          //!
-   TBranch *b_MCP1_LEDfailed;        //!
-   TBranch *b_MCP2_baseline_level;   //!
-   TBranch *b_MCP2_baseline_rms;     //!
-   TBranch *b_MCP2_global_maximum_y; //!
-   TBranch *b_MCP2_global_maximum_x; //!
-   TBranch *b_MCP2_all_charge;       //!
-   TBranch *b_MCP2_rise_time;        //!
-   TBranch *b_MCP2_CFDtime;          //!
-   TBranch *b_MCP2_CFDfrac;          //!
-   TBranch *b_MCP2_CFDfailed;        //!
-   TBranch *b_MCP2_LEDtime;          //!
-   TBranch *b_MCP2_LEDthrd;          //!
-   TBranch *b_MCP2_LEDfailed;        //!
-   TBranch *b_MCP3_baseline_level;   //!
-   TBranch *b_MCP3_baseline_rms;     //!
-   TBranch *b_MCP3_global_maximum_y; //!
-   TBranch *b_MCP3_global_maximum_x; //!
-   TBranch *b_MCP3_all_charge;       //!
-   TBranch *b_MCP3_rise_time;        //!
-   TBranch *b_MCP3_CFDtime;          //!
-   TBranch *b_MCP3_CFDfrac;          //!
-   TBranch *b_MCP3_CFDfailed;        //!
-   TBranch *b_MCP3_LEDtime;          //!
-   TBranch *b_MCP3_LEDthrd;          //!
-   TBranch *b_MCP3_LEDfailed;        //!
-   TBranch *b_MCP4_baseline_level;   //!
-   TBranch *b_MCP4_baseline_rms;     //!
-   TBranch *b_MCP4_global_maximum_y; //!
-   TBranch *b_MCP4_global_maximum_x; //!
-   TBranch *b_MCP4_all_charge;       //!
-   TBranch *b_MCP4_rise_time;        //!
-   TBranch *b_MCP4_CFDtime;          //!
-   TBranch *b_MCP4_CFDfrac;          //!
-   TBranch *b_MCP4_CFDfailed;        //!
-   TBranch *b_MCP4_LEDtime;          //!
-   TBranch *b_MCP4_LEDthrd;          //!
-   TBranch *b_MCP4_LEDfailed;        //!
+   TBranch        *b_Baseline_Window;   //!
+   TBranch        *b_MCP1_baseline_level;   //!
+   TBranch        *b_MCP1_baseline_rms;   //!
+   TBranch        *b_MCP1_global_maximum_y;   //!
+   TBranch        *b_MCP1_global_maximum_x;   //!
+   TBranch        *b_MCP1_start_x;   //!
+   TBranch        *b_MCP1_end_x;   //!
+   TBranch        *b_MCP1_invert_maximum_x;   //!
+   TBranch        *b_MCP1_invert_maximum_y;   //!
+   TBranch        *b_MCP1_all_charge;   //!
+   TBranch        *b_MCP1_rise_time;   //!
+   TBranch        *b_MCP1_CFDtime;   //!
+   TBranch        *b_MCP1_CFDfrac;   //!
+   TBranch        *b_MCP1_CFDfailed;   //!
+   TBranch        *b_MCP1_LEDtime;   //!
+   TBranch        *b_MCP1_LEDthrd;   //!
+   TBranch        *b_MCP1_LEDfailed;   //!
+   TBranch        *b_MCP2_baseline_level;   //!
+   TBranch        *b_MCP2_baseline_rms;   //!
+   TBranch        *b_MCP2_global_maximum_y;   //!
+   TBranch        *b_MCP2_global_maximum_x;   //!
+   TBranch        *b_MCP2_start_x;   //!
+   TBranch        *b_MCP2_end_x;   //!
+   TBranch        *b_MCP2_invert_maximum_x;   //!
+   TBranch        *b_MCP2_invert_maximum_y;   //!
+   TBranch        *b_MCP2_all_charge;   //!
+   TBranch        *b_MCP2_rise_time;   //!
+   TBranch        *b_MCP2_CFDtime;   //!
+   TBranch        *b_MCP2_CFDfrac;   //!
+   TBranch        *b_MCP2_CFDfailed;   //!
+   TBranch        *b_MCP2_LEDtime;   //!
+   TBranch        *b_MCP2_LEDthrd;   //!
+   TBranch        *b_MCP2_LEDfailed;   //!
+   TBranch        *b_MCP3_baseline_level;   //!
+   TBranch        *b_MCP3_baseline_rms;   //!
+   TBranch        *b_MCP3_global_maximum_y;   //!
+   TBranch        *b_MCP3_global_maximum_x;   //!
+   TBranch        *b_MCP3_start_x;   //!
+   TBranch        *b_MCP3_end_x;   //!
+   TBranch        *b_MCP3_invert_maximum_x;   //!
+   TBranch        *b_MCP3_invert_maximum_y;   //!
+   TBranch        *b_MCP3_all_charge;   //!
+   TBranch        *b_MCP3_rise_time;   //!
+   TBranch        *b_MCP3_CFDtime;   //!
+   TBranch        *b_MCP3_CFDfrac;   //!
+   TBranch        *b_MCP3_CFDfailed;   //!
+   TBranch        *b_MCP3_LEDtime;   //!
+   TBranch        *b_MCP3_LEDthrd;   //!
+   TBranch        *b_MCP3_LEDfailed;   //!
+   TBranch        *b_MCP4_baseline_level;   //!
+   TBranch        *b_MCP4_baseline_rms;   //!
+   TBranch        *b_MCP4_global_maximum_y;   //!
+   TBranch        *b_MCP4_global_maximum_x;   //!
+   TBranch        *b_MCP4_start_x;   //!
+   TBranch        *b_MCP4_end_x;   //!
+   TBranch        *b_MCP4_invert_maximum_x;   //!
+   TBranch        *b_MCP4_invert_maximum_y;   //!
+   TBranch        *b_MCP4_all_charge;   //!
+   TBranch        *b_MCP4_rise_time;   //!
+   TBranch        *b_MCP4_CFDtime;   //!
+   TBranch        *b_MCP4_CFDfrac;   //!
+   TBranch        *b_MCP4_CFDfailed;   //!
+   TBranch        *b_MCP4_LEDtime;   //!
+   TBranch        *b_MCP4_LEDthrd;   //!
+   TBranch        *b_MCP4_LEDfailed;   //!
 
    MyClass(const char *rootname = "", TTree *tree = 0);
    virtual ~MyClass();
-   virtual Int_t Cut(Long64_t entry);
-   virtual Int_t GetEntry(Long64_t entry);
+   virtual Int_t    Cut(Long64_t entry);
+   virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
-   virtual void Init(TTree *tree);
+   virtual void     Init(TTree *tree);
    //virtual void     Loop();
-   virtual Bool_t Notify();
-   virtual void Show(Long64_t entry = -1);
+   virtual Bool_t   Notify();
+   virtual void     Show(Long64_t entry = -1);
 };
 
 #endif
@@ -156,28 +187,23 @@ MyClass::MyClass(const char *rootname, TTree *tree) : fChain(0)
 
 MyClass::~MyClass()
 {
-   if (!fChain)
-      return;
+   if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
 Int_t MyClass::GetEntry(Long64_t entry)
 {
-   // Read contents of entry.
-   if (!fChain)
-      return 0;
+// Read contents of entry.
+   if (!fChain) return 0;
    return fChain->GetEntry(entry);
 }
 Long64_t MyClass::LoadTree(Long64_t entry)
 {
-   // Set the environment to read one entry
-   if (!fChain)
-      return -5;
+// Set the environment to read one entry
+   if (!fChain) return -5;
    Long64_t centry = fChain->LoadTree(entry);
-   if (centry < 0)
-      return centry;
-   if (fChain->GetTreeNumber() != fCurrent)
-   {
+   if (centry < 0) return centry;
+   if (fChain->GetTreeNumber() != fCurrent) {
       fCurrent = fChain->GetTreeNumber();
       Notify();
    }
@@ -195,8 +221,7 @@ void MyClass::Init(TTree *tree)
    // (once per file to be processed).
 
    // Set branch addresses and branch pointers
-   if (!tree)
-      return;
+   if (!tree) return;
    fChain = tree;
    fCurrent = -1;
    fChain->SetMakeClass(1);
@@ -206,6 +231,10 @@ void MyClass::Init(TTree *tree)
    fChain->SetBranchAddress("MCP1_baseline_rms", &MCP1_baseline_rms, &b_MCP1_baseline_rms);
    fChain->SetBranchAddress("MCP1_global_maximum_y", &MCP1_global_maximum_y, &b_MCP1_global_maximum_y);
    fChain->SetBranchAddress("MCP1_global_maximum_x", &MCP1_global_maximum_x, &b_MCP1_global_maximum_x);
+   fChain->SetBranchAddress("MCP1_start_x", &MCP1_start_x, &b_MCP1_start_x);
+   fChain->SetBranchAddress("MCP1_end_x", &MCP1_end_x, &b_MCP1_end_x);
+   fChain->SetBranchAddress("MCP1_invert_maximum_x", &MCP1_invert_maximum_x, &b_MCP1_invert_maximum_x);
+   fChain->SetBranchAddress("MCP1_invert_maximum_y", &MCP1_invert_maximum_y, &b_MCP1_invert_maximum_y);
    fChain->SetBranchAddress("MCP1_all_charge", MCP1_all_charge, &b_MCP1_all_charge);
    fChain->SetBranchAddress("MCP1_rise_time", &MCP1_rise_time, &b_MCP1_rise_time);
    fChain->SetBranchAddress("MCP1_CFDtime", MCP1_CFDtime, &b_MCP1_CFDtime);
@@ -218,6 +247,10 @@ void MyClass::Init(TTree *tree)
    fChain->SetBranchAddress("MCP2_baseline_rms", &MCP2_baseline_rms, &b_MCP2_baseline_rms);
    fChain->SetBranchAddress("MCP2_global_maximum_y", &MCP2_global_maximum_y, &b_MCP2_global_maximum_y);
    fChain->SetBranchAddress("MCP2_global_maximum_x", &MCP2_global_maximum_x, &b_MCP2_global_maximum_x);
+   fChain->SetBranchAddress("MCP2_start_x", &MCP2_start_x, &b_MCP2_start_x);
+   fChain->SetBranchAddress("MCP2_end_x", &MCP2_end_x, &b_MCP2_end_x);
+   fChain->SetBranchAddress("MCP2_invert_maximum_x", &MCP2_invert_maximum_x, &b_MCP2_invert_maximum_x);
+   fChain->SetBranchAddress("MCP2_invert_maximum_y", &MCP2_invert_maximum_y, &b_MCP2_invert_maximum_y);
    fChain->SetBranchAddress("MCP2_all_charge", MCP2_all_charge, &b_MCP2_all_charge);
    fChain->SetBranchAddress("MCP2_rise_time", &MCP2_rise_time, &b_MCP2_rise_time);
    fChain->SetBranchAddress("MCP2_CFDtime", MCP2_CFDtime, &b_MCP2_CFDtime);
@@ -230,6 +263,10 @@ void MyClass::Init(TTree *tree)
    fChain->SetBranchAddress("MCP3_baseline_rms", &MCP3_baseline_rms, &b_MCP3_baseline_rms);
    fChain->SetBranchAddress("MCP3_global_maximum_y", &MCP3_global_maximum_y, &b_MCP3_global_maximum_y);
    fChain->SetBranchAddress("MCP3_global_maximum_x", &MCP3_global_maximum_x, &b_MCP3_global_maximum_x);
+   fChain->SetBranchAddress("MCP3_start_x", &MCP3_start_x, &b_MCP3_start_x);
+   fChain->SetBranchAddress("MCP3_end_x", &MCP3_end_x, &b_MCP3_end_x);
+   fChain->SetBranchAddress("MCP3_invert_maximum_x", &MCP3_invert_maximum_x, &b_MCP3_invert_maximum_x);
+   fChain->SetBranchAddress("MCP3_invert_maximum_y", &MCP3_invert_maximum_y, &b_MCP3_invert_maximum_y);
    fChain->SetBranchAddress("MCP3_all_charge", MCP3_all_charge, &b_MCP3_all_charge);
    fChain->SetBranchAddress("MCP3_rise_time", &MCP3_rise_time, &b_MCP3_rise_time);
    fChain->SetBranchAddress("MCP3_CFDtime", MCP3_CFDtime, &b_MCP3_CFDtime);
@@ -242,6 +279,10 @@ void MyClass::Init(TTree *tree)
    fChain->SetBranchAddress("MCP4_baseline_rms", &MCP4_baseline_rms, &b_MCP4_baseline_rms);
    fChain->SetBranchAddress("MCP4_global_maximum_y", &MCP4_global_maximum_y, &b_MCP4_global_maximum_y);
    fChain->SetBranchAddress("MCP4_global_maximum_x", &MCP4_global_maximum_x, &b_MCP4_global_maximum_x);
+   fChain->SetBranchAddress("MCP4_start_x", &MCP4_start_x, &b_MCP4_start_x);
+   fChain->SetBranchAddress("MCP4_end_x", &MCP4_end_x, &b_MCP4_end_x);
+   fChain->SetBranchAddress("MCP4_invert_maximum_x", &MCP4_invert_maximum_x, &b_MCP4_invert_maximum_x);
+   fChain->SetBranchAddress("MCP4_invert_maximum_y", &MCP4_invert_maximum_y, &b_MCP4_invert_maximum_y);
    fChain->SetBranchAddress("MCP4_all_charge", MCP4_all_charge, &b_MCP4_all_charge);
    fChain->SetBranchAddress("MCP4_rise_time", &MCP4_rise_time, &b_MCP4_rise_time);
    fChain->SetBranchAddress("MCP4_CFDtime", MCP4_CFDtime, &b_MCP4_CFDtime);
@@ -266,17 +307,16 @@ Bool_t MyClass::Notify()
 
 void MyClass::Show(Long64_t entry)
 {
-   // Print contents of entry.
-   // If entry is not specified, print current entry
-   if (!fChain)
-      return;
+// Print contents of entry.
+// If entry is not specified, print current entry
+   if (!fChain) return;
    fChain->Show(entry);
 }
 Int_t MyClass::Cut(Long64_t entry)
 {
-   // This function may be called from Loop.
-   // returns  1 if entry is accepted.
-   // returns -1 otherwise.
+// This function may be called from Loop.
+// returns  1 if entry is accepted.
+// returns -1 otherwise.
    return 1;
 }
 #endif // #ifdef MyClass_cxx

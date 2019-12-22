@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Dec 16 15:27:59 2019 by ROOT version 6.12/06
+// Fri Dec 20 13:21:06 2019 by ROOT version 6.12/06
 // from TTree Pico/Analysis Output
-// found on file: 201901-A3re.root
+// found on file: 201901-A3.root
 //////////////////////////////////////////////////////////
 
-#ifndef MyClass_h
-#define MyClass_h
+#ifndef MyClass3ch_h
+#define MyClass3ch_h
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -30,7 +30,7 @@ public :
    Double_t        MCP1_start_x;
    Double_t        MCP1_end_x;
    Double_t        MCP1_invert_maximum_x;
-   Double_t        MCP1_invertmax_maximum_y;
+   Double_t        MCP1_invert_maximum_y;
    Double_t        MCP1_all_charge[4];
    Double_t        MCP1_rise_time;
    Double_t        MCP1_CFDtime[8];
@@ -46,7 +46,7 @@ public :
    Double_t        MCP2_start_x;
    Double_t        MCP2_end_x;
    Double_t        MCP2_invert_maximum_x;
-   Double_t        MCP2_invertmax_maximum_y;
+   Double_t        MCP2_invert_maximum_y;
    Double_t        MCP2_all_charge[4];
    Double_t        MCP2_rise_time;
    Double_t        MCP2_CFDtime[8];
@@ -62,7 +62,7 @@ public :
    Double_t        MCP3_start_x;
    Double_t        MCP3_end_x;
    Double_t        MCP3_invert_maximum_x;
-   Double_t        MCP3_invertmax_maximum_y;
+   Double_t        MCP3_invert_maximum_y;
    Double_t        MCP3_all_charge[4];
    Double_t        MCP3_rise_time;
    Double_t        MCP3_CFDtime[8];
@@ -81,7 +81,7 @@ public :
    TBranch        *b_MCP1_start_x;   //!
    TBranch        *b_MCP1_end_x;   //!
    TBranch        *b_MCP1_invert_maximum_x;   //!
-   TBranch        *b_MCP1_invertmax_maximum_y;   //!
+   TBranch        *b_MCP1_invert_maximum_y;   //!
    TBranch        *b_MCP1_all_charge;   //!
    TBranch        *b_MCP1_rise_time;   //!
    TBranch        *b_MCP1_CFDtime;   //!
@@ -97,7 +97,7 @@ public :
    TBranch        *b_MCP2_start_x;   //!
    TBranch        *b_MCP2_end_x;   //!
    TBranch        *b_MCP2_invert_maximum_x;   //!
-   TBranch        *b_MCP2_invertmax_maximum_y;   //!
+   TBranch        *b_MCP2_invert_maximum_y;   //!
    TBranch        *b_MCP2_all_charge;   //!
    TBranch        *b_MCP2_rise_time;   //!
    TBranch        *b_MCP2_CFDtime;   //!
@@ -113,7 +113,7 @@ public :
    TBranch        *b_MCP3_start_x;   //!
    TBranch        *b_MCP3_end_x;   //!
    TBranch        *b_MCP3_invert_maximum_x;   //!
-   TBranch        *b_MCP3_invertmax_maximum_y;   //!
+   TBranch        *b_MCP3_invert_maximum_y;   //!
    TBranch        *b_MCP3_all_charge;   //!
    TBranch        *b_MCP3_rise_time;   //!
    TBranch        *b_MCP3_CFDtime;   //!
@@ -123,7 +123,7 @@ public :
    TBranch        *b_MCP3_LEDthrd;   //!
    TBranch        *b_MCP3_LEDfailed;   //!
 
-   MyClass(const char* rootname="",TTree *tree=0);
+   MyClass(const char *rootname = "", TTree *tree = 0);
    virtual ~MyClass();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -137,17 +137,18 @@ public :
 #endif
 
 #ifdef MyClass_cxx
-MyClass::MyClass(const char* rootname, TTree *tree) : fChain(0) 
+MyClass::MyClass(const char *rootname, TTree *tree) : fChain(0)
 {
-// if parameter tree is not specified (or zero), connect the file
-// used to generate this class and read the Tree.
-   if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(rootname);
-      if (!f || !f->IsOpen()) {
+   // if parameter tree is not specified (or zero), connect the file
+   // used to generate this class and read the Tree.
+   if (tree == 0)
+   {
+      TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject(rootname);
+      if (!f || !f->IsOpen())
+      {
          f = new TFile(rootname);
       }
-      f->GetObject("Pico",tree);
-
+      f->GetObject("Pico", tree);
    }
    Init(tree);
 }
@@ -201,7 +202,7 @@ void MyClass::Init(TTree *tree)
    fChain->SetBranchAddress("MCP1_start_x", &MCP1_start_x, &b_MCP1_start_x);
    fChain->SetBranchAddress("MCP1_end_x", &MCP1_end_x, &b_MCP1_end_x);
    fChain->SetBranchAddress("MCP1_invert_maximum_x", &MCP1_invert_maximum_x, &b_MCP1_invert_maximum_x);
-   fChain->SetBranchAddress("MCP1_invertmax_maximum_y", &MCP1_invertmax_maximum_y, &b_MCP1_invertmax_maximum_y);
+   fChain->SetBranchAddress("MCP1_invert_maximum_y", &MCP1_invert_maximum_y, &b_MCP1_invert_maximum_y);
    fChain->SetBranchAddress("MCP1_all_charge", MCP1_all_charge, &b_MCP1_all_charge);
    fChain->SetBranchAddress("MCP1_rise_time", &MCP1_rise_time, &b_MCP1_rise_time);
    fChain->SetBranchAddress("MCP1_CFDtime", MCP1_CFDtime, &b_MCP1_CFDtime);
@@ -217,7 +218,7 @@ void MyClass::Init(TTree *tree)
    fChain->SetBranchAddress("MCP2_start_x", &MCP2_start_x, &b_MCP2_start_x);
    fChain->SetBranchAddress("MCP2_end_x", &MCP2_end_x, &b_MCP2_end_x);
    fChain->SetBranchAddress("MCP2_invert_maximum_x", &MCP2_invert_maximum_x, &b_MCP2_invert_maximum_x);
-   fChain->SetBranchAddress("MCP2_invertmax_maximum_y", &MCP2_invertmax_maximum_y, &b_MCP2_invertmax_maximum_y);
+   fChain->SetBranchAddress("MCP2_invert_maximum_y", &MCP2_invert_maximum_y, &b_MCP2_invert_maximum_y);
    fChain->SetBranchAddress("MCP2_all_charge", MCP2_all_charge, &b_MCP2_all_charge);
    fChain->SetBranchAddress("MCP2_rise_time", &MCP2_rise_time, &b_MCP2_rise_time);
    fChain->SetBranchAddress("MCP2_CFDtime", MCP2_CFDtime, &b_MCP2_CFDtime);
@@ -233,7 +234,7 @@ void MyClass::Init(TTree *tree)
    fChain->SetBranchAddress("MCP3_start_x", &MCP3_start_x, &b_MCP3_start_x);
    fChain->SetBranchAddress("MCP3_end_x", &MCP3_end_x, &b_MCP3_end_x);
    fChain->SetBranchAddress("MCP3_invert_maximum_x", &MCP3_invert_maximum_x, &b_MCP3_invert_maximum_x);
-   fChain->SetBranchAddress("MCP3_invertmax_maximum_y", &MCP3_invertmax_maximum_y, &b_MCP3_invertmax_maximum_y);
+   fChain->SetBranchAddress("MCP3_invert_maximum_y", &MCP3_invert_maximum_y, &b_MCP3_invert_maximum_y);
    fChain->SetBranchAddress("MCP3_all_charge", MCP3_all_charge, &b_MCP3_all_charge);
    fChain->SetBranchAddress("MCP3_rise_time", &MCP3_rise_time, &b_MCP3_rise_time);
    fChain->SetBranchAddress("MCP3_CFDtime", MCP3_CFDtime, &b_MCP3_CFDtime);

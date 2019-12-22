@@ -1,12 +1,14 @@
 #include "Include/DrawMyClass.h"
 #define MyClass_cxx
-//#include "MyClass.h"
-#include "MyClass4ch.h"
+#include "MyClass3ch.h"
+//#include "MyClass4ch.h"
 
-char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
-//char path[1024] = "/mnt/f/MCP/12-15";
-char name[1024] = "201901-A3";
+//char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
+char path[1024] = "/mnt/f/MCP/12-22";
+//char name[1024] = "201901-A3";
+char name[1024] = "201902-A2-pos3";
 TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 2e3, -1, 20);
+TH1F *hq2 = new TH1F("hq2", ";charge (pC);Counts", 2e3, -1, 20);
 
 TH1F *ha = new TH1F("ha", ";Amp(V);Counts", 1e3, -1, 1);
 TH1F *hr = new TH1F("hr", ";risetime (ns);Counts", 1e3, 0, 1);
@@ -16,7 +18,7 @@ TH1F *hblrms = new TH1F("hblrms", ";baselineRMS (V);Counts", 2e3, 0, 20e-3);
 TH1F *hctratio = new TH1F("hctratio", ";Crosstalk ratio;Counts", 11e3, -1, 10);
 TTree *t1 = new TTree();
 
-void getrootname(const char *rootname = "201901-A3re")
+void getrootname(const char *rootname = "201901-A3")
 {
     sprintf(name,"%s",rootname);
     cout<< "your file name is: "<<name<<endl; 
@@ -28,6 +30,7 @@ void gethist()
     TGaxis::SetMaxDigits(3);
 
     double fcharge;
+    double fcharge2;
     double frise;
     double fbaseline;
     double fbaselinerms;
@@ -36,7 +39,7 @@ void gethist()
     double ftime;
     double freftime;
 
-    double riseth = 0.;   //Unit: ns.
+    double riseth = -999;   //Unit: ns.
     double chargeth = 0.5; //Unit: pC.
     sprintf(buff, "%s/%s.root", path, name);
     MyClass t(buff);
@@ -45,12 +48,13 @@ void gethist()
     for (int i = 0; i < N; i++)
     {
         t1->GetEntry(i);
-        fcharge =       t.MCP4_all_charge[0];
-        frise =         t.MCP4_rise_time;
-        fbaseline =     t.MCP4_baseline_level;
-        fbaselinerms =  t.MCP4_baseline_rms;
-        famplitude =    t.MCP4_global_maximum_y;
-        ftime =         t.MCP4_CFDtime[3];
+        fcharge =       t.MCP2_all_charge[0];
+        fcharge2 =      t.MCP2_all_charge[1];
+        frise =         t.MCP2_rise_time;
+        fbaseline =     t.MCP2_baseline_level;
+        fbaselinerms =  t.MCP2_baseline_rms;
+        famplitude =    t.MCP2_global_maximum_y;
+        ftime =         t.MCP2_CFDtime[3];
 
         freftime =      t.MCP1_CFDtime[3];
         fampnerbor =    t.MCP3_global_maximum_y;
@@ -58,15 +62,16 @@ void gethist()
         if (frise > riseth)
         {
             hq->Fill(fcharge);
+            hq2->Fill(fcharge2);
             ha->Fill(famplitude);
             //cout<<Q[1]<<endl;
             hbl->Fill(fbaseline);
             hblrms->Fill(fbaselinerms);
             if (fcharge > chargeth)
             {
-                ht->Fill(ftime - freftime);
                 hr->Fill(frise);
                 hctratio->Fill(fampnerbor/famplitude);
+                if(frise<0.4) ht->Fill(ftime - freftime);
             }
         }
     }
@@ -154,7 +159,7 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
     myFun->SetParNames("N", "#lambda", "#mu_{ped}", "#sigma_{ped}", "#mu", "#sigma", "BW");
 
     //Int_t ibin =  h->GetMaximumBin();
-    myFun->SetParameters(hqdc->GetEntries(), 0.01, pedMean, pedSigma, mean, sigma, hqdc->GetBinWidth(5));
+    myFun->SetParameters(hqdc->GetEntries(), 0.01, pedMean, pedSigma, mean, 0.8*sigma, hqdc->GetBinWidth(5));
     myFun->FixParameter(0, hqdc->GetEntries());                       //fix total yield
     myFun->FixParameter(6, hqdc->GetBinWidth(5));                     //fix bin width
     myFun->SetParLimits(2, pedMean - 0.0001, pedMean + 0.0001);       //fix pedestal mean
@@ -163,23 +168,23 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
 
     //myFun->FixParameter(4, mean); //>10 for 1400V
     myFun->SetParLimits(4, mean - pedMean, 1.5 * (mean - pedMean)); //>10 for 1400V
-    myFun->SetParLimits(5, 0.7 * sigma, 1.1 * sigma);
+    myFun->SetParLimits(5, 0.5 * sigma, 1. * sigma);
     //if(pedSigma>5) myFun->SetRange(pedMean+12*pedSigma,  u.R);
     //else
     //myFun->SetRange(pedMean+fac*pedSigma,  mean+1*sigma);
-    myFun->SetRange(pedMean + fac * sigma, pedMean + mean + 1 * sigma);
+    myFun->SetRange(pedMean + fac * pedSigma, pedMean + mean + 1 * sigma);
     cout << " first fitting..." << endl;
     hqdc->Fit(myFun, "R");
     //return hqdc;
     mean = myFun->GetParameter(4); //return;
     sigma = myFun->GetParameter(5);
     //myFun->SetRange(pedMean+mean-1.3*TMath::Abs(sigma),  u.R);
-    myFun->SetRange(pedMean + fac * sigma, pedMean + 3 * mean);
+    myFun->SetRange(pedMean + fac * pedSigma, pedMean + 3 * mean);
     //myFun->SetParLimits(4,mean/2., u.R);
     myFun->SetParameter(4, mean);
     myFun->SetParameter(5, sigma);
-    myFun->SetParLimits(4, mean, u.R);
-    myFun->SetParLimits(5, sigma, 10 * sigma);
+    myFun->SetParLimits(4, 0.9*(mean-pedMean), 1.2*(mean-pedMean));
+    myFun->SetParLimits(5, 0.5*sigma, 1. * sigma);
 
     //myFun->SetRange(u.L,  u.R);
     //cout<<" second fitting..."<<endl;
@@ -200,15 +205,15 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
     if ((pedMean - 15 * pedSigma) > 0)
         xmin = pedMean - 12 * pedSigma;
     if (par[1] > 2)
-        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 10 * mean);
+        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 10 * mean + 3*sigma);
     else if (par[1] > 1)
-        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 7 * mean);
+        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 7 * mean + 3*sigma);
     else if (par[1] > 0.1)
-        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 5 * mean);
+        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 5 * mean + 3*sigma);
     else if (par[1] > 0.05)
-        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 4 * mean);
+        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 4 * mean + 3*sigma);
     else
-        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 4 * mean);
+        hqdc->GetXaxis()->SetRangeUser(xmin, pedMean + 4 * mean + 3*sigma);
 
     hqdc->SetLineWidth(1.5);
     myGaus->SetLineWidth(2);
@@ -247,29 +252,49 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
     return hqdc;
 }
 
-void drawSPE()
+void drawSPE(int CanvasNum=1,double rangefac=10)
 {
     if (!hq->GetEntries())
         gethist();
     setgStyle();
-    TCanvas *c1 = cdC(1);
+    TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     RANGE qrange = {-1, 12};
-    hq = (TH1F *)SPSfit(hq, 4, qrange, 3);
-    DrawMyHist(hq, "", "",1,3);
+    TH1F *hqfit = (TH1F *)SPSfit(hq, 4, qrange, rangefac);
+    DrawMyHist(hqfit, "", "",1,3);
 
-    TF1 *fq = hq->GetFunction("myFun");
+    TF1 *fq = hqfit->GetFunction("myFun");
     double Gain = (fq->GetParameter(4) - fq->GetParameter(1)) * 1e-12 / 1.6e-19;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "Gain=" << Gain << endl;
     sprintf(buff, "Gain=%0.2e", Gain);
-    TLatex *l = DrawMyLatex(buff, 0.4, 0.2);
+    TLatex *l = DrawMyLatex(buff, 0.3, 0.6);
     l->Draw();
-    sprintf(buff, "%s/charge.png", path);
+    sprintf(buff, "%s/%scharge.png", path,name);
     c1->SaveAs(buff);
 }
+void drawSPE2(int CanvasNum=1,double rangefac=5)
+{
+    if (!hq2->GetEntries())
+        gethist();
+    setgStyle();
+    TCanvas *c1 = cdC(CanvasNum);
+    c1->SetLogy();
+    RANGE qrange = {-1, 12};
+    TH1F *hqfit = (TH1F *)SPSfit(hq2, 4, qrange, rangefac);
+    DrawMyHist(hqfit, "", "",1,3);
 
-void drawTR()
+    TF1 *fq = hqfit->GetFunction("myFun");
+    double Gain = (fq->GetParameter(4) - fq->GetParameter(1)) * 1e-12 / 1.6e-19;
+    //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
+    cout << "Gain=" << Gain << endl;
+    sprintf(buff, "Gain=%0.2e", Gain);
+    TLatex *l = DrawMyLatex(buff, 0.3, 0.6);
+    l->Draw();
+    sprintf(buff, "%s/%scharge_1.png", path,name);
+    c1->SaveAs(buff);
+}
+void drawTR(int CanvasNum=1,double fac=0.2)
 {
     if (!ht->GetEntries())
     {
@@ -278,23 +303,23 @@ void drawTR()
         cout << "Get hist ......" << endl;
     }
     setgStyle();
-    TCanvas *c1 = cdC(1);
+    TCanvas *c1 = cdC(CanvasNum);
     ht->Draw();
     double tL = ht->GetBinCenter(ht->GetMaximumBin() - 800);
     double tR = ht->GetBinCenter(ht->GetMaximumBin() + 800);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
-    //cout<< tL <<"\t"<< tR<<endl;
-    ht = (TH1F *)twogausfit(ht, 0.2, 4, 8, tL, tR);
-    DrawMyHist(ht, "", "",1,3);
-    TF1 *f = (TF1 *)ht->GetFunction("fit2");
+    cout<<"set tL & tR: "<< tL <<"\t"<< tR<<endl;
+    TH1F *htfit = (TH1F *)twogausfit(ht, fac, 4, 16, tL, tR);
+    DrawMyHist(htfit, "", "",1,3);
+    TF1 *f = (TF1 *)htfit->GetFunction("fit2");
     double sigma = f->GetParameter(2) * 1e3;
     sprintf(buff, "#sigma=%.0fps", sigma);
     TLatex *l = DrawMyLatex(buff, 0.2, 0.5);
     l->Draw();
-    sprintf(buff, "%s/TR.png", path);
+    sprintf(buff, "%s/%sTR.png", path,name);
     c1->SaveAs(buff);
 }
-void drawrise()
+void drawrise(int CanvasNum=1)
 {
     if (!hr->GetEntries())
     {
@@ -303,24 +328,24 @@ void drawrise()
         cout << "Get hist ......" << endl;
     }
     setgStyle();
-    TCanvas *c1 = cdC(1);
+    TCanvas *c1 = cdC(CanvasNum);
     hr->Draw();
     double tL = hr->GetBinCenter(hr->GetMaximumBin() - 600);
     double tR = hr->GetBinCenter(hr->GetMaximumBin() + 600);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     //cout<< tL <<"\t"<< tR<<endl;
-    hr = (TH1F *)gausfit(hr, 2.5, 1.8, 4, tL, tR);
-    DrawMyHist(hq, "", "",1,3);
-    TF1 *f = (TF1 *)hr->GetFunction("fitU");
+    TH1F *hrfit = (TH1F *)gausfit(hr, 2.5, 1.8, 4, tL, tR);
+    DrawMyHist(hrfit, "", "",1,3);
+    TF1 *f = (TF1 *)hrfit->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
     sprintf(buff, "Risetime=%.0fps", mean);
     TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
     l->Draw();
-    sprintf(buff, "%s/Risetime.png", path);
+    sprintf(buff, "%s/%sRisetime.png", path,name);
     c1->SaveAs(buff);
 }
 
-void drawblrms()
+void drawblrms(int CanvasNum=1)
 {
     if (!hblrms->GetEntries())
     {
@@ -329,22 +354,23 @@ void drawblrms()
         cout << "Get hist ......" << endl;
     }
     setgStyle();
-    TCanvas *c1 = cdC(1);
+    TCanvas *c1 = cdC(CanvasNum);
     hblrms->Draw();
     double tL = hblrms->GetBinCenter(hblrms->GetMaximumBin() - 600);
     double tR = hblrms->GetBinCenter(hblrms->GetMaximumBin() + 600);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     //cout<< tL <<"\t"<< tR<<endl;
-    hblrms = (TH1F *)gausfit(hblrms, 2.5, 1.8, 2, tL, tR);
-    TF1 *f = (TF1 *)hblrms->GetFunction("fitU");
+    TH1F *hblrmsfit = (TH1F *)gausfit(hblrms, 2.5, 1.8, 2, tL, tR);
+    DrawMyHist(hblrmsfit, "", "",1,3);
+    TF1 *f = (TF1 *)hblrmsfit->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
-    sprintf(buff, "BaselineRMS=%.0fmV", mean*1e3);
+    sprintf(buff, "BaselineRMS=%.2fmV", mean);
     TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
     l->Draw();
-    sprintf(buff, "%s/blrms.png", path);
+    sprintf(buff, "%s/%sblrms.png", path,name);
     c1->SaveAs(buff);
 }
-void drawctratio()
+void drawctratio(int CanvasNum=1)
 {
         if (!hctratio->GetEntries())
     {
@@ -353,17 +379,20 @@ void drawctratio()
         cout << "Get hist ......" << endl;
     }
     setgStyle();
-    TCanvas *c1 = cdC(1);
+    TCanvas *c1 = cdC(CanvasNum);
     hctratio->Draw();
-    double tL = hctratio->GetBinCenter(hctratio->GetMaximumBin() - 600);
-    double tR = hctratio->GetBinCenter(hctratio->GetMaximumBin() + 600);
-    //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
-    //cout<< tL <<"\t"<< tR<<endl;
-    hctratio = (TH1F *)gausfit(hctratio, 2.5, 1.2, 1, tL, tR);
-    TF1 *f = (TF1 *)hctratio->GetFunction("fitU");
+    double tL = hctratio->GetBinCenter(hctratio->GetMaximumBin() - 100);
+    double tR = hctratio->GetBinCenter(hctratio->GetMaximumBin() + 100);
+    cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
+    cout<< tL <<"\t"<< tR<<endl;
+    TH1F *hctratiofit = (TH1F *)gausfit(hctratio, 2.5, 1.2, 1, tL, tR);
+    //return;
+    DrawMyHist(hctratiofit, "", "",1,3);
+    hctratiofit->GetXaxis()->SetNdivisions(505);
+    TF1 *f = (TF1 *)hctratiofit->GetFunction("fitU");
     double mean = f->GetParameter(1);
     double sigma = f->GetParameter(2);
-    sprintf(buff, "CrosstalkRatio=%.0f%%", mean*100);
+    sprintf(buff, "CrosstalkRatio=%.1f%%", mean*100);
     TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
     l->Draw();
 
@@ -373,7 +402,16 @@ void drawctratio()
     sprintf(buff, "SignalPurity=%.2f%%", purity*100);
     TLatex *l2 = DrawMyLatex(buff, 0.55, 0.45);
     l2->Draw();
-    sprintf(buff, "%s/Crosstalkratio.png", path);
+    sprintf(buff, "%s/%sCrosstalkratio.png", path,name);
     c1->SaveAs(buff);
 
+}
+
+void drawall()
+{
+    drawctratio(1);
+    drawblrms(2);
+    drawrise(3);
+    drawTR(4);
+    drawSPE(5);
 }

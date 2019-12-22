@@ -20,7 +20,9 @@
         "MCP_TR.C": "cpp",
         "MCP_TTS.C": "cpp",
         "MyClass.C": "cpp",
-        "drawDN.C": "cpp"
+        "drawDN.C": "cpp",
+        "drawSiPMTR.C": "cpp",
+        "ostream": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,
