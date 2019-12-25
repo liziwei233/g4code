@@ -1,14 +1,19 @@
+#include "TH1F.h"
 #include "Include/DrawMyClass.h"
 #define MyClass_cxx
-#include "MyClass3ch.h"
-//#include "MyClass4ch.h"
-
-//char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
-char path[1024] = "/mnt/f/MCP/12-22";
-//char name[1024] = "201901-A3";
-char name[1024] = "201902-A2-pos3";
+//#include "MyClass3ch.h"
+#include "MyClass4ch.h"
+#define GATE
+char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
+//char path[1024] = "/mnt/f/MCP/12-22";
+char name[1024] = "201901-A3";
+//char name[1024] = "201902-A2-pos3";
 TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 2e3, -1, 20);
-TH1F *hq2 = new TH1F("hq2", ";charge (pC);Counts", 2e3, -1, 20);
+
+//#ifdef GATE
+TH1F* hqgate[3];
+
+//#endif
 
 TH1F *ha = new TH1F("ha", ";Amp(V);Counts", 1e3, -1, 1);
 TH1F *hr = new TH1F("hr", ";risetime (ns);Counts", 1e3, 0, 1);
@@ -30,7 +35,7 @@ void gethist()
     TGaxis::SetMaxDigits(3);
 
     double fcharge;
-    double fcharge2;
+    double fchargegate[3];
     double frise;
     double fbaseline;
     double fbaselinerms;
@@ -38,7 +43,9 @@ void gethist()
     double fampnerbor;
     double ftime;
     double freftime;
-
+hqgate[0] = new TH1F("hq1", ";charge (pC);Counts", 2e3, -1, 20);
+hqgate[1] = new TH1F("hq2", ";charge (pC);Counts", 2e3, -1, 20);
+hqgate[2] = new TH1F("hq3", ";charge (pC);Counts", 2e3, -1, 20);
     double riseth = -999;   //Unit: ns.
     double chargeth = 0.5; //Unit: pC.
     sprintf(buff, "%s/%s.root", path, name);
@@ -48,21 +55,28 @@ void gethist()
     for (int i = 0; i < N; i++)
     {
         t1->GetEntry(i);
-        fcharge =       t.MCP2_all_charge[0];
-        fcharge2 =      t.MCP2_all_charge[1];
-        frise =         t.MCP2_rise_time;
-        fbaseline =     t.MCP2_baseline_level;
-        fbaselinerms =  t.MCP2_baseline_rms;
-        famplitude =    t.MCP2_global_maximum_y;
-        ftime =         t.MCP2_CFDtime[3];
+        fcharge =       t.MCP4_all_charge[0];
+        fchargegate[0] =t.MCP4_all_charge[1];
+        fchargegate[1] =t.MCP4_all_charge[2];
+        fchargegate[2] =t.MCP4_all_charge[3];
+        frise =         t.MCP4_rise_time;
+        fbaseline =     t.MCP4_baseline_level;
+        fbaselinerms =  t.MCP4_baseline_rms;
+        famplitude =    t.MCP4_global_maximum_y;
+        ftime =         t.MCP4_CFDtime[3];
 
         freftime =      t.MCP1_CFDtime[3];
         fampnerbor =    t.MCP3_global_maximum_y;
 
         if (frise > riseth)
+        //if (1)
         {
             hq->Fill(fcharge);
-            hq2->Fill(fcharge2);
+            #ifdef GATE
+            hqgate[0]->Fill(fchargegate[0]);
+            hqgate[1]->Fill(fchargegate[1]);
+            hqgate[2]->Fill(fchargegate[2]);
+            #endif
             ha->Fill(famplitude);
             //cout<<Q[1]<<endl;
             hbl->Fill(fbaseline);
@@ -71,7 +85,8 @@ void gethist()
             {
                 hr->Fill(frise);
                 hctratio->Fill(fampnerbor/famplitude);
-                if(frise<0.4) ht->Fill(ftime - freftime);
+                if(frise<0.4&&fcharge<1.6)
+                ht->Fill(ftime - freftime);
             }
         }
     }
@@ -264,7 +279,7 @@ void drawSPE(int CanvasNum=1,double rangefac=10)
     DrawMyHist(hqfit, "", "",1,3);
 
     TF1 *fq = hqfit->GetFunction("myFun");
-    double Gain = (fq->GetParameter(4) - fq->GetParameter(1)) * 1e-12 / 1.6e-19;
+    double Gain = (fq->GetParameter(4) - fq->GetParameter(2)) * 1e-12 / 1.6e-19;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "Gain=" << Gain << endl;
     sprintf(buff, "Gain=%0.2e", Gain);
@@ -273,19 +288,20 @@ void drawSPE(int CanvasNum=1,double rangefac=10)
     sprintf(buff, "%s/%scharge.png", path,name);
     c1->SaveAs(buff);
 }
-void drawSPE2(int CanvasNum=1,double rangefac=5)
+#ifdef GATE
+void drawSPE2(int CanvasNum=1,int gateid=0,double rangefac=5)
 {
-    if (!hq2->GetEntries())
+    if (!hq->GetEntries())
         gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     RANGE qrange = {-1, 12};
-    TH1F *hqfit = (TH1F *)SPSfit(hq2, 4, qrange, rangefac);
+    TH1F *hqfit = (TH1F *)SPSfit(hqgate[gateid], 4, qrange, rangefac);
     DrawMyHist(hqfit, "", "",1,3);
 
     TF1 *fq = hqfit->GetFunction("myFun");
-    double Gain = (fq->GetParameter(4) - fq->GetParameter(1)) * 1e-12 / 1.6e-19;
+    double Gain = (fq->GetParameter(4) - fq->GetParameter(2)) * 1e-12 / 1.6e-19;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "Gain=" << Gain << endl;
     sprintf(buff, "Gain=%0.2e", Gain);
@@ -294,6 +310,42 @@ void drawSPE2(int CanvasNum=1,double rangefac=5)
     sprintf(buff, "%s/%scharge_1.png", path,name);
     c1->SaveAs(buff);
 }
+
+void drawSPEtogether(int CanvasNum=1)
+{
+    if (!hq->GetEntries())
+        gethist();
+    setgStyle();
+    TCanvas *c1 = cdC(CanvasNum);
+    c1->SetLogy();
+    c1->SetGrid();
+    
+
+    hq->Rebin(8);
+    hqgate[0]->Rebin(8);
+    hqgate[1]->Rebin(8);
+    hqgate[2]->Rebin(8);
+    DrawMyHist(hq, "", "",1,2);
+    DrawMyHist(hqgate[0], "", "",2,2);
+    DrawMyHist(hqgate[1], "", "",8,2);
+    DrawMyHist(hqgate[2], "", "",4,2);
+    hq->Draw();
+    hq->GetXaxis()->SetRangeUser(-1,12.5);
+    hqgate[0]->Draw("same");
+    hqgate[1]->Draw("same");
+    hqgate[2]->Draw("same");
+    TLegend *leg;
+    leg = DrawMyLeg(0.6, 0.45, 0.9, 0.7, 42, 0.05);
+    
+    leg->AddEntry(hqgate[2], "20ns", "lp");
+    leg->AddEntry(hqgate[1], "10ns", "lp");
+    leg->AddEntry(hqgate[0], "5ns", "lp");
+    leg->AddEntry(hq, "WaveformWidth", "lp");
+    leg->Draw();
+    sprintf(buff, "%s/%scharge_gate.png", path,name);
+    c1->SaveAs(buff);
+}
+#endif
 void drawTR(int CanvasNum=1,double fac=0.2)
 {
     if (!ht->GetEntries())
