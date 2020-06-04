@@ -22,7 +22,8 @@
         "MyClass.C": "cpp",
         "drawDN.C": "cpp",
         "drawSiPMTR.C": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "drawnotxt.C": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,
