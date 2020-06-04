@@ -239,7 +239,7 @@ void SetMyPad(TVirtualPad *pad, float left, float right, float top, float bottom
     pad->SetTopMargin(top);
     pad->SetBottomMargin(bottom);
 }
-TLatex *DrawMyLatex(char *text, Double_t x = 0.65, Double_t y = 0.5, Int_t textFont = 42, Size_t textSize = 0.06, Color_t colorIndex = 1)
+TLatex *DrawMyLatex(char *text, Double_t x = 0.65, Double_t y = 0.5, Int_t textFont = 42, Size_t textSize = 0.06, Color_t colorIndex = 2)
 {
     TLatex *latex = new TLatex(x, y, text);
     latex->SetNDC();
