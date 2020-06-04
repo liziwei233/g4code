@@ -14,11 +14,20 @@
 #include <time.h>
 #include <TString.h>
 
-#include "Include/DrawMyfunc.h"
+#include "Include/DrawMyClass.h"
 using namespace std;
 
+double HVfun(double *x, double *par){
+    double val=0.;
+    double A=par[1];
+    double alpha=par[2];
+    double C=par[0];
+    //val = A*TMath::Power(x[0],beta);
+    val = TMath::Exp(C+x[0]*A*alpha);
+    return val;
+}
 //int main()
-int drawHV(const char* name="")
+void drawHV(const char* name="")
 {
     
     gStyle->SetOptTitle(0);
@@ -32,8 +41,8 @@ int drawHV(const char* name="")
    
 
 
-float x1[]={2,2.1,2.2,2.3}; //deep=width changed
-float y1[]={1.35e5,2.98e5,8.07e5,2.47e6};
+float x1[]={3100,3150,3200,3250,3300,3350}; //deep=width changed
+float y1[]={2.65e5,3.01e5,5.43e5,6.7e5,8e5,1.23e6};
 //float y2[]={2011,2011,2012,2011};
 //float y3[]={148,152,108,92};
 
@@ -47,19 +56,15 @@ TH1F *h1 = new TH1F("h1","",100,-1,1);
 h1->FillRandom("gaus",1e3);
 TF1 *f1 = new TF1("f1","sin(x)",-1,1);
 */
-TCanvas *c1 = new TCanvas("c1","",800,600);
-c1->cd();
+TCanvas *c1;
+c1->cdC(1);
 c1->SetLogy();
-c1->SetGrid();
 g1->Draw("AP");
-DrawMyfunc mydraw;
-mydraw.SetPad(c1,0.12,0.14,0.05,0.05);
 //mydraw.Graph(g1,"NPE","TimeRes (ps)",1.5,20,4);
 
-mydraw.Graph(g1,"Work voltage (kV)","Gain ",1.5,20,4);
+DrawMyGraph(g1,"Work voltage (kV)","Gain ",1.5,20,4);
 
-LZWfunc *myfunc = new LZWfunc();
-TF1* fhv= new TF1("fhv",myfunc,&LZWfunc::HVfun,1900,2400,3);
+TF1* fhv= new TF1("fhv",HVfun,3000,3400,3);
 fhv->SetParNames("cons","#delta","#alpha");
 //fhv->SetParLimits(0,1,1e7);
 //fhv->SetParLimits(1,1,10);
@@ -92,9 +97,4 @@ leg->Draw();
 sprintf(buff,"%s_HVscan.png",name);
 c1->SaveAs(buff);
 
-return 0;
 }
-
-int main(){
-    return drawHV();
-} 

@@ -4,9 +4,20 @@
 //#include "MyClass4ch.h"
 
 //char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
-char path[1024] = "/mnt/f/MCP/12-22";
+//char path[1024] = "/mnt/f/MCP/12-22";
+char path[1024] = "/mnt/f/LPZ/R3809-HVSCAN";
 //char name[1024] = "201901-A3";
-char name[1024] = "201902-A2-pos3";
+char name[1024] = "1244-3100v";
+TH1F *hq = new TH1F("hq", ";charge (pC);Counts",11e3, -1, 10);
+TH1F *hq2 = new TH1F("hq2", ";charge (pC);Counts", 11e3, -1, 10);
+
+TH1F *ha = new TH1F("ha", ";Amp(V);Counts", 1e3, -1, 200e-3);
+TH1F *hr = new TH1F("hr", ";risetime (ns);Counts", 1e3, 0, 1);
+TH1F *ht = new TH1F("ht", ";time (ns);Counts", 50e3, 0, 50); // 1ps/bin
+TH1F *hbl = new TH1F("hbl", ";baseline (V);Counts", 400, -10e-3, 10e-3);
+TH1F *hblrms = new TH1F("hblrms", ";baselineRMS (V);Counts", 2e3, 0, 20e-3);
+TH1F *hctratio = new TH1F("hctratio", ";Crosstalk ratio;Counts", 11e3, -1, 10);
+/*
 TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 2e3, -1, 20);
 TH1F *hq2 = new TH1F("hq2", ";charge (pC);Counts", 2e3, -1, 20);
 
@@ -16,6 +27,7 @@ TH1F *ht = new TH1F("ht", ";time (ns);Counts", 50e3, 0, 50); // 1ps/bin
 TH1F *hbl = new TH1F("hbl", ";baseline (V);Counts", 400, -10e-3, 10e-3);
 TH1F *hblrms = new TH1F("hblrms", ";baselineRMS (V);Counts", 2e3, 0, 20e-3);
 TH1F *hctratio = new TH1F("hctratio", ";Crosstalk ratio;Counts", 11e3, -1, 10);
+ */
 TTree *t1 = new TTree();
 
 void getrootname(const char *rootname = "201901-A3")
@@ -38,9 +50,16 @@ void gethist()
     double fampnerbor;
     double ftime;
     double freftime;
-
+    hq->Reset();
+    hq2->Reset();  
+    ha->Reset();
+    hr->Reset();
+    ht->Reset();
+    hbl->Reset();
+    hblrms->Reset();
+    hctratio->Reset();
     double riseth = -999;   //Unit: ns.
-    double chargeth = 0.5; //Unit: pC.
+    double chargeth = 0.02; //Unit: pC.
     sprintf(buff, "%s/%s.root", path, name);
     MyClass t(buff);
     t1 = (TTree *)t.fChain;
@@ -56,8 +75,8 @@ void gethist()
         famplitude =    t.MCP2_global_maximum_y;
         ftime =         t.MCP2_CFDtime[3];
 
-        freftime =      t.MCP1_CFDtime[3];
-        fampnerbor =    t.MCP3_global_maximum_y;
+        freftime =      t.MCP3_CFDtime[3];
+        fampnerbor =    t.MCP1_global_maximum_y;
 
         if (frise > riseth)
         {
@@ -103,6 +122,7 @@ double pmtfun(double *x, double *par)
     //delete myGaus;
     return amp * val * bw;
 }
+/*
 double HVfun(double *x, double *par)
 {
     double val = 0.;
@@ -113,6 +133,7 @@ double HVfun(double *x, double *par)
     val = TMath::Exp(C + x[0] * A * alpha);
     return val;
 }
+ */
 TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
 {
     TH1 *hqdc = (TH1 *)h->Clone();
@@ -251,20 +272,108 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
     myFun->Draw("same");
     return hqdc;
 }
+TF1 *gausfit(TH1 *h, double sigma, double facleft, double facright, int rbU, double UL, double UR)
+{
+    double mean = 0;
+    //double sigma = 0;
+    TH1 *hU = (TH1 *)h->Clone();
+    hU->Draw();
+    hU->Rebin(rbU);
+    hU->GetXaxis()->SetRangeUser(UL + 1, UR - 1);
+    mean = hU->GetBinCenter(hU->GetMaximumBin());
+    //sigma = hU->GetRMS();
+    TF1 *fitU = new TF1("fitU", "gaus", mean - facleft * sigma, mean + facright * sigma);
+    hU->GetXaxis()->SetRangeUser(mean - facleft * sigma, mean + facright * sigma);
+    cout << mean << "\t" << sigma << endl;
 
+    // fitU->SetParLimits(0, 0,hU->GetMaximum()*1.1);
+    fitU->SetParameter(1, mean);
+    hU->Fit(fitU, "Q");
+    mean = fitU->GetParameter(1);
+    sigma = fitU->GetParameter(2);
+
+    cout << mean << "\t" << sigma << endl;
+    //return NULL;
+    TFitResultPtr failed = hU->Fit(fitU, "Q", "", mean - facleft * sigma, mean + facright * sigma);
+    //failed =1 means fit failed
+    if (failed)
+        //return hU = NULL;
+        return fitU = NULL;
+
+    else
+    {
+
+        if (UL < mean - 20 * sigma)
+            UL = mean - 20 * sigma;
+        if (UR > mean + 20 * sigma)
+            UR = mean + 20 * sigma;
+
+        hU->GetXaxis()->SetRangeUser(UL, UR);
+        //return hU;
+        return fitU;
+    }
+}
+void drawMPE(int CanvasNum=1,double Gain=1.939e6)
+{
+    //if (!hq->GetEntries())
+        gethist();
+    setgStyle();
+    TCanvas *c1 = cdC(CanvasNum);
+    c1->SetLogy();
+    DrawMyHist(hq, "", "",1,3);
+    TF1 *fq;
+    fq = gausfit(hq,1,1.8,1.5,40,-1,8);
+    
+    double MGain = fq->GetParameter(1)* 1e-12 / 1.6e-19;
+    double NPE = MGain/Gain;
+    //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
+    cout << "NPE=" << NPE << endl;
+    sprintf(buff, "MGain=%0.2e", MGain);
+    TLatex *l = DrawMyLatex(buff, 0.3, 0.6);
+    l->Draw();
+    sprintf(buff, "NPE=%0.2f", NPE);
+    l = DrawMyLatex(buff, 0.3, 0.2);
+    l->Draw();
+    sprintf(buff, "%s/%sMPEcharge.png", path,name);
+    c1->SaveAs(buff);
+}
+void drawMPE2(int CanvasNum=1,double NPE=18.43,double leftrange=2,double rightrange=1.2,double sigma = 1)
+{
+    //if (!hq->GetEntries())
+        gethist();
+    setgStyle();
+    TCanvas *c1 = cdC(CanvasNum);
+    c1->SetLogy();
+    DrawMyHist(hq, "", "",1,3);
+    TF1 *fq;
+    fq = gausfit(hq,1,leftrange,rightrange,40,-1,8);
+    
+    double MGain = fq->GetParameter(1)* 1e-12 / 1.6e-19;
+    double Gain = MGain/NPE;
+    //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
+    cout << "Gain=" << Gain << endl;
+    sprintf(buff, "MGain=%0.2e", MGain);
+    TLatex *l = DrawMyLatex(buff, 0.3, 0.6);
+    l->Draw();
+    sprintf(buff, "Gain=%0.2e", Gain);
+    l = DrawMyLatex(buff, 0.3, 0.2);
+    l->Draw();
+    sprintf(buff, "%s/%sMPE2charge.png", path,name);
+    c1->SaveAs(buff);
+}
 void drawSPE(int CanvasNum=1,double rangefac=10)
 {
-    if (!hq->GetEntries())
+    //if (!hq->GetEntries())
         gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     RANGE qrange = {-1, 12};
-    TH1F *hqfit = (TH1F *)SPSfit(hq, 4, qrange, rangefac);
+    TH1F *hqfit = (TH1F *)SPSfit(hq, 8, qrange, rangefac);
     DrawMyHist(hqfit, "", "",1,3);
 
     TF1 *fq = hqfit->GetFunction("myFun");
-    double Gain = (fq->GetParameter(4) - fq->GetParameter(1)) * 1e-12 / 1.6e-19;
+    double Gain = (fq->GetParameter(4) - fq->GetParameter(2)) * 1e-12 / 1.6e-19;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "Gain=" << Gain << endl;
     sprintf(buff, "Gain=%0.2e", Gain);
@@ -285,7 +394,7 @@ void drawSPE2(int CanvasNum=1,double rangefac=5)
     DrawMyHist(hqfit, "", "",1,3);
 
     TF1 *fq = hqfit->GetFunction("myFun");
-    double Gain = (fq->GetParameter(4) - fq->GetParameter(1)) * 1e-12 / 1.6e-19;
+    double Gain = (fq->GetParameter(4) - fq->GetParameter(2)) * 1e-12 / 1.6e-19;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "Gain=" << Gain << endl;
     sprintf(buff, "Gain=%0.2e", Gain);
