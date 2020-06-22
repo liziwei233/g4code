@@ -9,20 +9,63 @@ float cal_parallelRes(float R1=50, float R2=1.1)
 {
     float val=0;
     val= (R1*R2)/(R1+R2);
-    cout<<"R1= "<<R1<<"\t"<<",R2= "<<R2<<endl;
-    cout<<"R1 || R2 = "<<val<<endl;
+    //cout<<"R1= "<<R1<<"\t"<<",R2= "<<R2<<endl;
+    //cout<<"R1 || R2 = "<<val<<endl;
     return val;
 
 }
-float val_parallelRes(float R0=50, float val=1.1)
+float val_parallelRes(float R1=50, float Rpara=1.1)
 {
-    float Rx=0;
-    Rx=val*R0/(R0-val);
-    cout<<"R0= "<<R0<<"\t"<<",Rx= "<<Rx<<endl;
-    cout<<"R0 || Rx = "<<val<<endl;
-    return Rx;
+    float R2=0;
+    R2=TMath::Abs(Rpara*R1/(R1-Rpara));
+    //cout<<"R1= "<<R1<<"\t"<<",R2= "<<R2<<endl;
+    //cout<<"R1 || R2 = "<<Rpara<<endl;
+    return R2;
 }
 
+
+void baseRes(double HV1=300, double HV2=800, double HV3=800, double HV4=200,double I=100,double MCP1 = 200, double MCP2=200)
+{
+    //MCP res unit: Mohm
+    // HV unit is V
+    //I unit: uA
+    double HV = HV1+HV2+HV3+HV4;
+    double R1,R2,R3,R4;
+    R1 = HV1/I;
+    R2 = HV2/I;
+    R3 = HV3/I;
+    R4 = HV4/I;
+    if(MCP1>0)
+    R2 = val_parallelRes(R2,MCP1);
+    if(MCP2>0)
+    R3 = val_parallelRes(R3,MCP2);
+    cout<<" [ *Usage* : Scanf the value of divided HV you set. ] "<<endl;
+    cout<<">> HV set to: "<<HV<<"V"<<endl;
+    cout<<">> I set to: "<<I<<"uA"<<endl;
+    cout<<"-->> The resistor value is: "<<R1<<"M, "<<R2<<"M, "<<R3<<"M, "<<R4<<"M"<<endl;
+}
+void baseHV(double R1=3, double R2=8.333, double R3=8.333, double R4=2,double I=100,double MCP1 = 200, double MCP2=200)
+{
+    //MCP res unit: Mohm
+    // HV unit is V
+    //I unit: uA
+    double HV1,HV2,HV3,HV4;
+    if(MCP1>0)
+    R2 = cal_parallelRes(R2,MCP1);
+    if(MCP2>0)
+    R3 = cal_parallelRes(R3,MCP2);
+    
+    HV1 = R1*I;
+    HV2 = R2*I;
+    HV3 = R3*I;
+    HV4 = R4*I;
+    double HV = HV1+HV2+HV3+HV4;
+    cout<<" [ *Usage* : Scanf the value of resistors on base. ] "<<endl;
+    cout<<">> The Res value actually is: "<<R1<<"M, "<<R2<<"M, "<<R3<<"M, "<<R4<<"M"<<endl;
+    cout<<">> I set to: "<<I<<"uA"<<endl;
+    cout<<"-->> Divided HV is: "<<HV1<<"V, "<<HV2<<"V, "<<HV3<<"V, "<<HV4<<"V"<<endl;
+    cout<<"-->> HV set to: "<<HV<<"V"<<endl;
+}
 
 double TraceWidth(double TraceToPlaneDistance = 1.)
 {
