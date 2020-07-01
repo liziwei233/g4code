@@ -239,7 +239,7 @@ void SetMyPad(TVirtualPad *pad, float left, float right, float top, float bottom
     pad->SetTopMargin(top);
     pad->SetBottomMargin(bottom);
 }
-TLatex *DrawMyLatex(char *text, Double_t x = 0.65, Double_t y = 0.5, Int_t textFont = 42, Size_t textSize = 0.06, Color_t colorIndex = 1)
+TLatex *DrawMyLatex(char *text, Double_t x = 0.65, Double_t y = 0.5, Int_t textFont = 42, Size_t textSize = 0.06, Color_t colorIndex = 2)
 {
     TLatex *latex = new TLatex(x, y, text);
     latex->SetNDC();
@@ -249,7 +249,34 @@ TLatex *DrawMyLatex(char *text, Double_t x = 0.65, Double_t y = 0.5, Int_t textF
     latex->Draw("same");
     return latex;
 }
+void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,float x2,float y1,float y2){
 
+
+	TH1F* hpad = pad->DrawFrame(x1,y1,x2,y2);
+	hpad->GetXaxis()->SetTitle( xname);
+	hpad->GetYaxis()->SetTitle( yname);
+	hpad->GetXaxis()->SetAxisColor(1);
+	hpad->GetYaxis()->SetAxisColor(1);
+	hpad->GetXaxis()->SetLabelColor(1);
+	hpad->GetYaxis()->SetLabelColor(1);
+	hpad->GetXaxis()->SetLabelFont( 42 );
+	hpad->GetYaxis()->SetLabelFont( 42 );
+	hpad->GetXaxis()->SetLabelSize( 0.05 );
+	hpad->GetYaxis()->SetLabelSize( 0.05 );
+	hpad->GetXaxis()->SetLabelOffset( 0.01 );
+	hpad->GetYaxis()->SetLabelOffset( 0.01 );
+	hpad->GetXaxis()->SetTitleFont( 42 );
+	hpad->GetYaxis()->SetTitleFont( 42 );
+	//hpad->GetXaxis()->SetTitleColor( TitleColor);
+	//hpad->GetYaxis()->SetTitleColor( TitleColor );
+	hpad->GetXaxis()->SetTitleSize(0.06);
+	hpad->GetYaxis()->SetTitleSize(0.06);
+	hpad->GetXaxis()->SetTitleOffset(1.0);
+	hpad->GetYaxis()->SetTitleOffset(1.0);
+	pad->Modified();
+	pad->Update();
+
+}
 TCanvas *cdC(int n)
 {
     sprintf(buff, "c%d", n);
