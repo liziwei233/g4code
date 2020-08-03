@@ -23,7 +23,9 @@
         "drawDN.C": "cpp",
         "drawSiPMTR.C": "cpp",
         "ostream": "cpp",
-        "drawnotxt.C": "cpp"
+        "drawnotxt.C": "cpp",
+        "Rescal.C": "cpp",
+        "cmath": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,
