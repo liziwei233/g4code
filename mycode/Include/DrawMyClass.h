@@ -8,9 +8,11 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TGraph.h"
+#include "TGraphErrors.h"
 #include "TLatex.h"
 #include "TLegend.h"
 #include "TVirtualPad.h"
+
 
 using namespace std;
 #define verbose
@@ -249,7 +251,7 @@ TLatex *DrawMyLatex(char *text, Double_t x = 0.65, Double_t y = 0.5, Int_t textF
     latex->Draw("same");
     return latex;
 }
-void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,float x2,float y1,float y2){
+void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,float x2,float y1,float y2,bool xNd=0, bool yNd=0){
 
 
 	TH1F* hpad = pad->DrawFrame(x1,y1,x2,y2);
@@ -261,18 +263,22 @@ void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,flo
 	hpad->GetYaxis()->SetLabelColor(1);
 	hpad->GetXaxis()->SetLabelFont( 42 );
 	hpad->GetYaxis()->SetLabelFont( 42 );
-	hpad->GetXaxis()->SetLabelSize( 0.05 );
-	hpad->GetYaxis()->SetLabelSize( 0.05 );
+	hpad->GetXaxis()->SetLabelSize( 0.07 );
+	hpad->GetYaxis()->SetLabelSize( 0.07 );
 	hpad->GetXaxis()->SetLabelOffset( 0.01 );
 	hpad->GetYaxis()->SetLabelOffset( 0.01 );
 	hpad->GetXaxis()->SetTitleFont( 42 );
 	hpad->GetYaxis()->SetTitleFont( 42 );
 	//hpad->GetXaxis()->SetTitleColor( TitleColor);
 	//hpad->GetYaxis()->SetTitleColor( TitleColor );
-	hpad->GetXaxis()->SetTitleSize(0.06);
-	hpad->GetYaxis()->SetTitleSize(0.06);
+	hpad->GetXaxis()->SetTitleSize(0.07);
+	hpad->GetYaxis()->SetTitleSize(0.07);
 	hpad->GetXaxis()->SetTitleOffset(1.0);
 	hpad->GetYaxis()->SetTitleOffset(1.0);
+    hpad->GetXaxis()->CenterTitle(1);
+    hpad->GetYaxis()->CenterTitle(1);
+    if(xNd) hpad->GetXaxis()->SetNdivisions(505);
+    if(yNd) hpad->GetYaxis()->SetNdivisions(505);
 	pad->Modified();
 	pad->Update();
 
