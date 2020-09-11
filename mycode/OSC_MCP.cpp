@@ -1,20 +1,20 @@
 #include "TH1F.h"
 #include "Include/DrawMyClass.h"
 #define MyClass_cxx
-#include "MyClass3ch.h"
-//#include "MyClass4ch.h"
+//#include "MyClass3ch.h"
+#include "MyClass4ch.h"
 
 //char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
-//char path[1024] = "/mnt/f/MCP/12-22";
-
-char path[1024] = "/mnt/f/LPZ/Sr90-EJ228";
+char path[1024] = "/mnt/f/R10754/MPE-crosstalk";
+//char path[1024] = "/mnt/f/LPZ/Sr90-EJ228";
 //char name[1024] = "201901-A3";
-char name[1024] = "1244-3100v";
-TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 11e3, -1, 150);
-TH1F *hq2 = new TH1F("hq2", ";charge (pC);Counts", 11e3, -1, 150);
+//char name[1024] = "1244-3100v";
+char name[1024] = "NO2-2700V";
+TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 15e3, -1, 8);
+TH1F *hq2 = new TH1F("hq2", ";charge (pC);Counts", 15e3, -1, 8);
 
 TH1F *ha = new TH1F("ha", ";Amp(V);Counts", 1e3, -1, 200e-3);
-TH1F *hr = new TH1F("hr", ";risetime (ns);Counts", 1e3, 0, 1);
+TH1F *hr = new TH1F("hr", ";risetime (ns);Counts", 1e3, 0.001, 1);
 TH1F *ht = new TH1F("ht", ";time (ns);Counts", 50e3, -50, 50); // 1ps/bin
 
 TH1F *hbl = new TH1F("hbl", ";baseline (V);Counts", 400, -10e-3, 10e-3);
@@ -37,13 +37,8 @@ TH1F *hctratio = new TH1F("hctratio", ";Crosstalk ratio;Counts", 11e3, -1, 10);
  */
 TTree *t1 = new TTree();
 
-void getrootname(const char *rootname = "201901-A3")
-{
-    sprintf(name, "%s", rootname);
-    cout << "your file name is: " << name << endl;
-}
-
-void gethist()
+double CN = 0;
+void gethist(double chargethmax = 1000)
 {
     TGaxis::SetMaxDigits(3);
 
@@ -64,8 +59,15 @@ void gethist()
     hbl->Reset();
     hblrms->Reset();
     hctratio->Reset();
-    double riseth = -999;   //Unit: ns.
-    double chargeth = 0.02; //Unit: pC.
+    double risethmax = 0.2;   //Unit: ns.
+    double risethmin = 0.001;   //Unit: ns.
+    double chargethmin = 0.02; //Unit: pC.
+    //double chargethmin = 0.052; //Unit: pC.
+    //double chargethmax = 1; //Unit: pC.
+    //double chargethmin = 0.5; //Unit: pC.
+    
+    //double chargethmax = 0.04; //Unit: pC.
+    double blrmsth = 0.2;
     sprintf(buff, "%s/%s.root", path, name);
     MyClass t(buff);
     t1 = (TTree *)t.fChain;
@@ -73,36 +75,22 @@ void gethist()
     for (int i = 0; i < N; i++)
     {
         t1->GetEntry(i);
-<<<<<<< HEAD
-        fcharge = t.MCP1_all_charge[0];
-        fcharge2 = t.MCP1_all_charge[1];
-        frise = t.MCP1_rise_time;
-        fbaseline = t.MCP1_baseline_level;
-        fbaselinerms = t.MCP1_baseline_rms;
-        famplitude = t.MCP1_global_maximum_y;
-        ftime = t.MCP1_CFDtime[3];
+        fcharge =       t.MCP1_all_charge[0];
+        //fcharge2 =    t.MCP1_all_charge[1];
+        frise =         t.MCP1_rise_time;
+        fbaseline =     t.MCP1_baseline_level;
+        fbaselinerms =  t.MCP1_baseline_rms;
+        famplitude =    t.MCP1_global_maximum_y;
+        ftime =         t.MCP1_CFDtime[3];
+        freftime =      t.MCP1_CFDtime[3];
+        //fampnerbor =    t.MCP4_global_maximum_y;
+        fampnerbor =    t.MCP1_invert_maximum_y;
 
-        freftime = t.MCP2_CFDtime[3];
-        fampnerbor = t.MCP1_global_maximum_y;
-=======
-        fcharge =       t.MCP4_all_charge[0];
-        fchargegate[0] =t.MCP4_all_charge[1];
-        fchargegate[1] =t.MCP4_all_charge[2];
-        fchargegate[2] =t.MCP4_all_charge[3];
-        frise =         t.MCP4_rise_time;
-        fbaseline =     t.MCP4_baseline_level;
-        fbaselinerms =  t.MCP4_baseline_rms;
-        famplitude =    t.MCP4_global_maximum_y;
-        ftime =         t.MCP4_CFDtime[3];
 
-        freftime =      t.MCP3_CFDtime[3];
-        fampnerbor =    t.MCP1_global_maximum_y;
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
-
-        if (frise > riseth)
+        if (frise > risethmin&&fbaselinerms<blrmsth)
         //if (1)
         {
-            hq->Fill(fcharge);
+            if (frise < risethmax) hq->Fill(fcharge);
             #ifdef GATE
             hqgate[0]->Fill(fchargegate[0]);
             hqgate[1]->Fill(fchargegate[1]);
@@ -112,21 +100,26 @@ void gethist()
             //cout<<Q[1]<<endl;
             hbl->Fill(fbaseline);
             hblrms->Fill(fbaselinerms);
-            if (fcharge > chargeth)
+            if (fcharge > chargethmin&&fcharge<chargethmax)
             {
                 hr->Fill(frise);
-<<<<<<< HEAD
-                hctratio->Fill(fampnerbor / famplitude);
-                if (frise < 0.4)
+                //if(t.MCP1_invert_maximum_y/t.MCP1_global_maximum_y>-0.2)
+                if (frise < risethmax && t.MCP1_invert_maximum_y/t.MCP1_global_maximum_y>-0.2)
+                {
                     ht->Fill(ftime - freftime);
-=======
-                hctratio->Fill(fampnerbor/famplitude);
-                if(frise<0.4&&fcharge<1.6)
-                ht->Fill(ftime - freftime);
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
+                    hctratio->Fill(-1*fampnerbor / famplitude);
+                }
             }
         }
     }
+}
+
+void setrootname(const char *rootname = "201901-A3")
+{
+    sprintf(name, "%s", rootname);
+    cout << "your file name is: " << name << endl;
+    gethist();
+    cout << "Get hist ... >> " << name << endl;
 }
 
 double pmtfun(double *x, double *par)
@@ -155,11 +148,7 @@ double pmtfun(double *x, double *par)
     //delete myGaus;
     return amp * val * bw;
 }
-<<<<<<< HEAD
 
-=======
-/*
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
 double HVfun(double *x, double *par)
 {
     double val = 0.;
@@ -170,13 +159,9 @@ double HVfun(double *x, double *par)
     val = TMath::Exp(C + x[0] * A * alpha);
     return val;
 }
-<<<<<<< HEAD
  
 TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double leftfac,double rightfac)
-=======
- */
-TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
+
 {
     TH1 *hqdc = (TH1 *)h->Clone();
     hqdc->Draw();
@@ -317,6 +302,7 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double fac)
     myFun->Draw("same");
     return hqdc;
 }
+/*
 TF1 *gausfit(TH1 *h, double sigma, double facleft, double facright, int rbU, double UL, double UR)
 {
     double mean = 0;
@@ -352,47 +338,26 @@ TF1 *gausfit(TH1 *h, double sigma, double facleft, double facright, int rbU, dou
             UL = mean - 20 * sigma;
         if (UR > mean + 20 * sigma)
             UR = mean + 20 * sigma;
-<<<<<<< HEAD
 
         hU->GetXaxis()->SetRangeUser(UL, UR);
         //return hU;
         return fitU;
     }
 }
-void drawMPE(int CanvasNum = 1, double Gain = 5.54e5,int reb=40)
+ */
+void drawMPE(int CanvasNum = CN++, double Gain = 5.54e5,int reb=40)
 {
-    //if (!hq->GetEntries())
+    if (!hq->GetEntries())
     gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     DrawMyHist(hq, "", "", 1, 3);
-    TF1 *fq;
-    fq = gausfit(hq, 20, 1.8, 1.5, reb, 0.5, 150);
-
+    //TF1 *fq;
+    TH1F *hqfit = (TH1F *)gausfit(hq, 20, 1.8, 1.5, reb, 0.5, 150);
+    TF1 *fq = (TF1 *)hqfit->GetFunction("fitU");
     double MGain = fq->GetParameter(1) * 1e-12 / 1.6e-19;
     double NPE = MGain / Gain;
-=======
-
-        hU->GetXaxis()->SetRangeUser(UL, UR);
-        //return hU;
-        return fitU;
-    }
-}
-void drawMPE(int CanvasNum=1,double Gain=1.939e6)
-{
-    //if (!hq->GetEntries())
-        gethist();
-    setgStyle();
-    TCanvas *c1 = cdC(CanvasNum);
-    c1->SetLogy();
-    DrawMyHist(hq, "", "",1,3);
-    TF1 *fq;
-    fq = gausfit(hq,1,1.8,1.5,40,-1,8);
-    
-    double MGain = fq->GetParameter(1)* 1e-12 / 1.6e-19;
-    double NPE = MGain/Gain;
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "NPE=" << NPE << endl;
     sprintf(buff, "MGain=%0.2e", MGain);
@@ -401,21 +366,20 @@ void drawMPE(int CanvasNum=1,double Gain=1.939e6)
     sprintf(buff, "NPE=%0.2f", NPE);
     l = DrawMyLatex(buff, 0.3, 0.2);
     l->Draw();
-<<<<<<< HEAD
     sprintf(buff, "%s/%sMPEcharge.png", path, name);
     c1->SaveAs(buff);
 }
-void drawMPE2(int CanvasNum = 1, double NPE = 20.80, double leftrange = 2, double rightrange = 1.2, double sigma = 1)
+void drawMPE2(int CanvasNum = CN++, double NPE = 20.80, double leftrange = 2, double rightrange = 1.2, double sigma = 1)
 {
-    //if (!hq->GetEntries())
+    if (!hq->GetEntries())
     gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     DrawMyHist(hq, "", "", 1, 3);
-    TF1 *fq;
-    fq = gausfit(hq, 1, leftrange, rightrange, 40, -1, 8);
-
+    //TF1 *fq;
+    TH1F *hqfit =(TH1F *) gausfit(hq, 1, leftrange, rightrange, 40, -1, 8);
+    TF1 *fq = (TF1 *)hqfit->GetFunction("fitU");
     double MGain = fq->GetParameter(1) * 1e-12 / 1.6e-19;
     double Gain = MGain / NPE;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
@@ -429,85 +393,37 @@ void drawMPE2(int CanvasNum = 1, double NPE = 20.80, double leftrange = 2, doubl
     sprintf(buff, "%s/%sMPE2charge.png", path, name);
     c1->SaveAs(buff);
 }
-void drawSPE(int CanvasNum = 1,int reb=20, double leftfac = 5,double rightfac=300)
+void drawSPE(int CanvasNum = CN++,int reb=20, double leftfac = 25,double rightfac=100)
 {
-    //if (!hq->GetEntries())
+    if (!hq->GetEntries())
     gethist();
-=======
-    sprintf(buff, "%s/%sMPEcharge.png", path,name);
-    c1->SaveAs(buff);
-}
-void drawMPE2(int CanvasNum=1,double NPE=18.43,double leftrange=2,double rightrange=1.2,double sigma = 1)
-{
-    //if (!hq->GetEntries())
-        gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
-    DrawMyHist(hq, "", "",1,3);
-    TF1 *fq;
-    fq = gausfit(hq,1,leftrange,rightrange,40,-1,8);
-    
-    double MGain = fq->GetParameter(1)* 1e-12 / 1.6e-19;
-    double Gain = MGain/NPE;
-    //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
-    cout << "Gain=" << Gain << endl;
-    sprintf(buff, "MGain=%0.2e", MGain);
-    TLatex *l = DrawMyLatex(buff, 0.3, 0.6);
-    l->Draw();
-    sprintf(buff, "Gain=%0.2e", Gain);
-    l = DrawMyLatex(buff, 0.3, 0.2);
-    l->Draw();
-    sprintf(buff, "%s/%sMPE2charge.png", path,name);
-    c1->SaveAs(buff);
-}
-void drawSPE(int CanvasNum=1,double rangefac=10)
-{
-    //if (!hq->GetEntries())
-        gethist();
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
-    setgStyle();
-    TCanvas *c1 = cdC(CanvasNum);
-    c1->SetLogy();
-    RANGE qrange = {-1, 12};
-<<<<<<< HEAD
+    RANGE qrange = {-0.051, 12};
     TH1F *hqfit = (TH1F *)SPSfit(hq, reb, qrange, leftfac,rightfac);
     DrawMyHist(hqfit, "", "", 1, 3);
-=======
-    TH1F *hqfit = (TH1F *)SPSfit(hq, 8, qrange, rangefac);
-    DrawMyHist(hqfit, "", "",1,3);
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
 
     TF1 *fq = hqfit->GetFunction("myFun");
     double Gain = (fq->GetParameter(4) - fq->GetParameter(2)) * 1e-12 / 1.6e-19;
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "Gain=" << Gain << endl;
     sprintf(buff, "Gain=%0.2e", Gain);
-    TLatex *l = DrawMyLatex(buff, 0.3, 0.6);
+    TLatex *l = DrawMyLatex(buff, 0.3, 0.75);
     l->Draw();
     sprintf(buff, "%s/%scharge.png", path, name);
     c1->SaveAs(buff);
 }
-<<<<<<< HEAD
-void drawSPE2(int CanvasNum = 1, double rangefac = 5)
-=======
-#ifdef GATE
-void drawSPE2(int CanvasNum=1,int gateid=0,double rangefac=5)
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
+void drawSPE2(int CanvasNum = CN++, double rangefac = 5)
 {
     if (!hq->GetEntries())
         gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
-    RANGE qrange = {-1, 12};
-<<<<<<< HEAD
+    RANGE qrange = {-0.051, 12};
     TH1F *hqfit = (TH1F *)SPSfit(hq2, 4, qrange, rangefac,rangefac+10);
     DrawMyHist(hqfit, "", "", 1, 3);
-=======
-    TH1F *hqfit = (TH1F *)SPSfit(hqgate[gateid], 4, qrange, rangefac);
-    DrawMyHist(hqfit, "", "",1,3);
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
 
     TF1 *fq = hqfit->GetFunction("myFun");
     double Gain = (fq->GetParameter(4) - fq->GetParameter(2)) * 1e-12 / 1.6e-19;
@@ -519,47 +435,7 @@ void drawSPE2(int CanvasNum=1,int gateid=0,double rangefac=5)
     sprintf(buff, "%s/%scharge_1.png", path, name);
     c1->SaveAs(buff);
 }
-<<<<<<< HEAD
-void drawTR(int CanvasNum = 1, double fac = 0.2)
-=======
-
-void drawSPEtogether(int CanvasNum=1)
-{
-    if (!hq->GetEntries())
-        gethist();
-    setgStyle();
-    TCanvas *c1 = cdC(CanvasNum);
-    c1->SetLogy();
-    c1->SetGrid();
-    
-
-    hq->Rebin(8);
-    hqgate[0]->Rebin(8);
-    hqgate[1]->Rebin(8);
-    hqgate[2]->Rebin(8);
-    DrawMyHist(hq, "", "",1,2);
-    DrawMyHist(hqgate[0], "", "",2,2);
-    DrawMyHist(hqgate[1], "", "",8,2);
-    DrawMyHist(hqgate[2], "", "",4,2);
-    hq->Draw();
-    hq->GetXaxis()->SetRangeUser(-1,12.5);
-    hqgate[0]->Draw("same");
-    hqgate[1]->Draw("same");
-    hqgate[2]->Draw("same");
-    TLegend *leg;
-    leg = DrawMyLeg(0.6, 0.45, 0.9, 0.7, 42, 0.05);
-    
-    leg->AddEntry(hqgate[2], "20ns", "lp");
-    leg->AddEntry(hqgate[1], "10ns", "lp");
-    leg->AddEntry(hqgate[0], "5ns", "lp");
-    leg->AddEntry(hq, "WaveformWidth", "lp");
-    leg->Draw();
-    sprintf(buff, "%s/%scharge_gate.png", path,name);
-    c1->SaveAs(buff);
-}
-#endif
-void drawTR(int CanvasNum=1,double fac=0.2)
->>>>>>> b7f35311ebe00aa5ca1e3de5db858e4165ae351d
+void drawTR(int CanvasNum = CN++, double fac = 0.1,double tL=34,double tR=40)
 {
     if (!ht->GetEntries())
     {
@@ -570,12 +446,14 @@ void drawTR(int CanvasNum=1,double fac=0.2)
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     ht->Draw();
-    double tL = ht->GetBinCenter(ht->GetMaximumBin() - 800);
-    double tR = ht->GetBinCenter(ht->GetMaximumBin() + 800);
+    //double tL = ht->GetBinCenter(ht->GetMaximumBin() - 200);
+    //double tR = ht->GetBinCenter(ht->GetMaximumBin() + 200);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     cout << "set tL & tR: " << tL << "\t" << tR << endl;
-    TH1F *htfit = (TH1F *)twogausfit(ht, fac, 4, 16, tL, tR);
+    TH1F *htfit = (TH1F *)twogausfit(ht, fac, 4, 8, tL, tR);
+    //htfit->GetXaxis()->SetRangeUser(30,32.53);
     DrawMyHist(htfit, "", "", 1, 3);
+    htfit->SetNdivisions(505);
     TF1 *f = (TF1 *)htfit->GetFunction("fit2");
     double sigma = f->GetParameter(2) * 1e3;
     sprintf(buff, "#sigma=%.0fps", sigma);
@@ -584,7 +462,7 @@ void drawTR(int CanvasNum=1,double fac=0.2)
     sprintf(buff, "%s/%sTR.png", path, name);
     c1->SaveAs(buff);
 }
-void drawrise(int CanvasNum = 1)
+void drawrise(int CanvasNum = CN++)
 {
     if (!hr->GetEntries())
     {
@@ -595,11 +473,11 @@ void drawrise(int CanvasNum = 1)
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     hr->Draw();
-    double tL = hr->GetBinCenter(hr->GetMaximumBin() - 600);
-    double tR = hr->GetBinCenter(hr->GetMaximumBin() + 600);
+    double tL = hr->GetBinCenter(hr->GetMaximumBin() - 300);
+    double tR = hr->GetBinCenter(hr->GetMaximumBin() + 300);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     //cout<< tL <<"\t"<< tR<<endl;
-    TH1F *hrfit = (TH1F *)gausfit(hr, 2.5, 1.8, 4, tL, tR);
+    TH1F *hrfit = (TH1F *)gausfit(hr, 0.01,2.5, 1.8, 4, tL, tR);
     DrawMyHist(hrfit, "", "", 1, 3);
     TF1 *f = (TF1 *)hrfit->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
@@ -610,7 +488,7 @@ void drawrise(int CanvasNum = 1)
     c1->SaveAs(buff);
 }
 
-void drawblrms(int CanvasNum = 1)
+void drawblrms(int CanvasNum = CN++)
 {
     if (!hblrms->GetEntries())
     {
@@ -625,7 +503,7 @@ void drawblrms(int CanvasNum = 1)
     double tR = hblrms->GetBinCenter(hblrms->GetMaximumBin() + 600);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     //cout<< tL <<"\t"<< tR<<endl;
-    TH1F *hblrmsfit = (TH1F *)gausfit(hblrms, 2.5, 1.8, 2, tL, tR);
+    TH1F *hblrmsfit = (TH1F *)gausfit(hblrms,0.1, 2.5, 1.8, 2, tL, tR);
     DrawMyHist(hblrmsfit, "", "", 1, 3);
     TF1 *f = (TF1 *)hblrmsfit->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
@@ -635,7 +513,7 @@ void drawblrms(int CanvasNum = 1)
     sprintf(buff, "%s/%sblrms.png", path, name);
     c1->SaveAs(buff);
 }
-void drawctratio(int CanvasNum = 1)
+void drawctratio(int CanvasNum = CN++)
 {
     if (!hctratio->GetEntries())
     {
@@ -647,10 +525,11 @@ void drawctratio(int CanvasNum = 1)
     TCanvas *c1 = cdC(CanvasNum);
     hctratio->Draw();
     double tL = hctratio->GetBinCenter(hctratio->GetMaximumBin() - 100);
-    double tR = hctratio->GetBinCenter(hctratio->GetMaximumBin() + 100);
-    cout << "maximumbin: " << ht->GetMaximumBin() << endl;
+    double tR = hctratio->GetBinCenter(hctratio->GetMaximumBin() + 150);
+    cout << "maximumbin: " << hctratio->GetMaximumBin() << endl;
+    cout << "maximumbin pos: " << hctratio->GetBinCenter(hctratio->GetMaximumBin()) << endl;
     cout << tL << "\t" << tR << endl;
-    TH1F *hctratiofit = (TH1F *)gausfit(hctratio, 2.5, 1.2, 1, tL, tR);
+    TH1F *hctratiofit = (TH1F *)gausfit(hctratio, 0.001, 2,0.8, 1, tL, tR);
     //return;
     DrawMyHist(hctratiofit, "", "", 1, 3);
     hctratiofit->GetXaxis()->SetNdivisions(505);
@@ -658,11 +537,14 @@ void drawctratio(int CanvasNum = 1)
     double mean = f->GetParameter(1);
     double sigma = f->GetParameter(2);
     sprintf(buff, "CrosstalkRatio=%.1f%%", mean * 100);
+    //hctratiofit->GetXaxis()->SetRangeUser(-0.1, 1);
     TLatex *l = DrawMyLatex(buff, 0.55, 0.3);
     l->Draw();
 
-    Drawxline(mean + 5 * sigma, 3, 7, 2);
-    double purity = hctratio->Integral(0, hctratio->FindBin(mean + 5 * sigma)) / hctratio->Integral();
+    //Drawxline(mean + 5 * sigma, 3, 7, 2);
+    //double purity = hctratio->Integral(0, hctratio->FindBin(mean + 5 * sigma)) / hctratio->Integral();
+    Drawxline(0.2, 3, 7, 2);
+    double purity = hctratio->Integral(0, hctratio->FindBin(0.2)) / hctratio->Integral();
 
     sprintf(buff, "SignalPurity=%.2f%%", purity * 100);
     TLatex *l2 = DrawMyLatex(buff, 0.55, 0.45);
