@@ -219,7 +219,7 @@ void Drawyline(float y1, Width_t LWidth = 1, Style_t LStyle = 1, Color_t LColor 
 TLegend *DrawMyLeg(Double_t xlow = 0.3, Double_t ylow = 0.6, Double_t xup = 0.6, Double_t yup = 0.9, Int_t textFont = 62, Double_t textSize = 0.03)
 {
     TLegend *leg = new TLegend(xlow, ylow, xup, yup);
-    leg->SetBorderSize(0);
+    leg->SetBorderSize(1);
     leg->SetFillStyle(0);
     leg->SetFillColor(10);
     leg->SetTextFont(textFont);
@@ -293,10 +293,10 @@ TCanvas *cdC(int n)
     return c;
 }
 
-TH1 *gausfit(TH1 *h, double facleft, double facright, int rbU, double UL, double UR)
+TH1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, double UL, double UR)
 {
     double mean = 0;
-    double sigma = 0;
+    //double sigma = 0;
     TH1 *hU = (TH1 *)h->Clone();
     hU->Draw();
     hU->Rebin(rbU);
@@ -304,6 +304,7 @@ TH1 *gausfit(TH1 *h, double facleft, double facright, int rbU, double UL, double
     TF1 *fitU = new TF1("fitU", "gaus", UL, UR);
     mean = hU->GetBinCenter(hU->GetMaximumBin());
     fitU->SetParameter(1, mean);
+    fitU->SetParameter(2, sigma);
     cout << mean << "\t" << sigma << endl;
     hU->Fit(fitU, "R");
     mean = fitU->GetParameter(1);

@@ -25,7 +25,10 @@
         "ostream": "cpp",
         "drawnotxt.C": "cpp",
         "Rescal.C": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "string": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,
