@@ -274,7 +274,7 @@ void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,flo
 	hpad->GetXaxis()->SetTitleSize(0.07);
 	hpad->GetYaxis()->SetTitleSize(0.07);
 	hpad->GetXaxis()->SetTitleOffset(1.0);
-	hpad->GetYaxis()->SetTitleOffset(1.0);
+	hpad->GetYaxis()->SetTitleOffset(1.1);
     hpad->GetXaxis()->CenterTitle(1);
     hpad->GetYaxis()->CenterTitle(1);
     if(xNd) hpad->GetXaxis()->SetNdivisions(505);
@@ -292,7 +292,7 @@ TCanvas *cdC(int n)
     SetMyPad(gPad, 0.15, 0.05, 0.1, 0.14);
     return c;
 }
-
+/*
 TH1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, double UL, double UR)
 {
     double mean = 0;
@@ -329,6 +329,46 @@ TH1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, doub
         return hU;
     }
 }
+*/
+TF1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, double UL, double UR)
+{
+    double mean = 0;
+    //double sigma = 0;
+    TH1 *hU = (TH1 *)h->Clone();
+    hU->Draw();
+    hU->Rebin(rbU);
+    hU->GetXaxis()->SetRangeUser(UL, UR);
+    TF1 *fitU = new TF1("fitU", "gaus", UL, UR);
+    mean = hU->GetBinCenter(hU->GetMaximumBin());
+    fitU->SetParameter(1, mean);
+    fitU->SetParameter(2, sigma);
+    hU->GetXaxis()->SetRangeUser(mean-3*sigma, mean+3*sigma);
+    cout << mean << "\t" << sigma << endl;
+    hU->Fit(fitU, "R");
+    mean = fitU->GetParameter(1);
+    sigma = fitU->GetParameter(2);
+
+    cout << mean << "\t" << sigma << endl;
+
+    TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
+    //failed =1 means fit failed
+    if (failed)
+        return fitU = NULL;
+        //return hU = NULL;
+
+    else
+    {
+
+        if (UL < mean - 20 * sigma)
+            UL = mean - 20 * sigma;
+        if (UR > mean + 20 * sigma)
+            UR = mean + 20 * sigma;
+
+        hU->GetXaxis()->SetRangeUser(UL, UR);
+        return fitU;
+    }
+}
+
 
 TH1 *twogausfit(TH1 *ht, double fac, double rangefac, int rbt, double tL, double tR)
 {

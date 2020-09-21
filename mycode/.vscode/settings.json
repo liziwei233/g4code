@@ -28,7 +28,8 @@
         "cmath": "cpp",
         "iosfwd": "cpp",
         "istream": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "initializer_list": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,
