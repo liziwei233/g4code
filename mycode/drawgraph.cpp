@@ -16,7 +16,7 @@ TGraphErrors* graph(double* x,double* y,double* xerr,double* yerr,const int n=7,
     double yrange=TMath::MaxElement(n,y)-TMath::MinElement(n,y);
     double y_low = TMath::MinElement(n,y)-(yrange)/n;
     double y_high = TMath::MaxElement(n,y)+(yrange)/n;
-    if(TMath::RMS(n,y)/TMath::Mean(n,y)>0.5)  {
+    if(TMath::RMS(n,y)/TMath::Mean(n,y)>0.7)  {
         y_low = TMath::MinElement(n,y)*0.2;
         y_high = TMath::MaxElement(n,y)*5;
     }
@@ -24,7 +24,7 @@ TGraphErrors* graph(double* x,double* y,double* xerr,double* yerr,const int n=7,
     cout<<x_low<<"\t"<<x_high<<"\t"<<y_low<<"\t"<<y_high<<endl;
     
     //DrawMyPad(gPad,xtitle,ytitle,x_low,x_high,y_low*0.7,y_high*1.1);
-    DrawMyPad(gPad,xtitle,ytitle,x_low,x_high,y_low*0.9,y_high*1.1);
+    DrawMyPad(gPad,xtitle,ytitle,x_low,x_high,y_low*0.7,y_high*1.3);
     
     g[id] = new TGraphErrors(n,x,y,xerr,yerr);
     DrawMyGraph(g[id],(char*)xtitle,(char*)ytitle,1.2,20,kGreen+2,kGreen+2,2);
@@ -164,6 +164,93 @@ void drawgraph1(const char* name="UV-2")
     fhv->FixParameter(2, 40);
     g[2]->Fit(fhv,"","",2200,2800);
     fhv->Draw("same");
+    //gPad->SetLogy();
+    //g1->GetXaxis()->SetRangeUser(1800, 2900);
+    //g1->GetYaxis()->SetRangeUser(1e4, 1e7);
+    //gPad->Update();
+    //gPad->Modified();
+    //g[1]=graph(x,y2,xerr,yerr,n,"Position (mm)","TTS (ps)",1);
+    sprintf(buff, "%s-Gain.png",name);
+    gPad->SaveAs(buff);
+}
+
+void drawgraph2(const char* name="MCP1-MCP2")
+{
+    setgStyle();
+
+ /*   //
+    // ** Parameters of Bi-2 MCP2-GND
+    // *
+    double x[] = {100,200,300};
+    double yGain[] = {4.42e6,3.93e6,4.88e6};
+    double yTTS[]={57,52,45};
+    double yTTSerr[] = {2,3.6,1.7};
+    double yRise[] = {537,538,537};
+    double yRiseerr[] = {0,0,0};
+    //
+*/
+/*
+    //
+    // ** Parameters of Bi-2 PK-MCP1
+    // *
+    double x[] = {100,200,300};
+    double yGain[] = {2.86e6,3.8e6,3.77e6};
+    double yTTS[]={50,52,53};
+    double yTTSerr[] = {1.9,3.6,2.6};
+    double yRise[] = {549,538,536};
+    double yRiseerr[] = {0,0,0};
+    //
+*/
+    //
+    // ** Parameters of Bi-2 MCP1-MCP2
+    // *
+    double x[] = {1800,1900,2000,2150};
+    double yGain[] = {2.94e5,9.38e5,1.36e6,3.77e6};
+    double yTTS[]={137,64,53,53};
+    double yTTSerr[] = {6,4.6,2.2,2.6};
+    double yRise[] = {624,601,564,536};
+    double yRiseerr[] = {0,0,0,0};
+    //
+
+    const int n=sizeof(x)/sizeof(x[0]);
+    double xerr[n]={0}; 
+    double yGainerr[n] = {0};
+
+    //double GainSyserr = 0.0257; //unit:pC
+    double TTSSyserr = 1.89; //ps;
+    double GainSyserr = 0.0; //unit:pC
+    for(int i =0; i<n; i++)
+    {
+
+        yTTSerr[i] = sqrt(yTTSerr[i]*yTTSerr[i]+TTSSyserr*TTSSyserr);
+        yGainerr[i] = sqrt(yGainerr[i]*yGainerr[i]+GainSyserr*GainSyserr);
+        yGainerr[i] = yGainerr[i]*1.e-12/1.6e-19;
+
+    }
+
+    g[0]=graph(x,yRise,xerr,yRiseerr,n,"Voltage of PK-MCP1 (V)","Risetime (ps)",0);
+    //g[0]=graph(x,y,xerr,yerr,n,"Position (mm)","Gain (#times10^{7})",0);
+    sprintf(buff, "%s-Risetime.png",name);
+    gPad->SaveAs(buff);
+    g[1]=graph(x,yTTS,xerr,yTTSerr,n,"Voltage of MCP1-MCP2 (V)","TTS (ps)",1);
+    //g[1]=graph(x,y2,xerr,yerr,n,"Position (mm)","TTS (ps)",1);
+    sprintf(buff, "%s-TTS.png",name);
+    gPad->SaveAs(buff);
+    //g[2]=graph(x,y3,xerr,yerr,n,"Position (mm)","Risetime (ps)",2);
+    //gPad->SaveAs("risetime.png");
+
+    g[2]=graph(x,yGain,xerr,yGainerr,n,"Voltage of PK-MCP1 (V)","Gain",2,1);
+    //TGaxis::SetMaxDigits(3);
+    /*
+    TF1 *fhv = new TF1("fhv", HVfun, 2100, 2700, 3);
+    fhv->SetParNames("cons", "#delta", "#alpha");
+    //fhv->SetParLimits(0,1,1e7);
+    //fhv->SetParLimits(1,1,10);
+    fhv->SetParameter(0, -10);
+    fhv->FixParameter(2, 40);
+    g[2]->Fit(fhv,"","",2200,2800);
+    fhv->Draw("same");
+    */
     //gPad->SetLogy();
     //g1->GetXaxis()->SetRangeUser(1800, 2900);
     //g1->GetYaxis()->SetRangeUser(1e4, 1e7);
