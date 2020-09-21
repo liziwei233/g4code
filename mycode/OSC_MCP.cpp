@@ -553,41 +553,70 @@ void drawctratio(int CanvasNum = CN++)
     c1->SaveAs(buff);
 }
 
-void drawHV(const char *name = "")
+void drawHV(const char *name = "",char* path="")
 {
-
+    setgStyle();
     gStyle->SetOptTitle(0);
     gStyle->SetOptFit(1112);
     char str[1024];
     char buff[1024];
 
-    float x1[] = {  3230  , 3250  , 3300  ,3350  ,3400 }; //deep=width changed
-    float y1[] = {  4.98e5, 5.54e5, 8.34e5,1.05e6, 1.35e6};
+    //float x1[] = {  3230  , 3250  , 3300  ,3350  ,3400 }; //deep=width changed
+    //float y1[] = {  4.98e5, 5.54e5, 8.34e5,1.05e6, 1.35e6};
+    //
+    /*
+    // ** UV-6
+    float x[] = {2700,2600,2500,2450,2400,2350,2300,2250,2200};
+    float y[] = {8.34e5,5.25e5,3.44e5,2.43e5,1.93e5,1.51e5,8.39e4,4.89e4,4.24e4};
+    float yerr[] = {0.0017, 0.0014, 0.0005, 0.0005,0.0005,0.0007,0.0002,0.0001,0.0001};
+*/
+    //
+    // ** UV-2
+    float x2[] = {2600,};
+    float y2[] = {1.17e6};
+    float yerr2[] = {0};
 
-    int n = sizeof(x1) / sizeof(x1[0]);
 
-    TGraph *g1 = new TGraph(n, x1, y1);
+
+    //double GainSyserr = 0.0257; //unit:pC
+    double GainSyserr = 0.0; //unit:pC
+
+    const int n = sizeof(x) / sizeof(x[0]);
+    float xerr[n]={0};
+    for(int i =0; i<n; i++)
+    {
+        yerr[i] = sqrt(yerr[i]*yerr[i]+GainSyserr*GainSyserr);
+        yerr[i] = yerr[i]*1.e-12/1.6e-19;
+
+    }
+
+    TGraphErrors *g1 = new TGraphErrors(n, x, y, xerr, yerr);
 
     TCanvas *c1;
     c1=cdC(1);
     c1->SetLogy();
-    g1->Draw("AP");
+    DrawMyPad(gPad, "Work voltage (kV)", "Gain ",2150,2850,2e4,5e6,0,0);
+    g1->Draw("Psame");
+
     //mydraw.Graph(g1,"NPE","TimeRes (ps)",1.5,20,4);
+    
+    DrawMyGraph(g1, "Work voltage (kV)", "Gain ", 1.5, 20, kGreen+2);
 
-    DrawMyGraph(g1, "Work voltage (kV)", "Gain ", 1.5, 20, 4);
-
-    TF1 *fhv = new TF1("fhv", HVfun, 3000, 3400, 3);
+    TF1 *fhv = new TF1("fhv", HVfun, 2200, 2700, 3);
     fhv->SetParNames("cons", "#delta", "#alpha");
     //fhv->SetParLimits(0,1,1e7);
     //fhv->SetParLimits(1,1,10);
     fhv->SetParameter(0, -10);
     fhv->FixParameter(2, 40);
-    g1->Fit(fhv);
-
-    g1->GetXaxis()->SetRangeUser(1800, 2400);
-    g1->GetYaxis()->SetRangeUser(6e4, 1e7);
-
-    sprintf(buff, "%s/%s_HVscan.png", path, name);
+    g1->Fit(fhv,"","",2350,2800);
+    fhv->Draw("same");
+    //g1->GetXaxis()->SetRangeUser(1800, 2900);
+    //g1->GetYaxis()->SetRangeUser(1e4, 1e7);
+    gPad->Update();
+    gPad->Modified();
+    
+    //sprintf(buff, "%s/%s_HVscan.png", path, name);
+    sprintf(buff, "UV-6-HVscan.png");
     c1->SaveAs(buff);
 }
 void drawall()
