@@ -4,7 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/Subsys/software/root/include"
+                "E:/sub-system/software/root/include"
             ],
             "defines": [
                 "_DEBUG",

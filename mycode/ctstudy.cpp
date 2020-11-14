@@ -32,21 +32,22 @@ char name[1024] = "RbA4";
     const int cutstart = 300;
     const int cutend = 900;   
 */
-char path[1024] = "/mnt/f/XOPtest/4Anode/Rb";
-char name[1024] = "A4re";
-    int idindex[4]={3,0,1,2};
+char path[1024] = "/mnt/f/XOPtest/4Anode/crosstalk";
+char name[1024] = "crosstalkA3MPE2";
+    int idindex[4]={2,0,1,3};
     const double step = 50;
-    const int cutstart = 250;
-    const int cutend = 600;   
+    const int cutstart = 200;
+    const int cutend = 700;   
 int draw_txt1();
 
 void ctstudy()
 {
 
     
-
+    gStyle->SetOptFit(111);
     double AMP[4];
-    double InvAMP[4];
+    double ctAMP[4];
+    double ringAMP[4];
     double trueSignal;
     sprintf(buff, "%s/%soutput.dat", path, name);
     ofstream op(buff, ios::trunc);
@@ -65,22 +66,23 @@ void ctstudy()
         t1->SetBranchAddress(buff, &(AMP[i]));
         sprintf(buff, "MCP%d_invert_maximum_y", i);
         cout << buff << endl;
-        t1->SetBranchAddress(buff, &(InvAMP[i]));
+        t1->SetBranchAddress(buff, &(ctAMP[i]));
+        sprintf(buff, "MCP%d_secondinvertpeak_y", i);
+        cout << buff << endl;
+        t1->SetBranchAddress(buff, &(ringAMP[i]));
     }
     //return;
-    TH1F *hct[3];
-    TH1F *hctInv[3];
-    TH1F *hctNei[3];
-    TF1 *fit[3];
+    TH1F *hct[4];
+    TH1F *hring[4];
+    TF1 *fit[4];
     TCanvas *c;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         sprintf(buff, "hct%d", i);
-        hct[i] = new TH1F(buff, ";CtAmp/TrueAmp", 0.51e3, -0.01, 0.5);
-        sprintf(buff, "hctInv%d", i);
-        hctInv[i] = new TH1F(buff, ";CtInvAmp/TrueAmp", 0.21e3, -0.01, 0.2);
-        sprintf(buff, "hctNei%d", i);
-        hctNei[i] = new TH1F(buff, ";CtInv/CtAmp", 1.e3, -0.01, 1);
+        hct[i] = new TH1F(buff, ";Crosstalk", 0.51e3, -0.01, 0.2);
+        sprintf(buff, "hring%d", i);
+        hring[i] = new TH1F(buff, ";Ringing", 0.21e3, -0.01, 0.5);
+        
     }
 
     int Nstep = (cutend - cutstart) / step;
@@ -96,11 +98,10 @@ void ctstudy()
     int N = t1->GetEntries();
     for (int j = 0; j <  Nstep+2; j++)
     {
-        for (int s = 0; s < 3; s++)
+        for (int s = 0; s < 4; s++)
             {
                 hct[s]->Reset();
-                hctInv[s]->Reset();
-                hctNei[s]->Reset();
+                hring[s]->Reset();
             }
         for (int i = 0; i < N; i++)
         {
@@ -110,42 +111,31 @@ void ctstudy()
             
             if (trueSignal > cut[j] && trueSignal < cut[j + 1])
             {
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < 4; i++)
                 {
-                    hct[i]->Fill(AMP[idindex[1+i]] / trueSignal);
-                    hctInv[i]->Fill(-1 * InvAMP[idindex[ 1 + i]] / trueSignal);
-                    hctNei[i]->Fill(-1 * InvAMP[idindex[1 + i]] / AMP[idindex[1 + i]]);
+                    hring[i]->Fill(abs(ringAMP[idindex[i]]) / trueSignal);
+                    hct[i]->Fill(abs( ctAMP[idindex[i]]) / trueSignal);
                 }
             }
         }
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             fit[0]=NULL;
             fit[1]=NULL;
-            fit[2]=NULL;
-            c = cdC(i * 3);
-            fit[0] = gausfit(hct[i], 0.1, 3, 2, 2, 0, 0.5);
+            c = cdC(i * 2);
+            fit[0] = gausfit(hct[i], 0.01, 3, 2, 2, 0, 0.2);
             sprintf(buff, "%s/cut%g_%gct%d.png", path, cut[j], cut[j + 1], i);
             c->SaveAs(buff);
             if (fit[0])
                 op << fit[0]->GetParameter(1) << "\t";
             else
                 op << -999 << "\t";
-            c = cdC(i * 3 + 1);
-            fit[1] = gausfit(hctInv[i], 0.1, 3, 2, 1, 0, 0.2);
-            sprintf(buff, "%s/cut%g_%gctInv%d.png", path, cut[j], cut[j + 1], i);
+            c = cdC(i * 2 + 1);
+            fit[1] = gausfit(hring[i], 0.01, 3, 2, 1, 0, 0.5);
+            sprintf(buff, "%s/cut%g_%gring%d.png", path, cut[j], cut[j + 1], i);
             c->SaveAs(buff);
             if (fit[1])
                 op << fit[1]->GetParameter(1) << "\t";
-            else
-                op << -999 << "\t";
-
-            c = cdC(i * 3 + 2);
-            fit[2] = gausfit(hctNei[i], 0.2, 3, 2, 4, 0, 1);
-            sprintf(buff, "%s/cut%g_%gctNei%d.png", path, cut[j], cut[j + 1], i);
-            c->SaveAs(buff);
-            if (fit[2])
-                op << fit[2]->GetParameter(1) << "\t";
             else
                 op << -999 << "\t";
         }
@@ -161,9 +151,8 @@ int draw_txt1()
     setgStyle();
     gStyle->SetOptFit(000);
     const int N = 100;
-    double ct[3][N];
-    double ctInv[3][N];
-    double ctNei[3][N];
+    double ct[4][N];
+    double ring[4][N];
     
     
     int Nstep = (cutend - cutstart) / step;
@@ -177,9 +166,9 @@ int draw_txt1()
     //Size_t size[18] = {2, 1.7, 2.1, 2.1, 1.8, 2, 2.1, 2.1, 1.8, 2, 2.1, 2.1, 1.8, 2, 2.1, 2.1, 1.8, 2};
     //Color_t color[18] = {1, 2, 4, kOrange - 1, 6, 8, 4, kOrange - 1, 6, 8, 4, kOrange - 1, 6, 8, 4, kOrange - 1, 6, 8};
     //Style_t marker[18] = {20, 21, 22, 23, 25, 26, 22, 23, 25, 26, 22, 23, 25, 26, 22, 23, 25, 26};
-    Size_t size[18] = {2,1.7,2.1,2,2, 1.7,1.7,1.7, 2.1,2.1,2.1};
-    Color_t color[18] = {1,2,4,1,1, 2,2,2, 4,4,4};
-    Style_t marker[18] = {20,21,22,20,21,22,20,21,22};
+    Size_t size[18] = {1.2,1.1,1.3,1.3,2, 1.7,1.7,1.7, 2.1,2.1,2.1};
+    Color_t color[18] = {1,2,4,8,1, 2,2,2, 4,4,4};
+    Style_t marker[18] = {20,21,22,29,21,22,20,21,22};
 
     ifstream input;
     char filename[1024];
@@ -197,15 +186,15 @@ int draw_txt1()
 
     int k = 0;
     //return 1;
-    while (input >> ct[0][k] >> ctInv[0][k] >> ctNei[0][k]&& !input.eof())
+    while (input >> ct[0][k] >> ring[0][k] && !input.eof())
     {
-        for(int i=1;i<3;i++)
+        for(int i=1;i<4;i++)
         {
-            input >> ct[i][k] >> ctInv[i][k] >> ctNei[i][k];
+            input >> ct[i][k] >> ring[i][k] ;
         }
         cout << "enter the file: " << buff << endl;
 
-        cout << ct[0][k] << "\t" << ct[1][k] << "\t" << ct[2][k]  << endl;
+        cout << ct[0][k] << "\t" << ct[1][k] << "\t" << ct[2][k] <<  "\t" << ct[3][k]<< endl;
         k++;
         //if(input.eof()) break;
     }
@@ -221,18 +210,18 @@ int draw_txt1()
     }
 
     TCanvas *c = cdC(0);
-    DrawMyPad(gPad, "True Signal Amp (mV)", "Crosstalk Ratio ",  10, 300,0, 0.4);
+    DrawMyPad(gPad, "True Signal Amp (mV)", "Crosstalk Ratio ",  10, 300,0, 0.21);
     //DrawMyPad(gPad, xtitle, ytitle, x_low, x_high, y_low * 0.7, y_high * 1.1);
     //return 1;
-    TLegend *leg = DrawMyLeg(0.6, 0.7, 0.95, 0.9, 62, 0.03);
+    TLegend *leg = DrawMyLeg(0.6, 0.6, 0.95, 0.9, 62, 0.04);
     double fac=0;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         
         g[i] = new TGraphErrors(n,  Amp,ct[i], 0, 0);
-        DrawMyGraph(g[i], "", "", 1.2, marker[i], color[i]);
+        DrawMyGraph(g[i], "", "", size[i], marker[i], color[i]);
         g[i]->Draw("sameP");
-        sprintf(buff,"AMP%d/AMP%d",idindex[i+1]+1,idindex[0]+1);
+        sprintf(buff,"crosstalk-A%d",idindex[i]+1);
         leg->AddEntry(g[i], buff, "lp");
     }
     leg->Draw();
@@ -242,33 +231,19 @@ int draw_txt1()
 
     leg->Clear();
     c = cdC(1);
-    DrawMyPad(gPad, "True Signal Amp (mV)", "Crosstalk Ratio ",  10, 300,0, 0.21);
-     for (int i = 0; i < 3; i++)
+    DrawMyPad(gPad, "True Signal Amp (mV)", "Ringing Ratio ",  10, 300,0, 0.5);
+     for (int i = 0; i < 4; i++)
     {
-        g[i] = new TGraphErrors(n, Amp, ctInv[i], 0, 0);
-        DrawMyGraph(g[i], "", "", 1.2, marker[i], color[i]);
+        g[i] = new TGraphErrors(n, Amp, ring[i], 0, 0);
+        DrawMyGraph(g[i], "", "", size[i], marker[i], color[i]);
         g[i]->Draw("sameP");
-        sprintf(buff,"InvAMP%d/AMP%d",idindex[i+1]+1,idindex[0]+1);
+        sprintf(buff,"Ringing-A%d",idindex[i]+1);
         leg->AddEntry(g[i], buff, "lp");
     }
     leg->Draw();
-sprintf(buff, "%s/ctInvert.png", path);
+sprintf(buff, "%s/ring.png", path);
     gPad->SaveAs(buff);
 
-    leg->Clear();
-   c = cdC(2);
-    DrawMyPad(gPad, "True Signal Amp (mV)", "Crosstalk Ratio ",  10, 300,0, 0.8);
-    for (int i = 0; i < 3; i++)
-    {
-        g[i] = new TGraphErrors(n, Amp, ctNei[i], 0, 0);
-        DrawMyGraph(g[i], "", "", 1.2, marker[i], color[i]);
-        g[i]->Draw("sameP");
-        sprintf(buff,"InvAMP%d/AMP%d",idindex[i+1]+1,idindex[i+1]+1);
-        leg->AddEntry(g[i], buff, "lp");
-    }
-    leg->Draw();
-    sprintf(buff, "%s/ctneighbour.png", path);
-    gPad->SaveAs(buff);
     return 1;
 }
 void ctstudy2()

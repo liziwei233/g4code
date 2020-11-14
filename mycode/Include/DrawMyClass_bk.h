@@ -216,7 +216,7 @@ void Drawyline(float y1, Width_t LWidth = 1, Style_t LStyle = 1, Color_t LColor 
     line1->Draw("same");
 }
 
-TLegend *DrawMyLeg(Double_t xlow = 0.3, Double_t ylow = 0.6, Double_t xup = 0.6, Double_t yup = 0.9, Int_t textFont = 62, Double_t textSize = 0.03)
+TLegend *DrawMyLeg(Double_t xlow = 0.7, Double_t ylow = 0.6, Double_t xup = 0.9, Double_t yup = 0.9, Int_t textFont = 62, Double_t textSize = 0.03)
 {
     TLegend *leg = new TLegend(xlow, ylow, xup, yup);
     leg->SetBorderSize(1);
@@ -329,6 +329,7 @@ TH1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, doub
         return hU;
     }
 }
+
 /*
 TF1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, double UL, double UR)
 {
@@ -353,7 +354,10 @@ TF1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, doub
     TFitResultPtr failed = hU->Fit(fitU, "", "", mean - facleft * sigma, mean + facright * sigma);
     //failed =1 means fit failed
     if (failed)
+    {
+        cout<<" Fit failed !"<<endl;
         return fitU = NULL;
+    }
         //return hU = NULL;
 
     else
@@ -370,7 +374,7 @@ TF1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, doub
 }
 */
 
-TH1 *twogausfit(TH1 *ht, double fac, double leftfac,double rightfac, int rbt, double tL, double tR)
+TH1 *twogausfit(TH1 *ht, double fac, double leftfac, double rightfac,int rbt, double tL, double tR)
 {
     //First fit for ensuring the rangement of histgram;
     TH1 *h = (TH1 *)ht->Clone();
