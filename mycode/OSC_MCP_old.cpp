@@ -9,7 +9,9 @@
 //char path[1024] = "/mnt/f/XOPtest/4Anode/Rb";
 //char path[1024] = "/mnt/f/R10754/KT0881/A7A8";
 //char path[1024] = "/mnt/f/R10754/KT0881/A7light_A4crosstalk";
-char path[1024] = "/mnt/f/R10754/darktest";
+//char path[1024] = "/mnt/f/R10754/KT0881/DarkNoise";
+//char path[1024] = "/mnt/e/R10754DATA2";
+char path[1024] = "/data2/R710liziwei/lab_data/R10754DATA/HVSCAN";
 //char path[1024] = "/mnt/f/R10754/KT0881-A4-HVScan";
 //char path[1024] = "/mnt/f/R10754/KT0881/AMP_v2";
 //char path[1024] = "/mnt/f/XOPtest";
@@ -17,7 +19,7 @@ char path[1024] = "/mnt/f/R10754/darktest";
 //char name[1024] = "201901-A3";
 //char name[1024] = "1244-3100v";
 //char name[1024] = "HV2000-ADL5545-220nH-10k";
-char name[1024] = "KT0881-HV2000-D-MPE-noMyler";
+char name[1024] = "HV2200-ADL5545-220nH-10k_1";
 //char name[1024] = "HV2200-TRF37D73-220nH-10k";
 //char name[1024] = "newbase-HV2000-A4-noamp-D-2";
 //char name[1024] = "XOP-1MCP-1500-20mV";
@@ -53,6 +55,7 @@ TH1F *hctratio = new TH1F("hctratio", ";Crosstalk ratio;Counts", 11e3, -1, 10);
 TTree *t1 = new TTree();
 
 double CN = 0;
+
 void gethist(double chargethmax = 1e4)
 {
     TGaxis::SetMaxDigits(3);
@@ -81,22 +84,22 @@ void gethist(double chargethmax = 1e4)
     hctratio->Reset();
     hringratio->Reset();
     hinvertringratio->Reset();
-    double risethmax = 111110.35;   //Unit: ns.
-    double risethmin = 0.1;   //Unit: ns.
-    double chargethmin = 0.5; //Unit: pC.
+    double risethmax = 111110.35; //Unit: ns.
+    double risethmin = 0.1;       //Unit: ns.
+    double chargethmin = 5;       //Unit: pC.
     //chargethmax =0.55; //Unit: pC.
     chargethmax = 30; //Unit: pC.
     //double chargethmin = 300; //Unit: V1742 bin.
     //double chargethmin = 0.052; //Unit: pC.
     //double chargethmin = 0.5; //Unit: pC.
-    
+
     //double chargethmax = 0.04; //Unit: pC.
     double blrmsth = 2;
     sprintf(buff, "%s/%s.root", path, name);
-    if(gSystem->AccessPathName(buff))  
+    if (gSystem->AccessPathName(buff))
     {
-        cout<<"Error!! The File "<<buff<<" doesn't exist"<<endl;
-      return;
+        cout << "Error!! The File " << buff << " doesn't exist" << endl;
+        return;
     }
     MyClass t(buff);
     t1 = (TTree *)t.fChain;
@@ -104,53 +107,54 @@ void gethist(double chargethmax = 1e4)
     for (int i = 0; i < N; i++)
     {
         t1->GetEntry(i);
-        fcharge =       t.MCP2_all_charge[0];
+        fcharge = t.MCP2_all_charge[0];
         //fcharge2 =    t.MCP2_all_charge[1];
-        frise =         t.MCP2_rise_time[0];
-        fwidth =        t.MCP2_width;
-        fbaseline =     t.MCP2_baseline_level;
-        fbaselinerms =  t.MCP2_baseline_rms;
-        famplitude =    t.MCP2_global_maximum_y;
-        ftime =         t.MCP2_CFDtime[3];
+        frise = t.MCP2_rise_time[0];
+        fwidth = t.MCP2_width;
+        fbaseline = t.MCP2_baseline_level;
+        fbaselinerms = t.MCP2_baseline_rms;
+        famplitude = t.MCP2_global_maximum_y;
+        ftime = t.MCP2_CFDtime[3];
 
-        fampnerbor =    t.MCP2_global_maximum_y;
-        finvring =      t.MCP2_secondinvertpeak_y;
+        fampnerbor = t.MCP2_global_maximum_y;
+        finvring = t.MCP2_secondinvertpeak_y;
         finvampnerbor = t.MCP2_invert_maximum_y;
-        fctx =          t.MCP2_global_maximum_x;
-        fampnerbor =    t.MCP2_secondinvertpeak_y;
-        freftime =      t.TR1_CFDtime[6];
+        fctx = t.MCP2_global_maximum_x;
+        fampnerbor = t.MCP2_secondinvertpeak_y;
+        freftime = t.TR1_CFDtime[6];
 
-
-        if (fbaselinerms<blrmsth)
+        if (fbaselinerms < blrmsth)
         //if (1)
         {
-            if(frise > risethmin&&frise < risethmax) hq->Fill(fcharge);
-            //if (frise < risethmax) 
-            #ifdef GATE
+            if (frise > risethmin && frise < risethmax)
+                hq->Fill(fcharge);
+//if (frise < risethmax)
+#ifdef GATE
             hqgate[0]->Fill(fchargegate[0]);
             hqgate[1]->Fill(fchargegate[1]);
             hqgate[2]->Fill(fchargegate[2]);
-            #endif
+#endif
             ha->Fill(famplitude);
             //cout<<Q[1]<<endl;
             hbl->Fill(fbaseline);
             hblrms->Fill(fbaselinerms);
-            if (fcharge > chargethmin&&fcharge<chargethmax)
+            if (fcharge > chargethmin && fcharge < chargethmax)
             {
                 hr->Fill(frise);
                 hw->Fill(fwidth);
                 //if(t.MCP1_invert_maximum_y/t.MCP1_global_maximum_y>-0.2)
-                if (frise > risethmin&&frise < risethmax )
+                if (frise > risethmin && frise < risethmax)
                 {
                     ht->Fill(ftime - freftime);
-                    if(fctx>76&&fctx<80){
-                    //if(fctx>37.5&&fctx<40&&fampnerbor<4e-3){
-                    //if(fctx>63&&fctx<70){
-                    //if(1){
+                    if (fctx > 76 && fctx < 80)
+                    {
+                        //if(fctx>37.5&&fctx<40&&fampnerbor<4e-3){
+                        //if(fctx>63&&fctx<70){
+                        //if(1){
 
-                    hringratio->Fill(fampnerbor / famplitude);
-                    hinvertringratio->Fill(-1*finvring / famplitude);
-                    hctratio->Fill(-1*finvampnerbor / famplitude);
+                        hringratio->Fill(fampnerbor / famplitude);
+                        hinvertringratio->Fill(-1 * finvring / famplitude);
+                        hctratio->Fill(-1 * finvampnerbor / famplitude);
                     }
                 }
             }
@@ -158,6 +162,77 @@ void gethist(double chargethmax = 1e4)
     }
 }
 
+void drawbaselinestablity(const char *rootname = "HV2200-ADL5545-220nH-10k")
+{
+    setgStyle();
+    sprintf(name, "%s", rootname);
+    double fbaseline;
+    double fbaselinerms;
+    //hbl->Reset();
+    //hblrms->Reset();
+    sprintf(buff, "%s/%s.root", path, name);
+    if (gSystem->AccessPathName(buff))
+    {
+        cout << "Error!! The File " << buff << " doesn't exist" << endl;
+        return;
+    }
+    MyClass t(buff);
+    t1 = (TTree *)t.fChain;
+    int N = t1->GetEntries();
+    int step = 2e4;
+    int start = 0;
+    vector<double> vx;    // 0.66min/1e4 waveform
+    vector<double> vxerr; // 0.66min/1e4 waveform
+    vector<double> vbl;
+    vector<double> vblerr;
+    vector<double> vblrms;
+    vector<double> vblrmserr;
+    while (start < N)
+    {
+
+        for (int i = start; i < start + step && i < N; i++)
+        {
+            t1->GetEntry(i);
+            //fcharge2 =    t.MCP2_all_charge[1];
+            fbaseline = t.MCP2_baseline_level;
+            fbaselinerms = t.MCP2_baseline_rms;
+            hbl->Fill(fbaseline);
+            hblrms->Fill(fbaselinerms);
+        }
+        TH1 *hblfit = gausfit(hbl, 2e-3, 3, 3, 1, -15e-3, 15e-3);
+        TF1 *f1 = (TF1 *)hblfit->GetFunction("fitU");
+        double mean1 = f1->GetParameter(1) * 1e3;
+        double sigma1 = f1->GetParameter(2) * 1e3;
+
+        TH1 *hblrmsfit = gausfit(hblrms, 1e-3, 3, 3, 1, 2e-3, 18e-3);
+        TF1 *f2 = (TF1 *)hblrmsfit->GetFunction("fitU");
+        double mean2 = f2->GetParameter(1) * 1e3;
+        double sigma2 = f2->GetParameter(2) * 1e3;
+
+        start = start + step;
+        vx.push_back(start / 1e4 * 0.66);
+        vxerr.push_back(0);
+        vbl.push_back(mean1);
+        vblerr.push_back(sigma1);
+        vblrms.push_back(mean2);
+        vblrmserr.push_back(sigma2);
+    }
+    TGraphErrors *g1 = new TGraphErrors(vx.size(), &vx[0], &vblrms[0], &vxerr[0], &vblrmserr[0]);
+    TGraphErrors *g2 = new TGraphErrors(vx.size(), &vx[0], &vbl[0], &vxerr[0], &vblerr[0]);
+    TCanvas *c = cdC(0);
+    DrawMyGraph(g1, "Time (min)", "baselineRMS (mV)");
+    g1->Draw("AP");
+    g1->GetYaxis()->SetRangeUser(5, 15);
+    sprintf(buff, "%s/%sblRMSstability.png", path, name);
+    c->SaveAs(buff);
+
+    c = cdC(1);
+    DrawMyGraph(g2, "Time (min)", "baseline (mV)");
+    g2->Draw("AP");
+    g2->GetYaxis()->SetRangeUser(-10, 5);
+    sprintf(buff, "%s/%sblstability.png", path, name);
+    c->SaveAs(buff);
+}
 void setrootname(const char *rootname = "201901-A3")
 {
     sprintf(name, "%s", rootname);
@@ -203,8 +278,8 @@ double HVfun(double *x, double *par)
     val = TMath::Exp(C + x[0] * A * alpha);
     return val;
 }
- 
-TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double leftfac,double rightfac)
+
+TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double leftfac, double rightfac)
 
 {
     TH1 *hqdc = (TH1 *)h->Clone();
@@ -347,7 +422,6 @@ TH1 *SPSfit(TH1 *h, int rbq, RANGE u, double leftfac,double rightfac)
     return hqdc;
 }
 
-
 /*
 TF1 *gausfit(TH1 *h, double sigma, double facleft, double facright, int rbU, double UL, double UR)
 {
@@ -391,10 +465,10 @@ TF1 *gausfit(TH1 *h, double sigma, double facleft, double facright, int rbU, dou
     }
 }
  */
-void drawMPE(int CanvasNum = CN++, double Gain = 5.54e5,int reb=40)
+void drawMPE(int CanvasNum = CN++, double Gain = 5.54e5, int reb = 40)
 {
     if (!hq->GetEntries())
-    gethist();
+        gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
@@ -418,13 +492,13 @@ void drawMPE(int CanvasNum = CN++, double Gain = 5.54e5,int reb=40)
 void drawMPE2(int CanvasNum = CN++, double NPE = 20.80, double leftrange = 2, double rightrange = 1.2, double sigma = 1)
 {
     if (!hq->GetEntries())
-    gethist();
+        gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     DrawMyHist(hq, "", "", 1, 3);
     //TF1 *fq;
-    TH1F *hqfit =(TH1F *) gausfit(hq, 1, leftrange, rightrange, 40, -1, 8);
+    TH1F *hqfit = (TH1F *)gausfit(hq, 1, leftrange, rightrange, 40, -1, 8);
     TF1 *fq = (TF1 *)hqfit->GetFunction("fitU");
     double MGain = fq->GetParameter(1) * 1e-12 / 1.6e-19;
     double Gain = MGain / NPE;
@@ -439,37 +513,37 @@ void drawMPE2(int CanvasNum = CN++, double NPE = 20.80, double leftrange = 2, do
     sprintf(buff, "%s/%sMPE2charge.png", path, name);
     c1->SaveAs(buff);
 }
-void drawAMP(int CanvasNum = CN++,int reb=80, double leftfac = 10,double rightfac=100)
+void drawAMP(int CanvasNum = CN++, int reb = 80, double leftfac = 10, double rightfac = 100)
 {
     if (!ha->GetEntries())
-    gethist();
+        gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     RANGE arange = {-1e-3, 8000e-3};
-    TH1F *hafit = (TH1F *)SPSfit(ha, reb, arange, leftfac,rightfac);
+    TH1F *hafit = (TH1F *)SPSfit(ha, reb, arange, leftfac, rightfac);
     DrawMyHist(hafit, "", "", 1, 3);
 
     TF1 *fq = hafit->GetFunction("myFun");
     double SPEAmp = fq->GetParameter(4) - fq->GetParameter(2);
     //double Gain=fq->GetParameter(4)*1e-12/1.6e-19;
     cout << "SPEAmp=" << SPEAmp << endl;
-    sprintf(buff, "SPEAmp=%0.2fmV", SPEAmp*1e3);
+    sprintf(buff, "SPEAmp=%0.2fmV", SPEAmp * 1e3);
     TLatex *l = DrawMyLatex(buff, 0.3, 0.75);
     l->Draw();
     sprintf(buff, "%s/%samplitude.png", path, name);
     c1->SaveAs(buff);
 }
 
-void drawSPE(int CanvasNum = CN++,int reb=40, double leftfac = 100,double rightfac=400)
+void drawSPE(int CanvasNum = CN++, int reb = 40, double leftfac = 100, double rightfac = 400)
 {
     if (!hq->GetEntries())
-    gethist();
+        gethist();
     setgStyle();
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     RANGE qrange = {-0.051, 80};
-    TH1F *hqfit = (TH1F *)SPSfit(hq, reb, qrange, leftfac,rightfac);
+    TH1F *hqfit = (TH1F *)SPSfit(hq, reb, qrange, leftfac, rightfac);
     DrawMyHist(hqfit, "", "", 1, 3);
 
     TF1 *fq = hqfit->GetFunction("myFun");
@@ -490,7 +564,7 @@ void drawSPE2(int CanvasNum = CN++, double rangefac = 5)
     TCanvas *c1 = cdC(CanvasNum);
     c1->SetLogy();
     RANGE qrange = {-0.051, 12};
-    TH1F *hqfit = (TH1F *)SPSfit(hq2, 4, qrange, rangefac,rangefac+10);
+    TH1F *hqfit = (TH1F *)SPSfit(hq2, 4, qrange, rangefac, rangefac + 10);
     DrawMyHist(hqfit, "", "", 1, 3);
 
     TF1 *fq = hqfit->GetFunction("myFun");
@@ -503,7 +577,7 @@ void drawSPE2(int CanvasNum = CN++, double rangefac = 5)
     sprintf(buff, "%s/%scharge_1.png", path, name);
     c1->SaveAs(buff);
 }
-void drawTR(int CanvasNum = CN++, double fac = 0.5,double tL=23,double tR=25)
+void drawTR(int CanvasNum = CN++, double fac = 0.5, double tL = 23, double tR = 25)
 {
     if (!ht->GetEntries())
     {
@@ -518,7 +592,7 @@ void drawTR(int CanvasNum = CN++, double fac = 0.5,double tL=23,double tR=25)
     //double tR = ht->GetBinCenter(ht->GetMaximumBin() + 200);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     cout << "set tL & tR: " << tL << "\t" << tR << endl;
-    TH1F *htfit = (TH1F *)twogausfit(ht, fac, 4,6, 8, tL, tR);
+    TH1F *htfit = (TH1F *)twogausfit(ht, fac, 4, 6, 8, tL, tR);
     //htfit->GetXaxis()->SetRangeUser(30,32.53);
     DrawMyHist(htfit, "", "", 1, 3);
     htfit->SetNdivisions(505);
@@ -530,7 +604,7 @@ void drawTR(int CanvasNum = CN++, double fac = 0.5,double tL=23,double tR=25)
     sprintf(buff, "%s/%sTR.png", path, name);
     c1->SaveAs(buff);
 }
-void drawrise(int CanvasNum = CN++,float leftfac = 2.5, float rightfac=1.0)
+void drawrise(int CanvasNum = CN++, float leftfac = 2.5, float rightfac = 1.0)
 {
     if (!hr->GetEntries())
     {
@@ -543,9 +617,9 @@ void drawrise(int CanvasNum = CN++,float leftfac = 2.5, float rightfac=1.0)
     hr->Draw();
     double tL = hr->GetBinCenter(hr->GetMaximumBin() - 3e2);
     double tR = hr->GetBinCenter(hr->GetMaximumBin() + 3e2);
-    cout<<"maximumbin: "<<hr->GetMaximumBin()<<endl;
-    cout<< tL <<"\t"<< tR<<endl;
-    TH1F *hrfit = (TH1F *)gausfit(hr, 0.1,leftfac, rightfac, 4, tL, tR);
+    cout << "maximumbin: " << hr->GetMaximumBin() << endl;
+    cout << tL << "\t" << tR << endl;
+    TH1F *hrfit = (TH1F *)gausfit(hr, 0.1, leftfac, rightfac, 4, tL, tR);
     DrawMyHist(hrfit, "", "", 1, 3);
     TF1 *f = (TF1 *)hrfit->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
@@ -555,7 +629,7 @@ void drawrise(int CanvasNum = CN++,float leftfac = 2.5, float rightfac=1.0)
     sprintf(buff, "%s/%sRisetime.png", path, name);
     c1->SaveAs(buff);
 }
-void drawwidth(int CanvasNum = CN++,float leftfac = 2.5, float rightfac=1.0)
+void drawwidth(int CanvasNum = CN++, float leftfac = 2.5, float rightfac = 1.0)
 {
     if (!hw->GetEntries())
     {
@@ -568,9 +642,9 @@ void drawwidth(int CanvasNum = CN++,float leftfac = 2.5, float rightfac=1.0)
     hw->Draw();
     double tL = hw->GetBinCenter(hw->GetMaximumBin() - 300);
     double tR = hw->GetBinCenter(hw->GetMaximumBin() + 300);
-    cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
-    cout<< tL <<"\t"<< tR<<endl;
-    TH1F *hwfit = (TH1F *)gausfit(hw, 0.1,leftfac, rightfac, 4, tL, tR);
+    cout << "maximumbin: " << ht->GetMaximumBin() << endl;
+    cout << tL << "\t" << tR << endl;
+    TH1F *hwfit = (TH1F *)gausfit(hw, 0.1, leftfac, rightfac, 4, tL, tR);
     DrawMyHist(hwfit, "", "", 1, 3);
     TF1 *f = (TF1 *)hwfit->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
@@ -595,7 +669,7 @@ void drawblrms(int CanvasNum = CN++)
     double tR = hblrms->GetBinCenter(hblrms->GetMaximumBin() + 600);
     //cout<<"maximumbin: "<<ht->GetMaximumBin()<<endl;
     //cout<< tL <<"\t"<< tR<<endl;
-    TH1F *hblrmsfit = (TH1F *)gausfit(hblrms,0.1, 2.5, 1.8, 2, tL, tR);
+    TH1F *hblrmsfit = (TH1F *)gausfit(hblrms, 0.1, 2.5, 1.8, 2, tL, tR);
     DrawMyHist(hblrmsfit, "", "", 1, 3);
     TF1 *f = (TF1 *)hblrmsfit->GetFunction("fitU");
     double mean = f->GetParameter(1) * 1e3;
@@ -621,7 +695,7 @@ void drawctratio(int CanvasNum = CN++)
     cout << "maximumbin: " << hctratio->GetMaximumBin() << endl;
     cout << "maximumbin pos: " << hctratio->GetBinCenter(hctratio->GetMaximumBin()) << endl;
     cout << tL << "\t" << tR << endl;
-    TH1F *hctratiofit = (TH1F *)gausfit(hctratio, 0.001, 2,1.2, 1, tL, tR);
+    TH1F *hctratiofit = (TH1F *)gausfit(hctratio, 0.001, 2, 1.2, 1, tL, tR);
     //return;
     DrawMyHist(hctratiofit, "", "", 1, 3);
     hctratiofit->GetXaxis()->SetNdivisions(505);
@@ -660,7 +734,7 @@ void drawringratio(int CanvasNum = CN++)
     cout << "maximumbin: " << hringratio->GetMaximumBin() << endl;
     cout << "maximumbin pos: " << hringratio->GetBinCenter(hringratio->GetMaximumBin()) << endl;
     cout << tL << "\t" << tR << endl;
-    TH1F *hringratiofit = (TH1F *)gausfit(hringratio, 0.001, 2,1.2, 1, tL, tR);
+    TH1F *hringratiofit = (TH1F *)gausfit(hringratio, 0.001, 2, 1.2, 1, tL, tR);
     //return;
     DrawMyHist(hringratiofit, "", "", 1, 3);
     hringratiofit->GetXaxis()->SetNdivisions(505);
@@ -700,7 +774,7 @@ void drawinvringratio(int CanvasNum = CN++)
     cout << "maximumbin: " << hinvertringratio->GetMaximumBin() << endl;
     cout << "maximumbin pos: " << hinvertringratio->GetBinCenter(hinvertringratio->GetMaximumBin()) << endl;
     cout << tL << "\t" << tR << endl;
-    TH1F *hinvertringratiofit = (TH1F *)gausfit(hinvertringratio, 0.001, 1.2,1.5, 1, tL, tR);
+    TH1F *hinvertringratiofit = (TH1F *)gausfit(hinvertringratio, 0.001, 1.2, 1.5, 1, tL, tR);
     //return;
     DrawMyHist(hinvertringratiofit, "", "", 1, 3);
     hinvertringratiofit->GetXaxis()->SetNdivisions(505);
@@ -723,24 +797,24 @@ void drawinvringratio(int CanvasNum = CN++)
     sprintf(buff, "%s/%sInvRingingratio.png", path, name);
     c1->SaveAs(buff);
 }
-void drawavewaveform(int CanvasNum = CN++,float left=0,float right=60)
+void drawavewaveform(int CanvasNum = CN++, float left = 0, float right = 60)
 {
     int CHid1 = 2;
     int CHid2 = 2;
     char buff[1024];
     //const char *path = "/mnt/f/R10754/KT0881/A7A8";
     //const char *path = "/mnt/f/R10754/KT0881/A4light_A7crosstalk";
-    sprintf(buff,"%s/%saverage.root",path,name);
-    if(gSystem->AccessPathName(buff))  
+    sprintf(buff, "%s/%saverage.root", path, name);
+    if (gSystem->AccessPathName(buff))
     {
-        cout<<"Error!! The File "<<buff<<" doesn't exist"<<endl;
-      return;
+        cout << "Error!! The File " << buff << " doesn't exist" << endl;
+        return;
     }
-    TFile *f1 = new TFile(buff,"read");
-    sprintf(buff,"CH%daverage_waveform",CHid1);
-    TGraph *g1 = (TGraph*)f1->Get(buff);
-    sprintf(buff,"CH%daverage_waveform",CHid2);
-    TGraph *g2 = (TGraph*)f1->Get(buff);
+    TFile *f1 = new TFile(buff, "read");
+    sprintf(buff, "CH%daverage_waveform", CHid1);
+    TGraph *g1 = (TGraph *)f1->Get(buff);
+    sprintf(buff, "CH%daverage_waveform", CHid2);
+    TGraph *g2 = (TGraph *)f1->Get(buff);
     //DrawMyGraph(g1, "Time (ns)", "Amplitude (V)", 0.1, 20, kGreen+2);
     g1->SetLineWidth(3);
     g2->SetLineWidth(3);
@@ -750,27 +824,27 @@ void drawavewaveform(int CanvasNum = CN++,float left=0,float right=60)
     g1->GetYaxis()->SetTitleFont(42);
     g1->GetXaxis()->SetTitleSize(0.07);
     g1->GetYaxis()->SetTitleSize(0.07);
-    g1->GetXaxis()->SetRangeUser(left,right);
-    g2->GetXaxis()->SetRangeUser(left,right);
+    g1->GetXaxis()->SetRangeUser(left, right);
+    g2->GetXaxis()->SetRangeUser(left, right);
     TCanvas *c1 = cdC(CanvasNum++);
     g1->Draw();
-    sprintf(buff,"%s/%sWFsignal.png",path,name);
+    sprintf(buff, "%s/%sWFsignal.png", path, name);
     gPad->SaveAs(buff);
 
     c1 = cdC(CanvasNum++);
     g2->Draw();
-    sprintf(buff,"%s/%sWFct.png",path,name);
+    sprintf(buff, "%s/%sWFct.png", path, name);
     gPad->SaveAs(buff);
 
     g2->SetLineColor(2);
     c1 = cdC(CanvasNum++);
     g1->Draw();
     g2->Draw("same");
-    sprintf(buff,"%s/%sWFtogether.png",path,name);
+    sprintf(buff, "%s/%sWFtogether.png", path, name);
     gPad->SaveAs(buff);
 }
 
-void drawHV(const char *name = "",char* path="")
+void drawHV(const char *name = "", char *path = "")
 {
     setgStyle();
     gStyle->SetOptTitle(0);
@@ -781,12 +855,12 @@ void drawHV(const char *name = "",char* path="")
     //float x1[] = {  3230  , 3250  , 3300  ,3350  ,3400 }; //deep=width changed
     //float y1[] = {  4.98e5, 5.54e5, 8.34e5,1.05e6, 1.35e6};
     //
-    
+
     // ** UV-6
-    float x[] = {2700,2600,2500,2450,2400,2350,2300,2250,2200};
-    float y[] = {8.34e5,5.25e5,3.44e5,2.43e5,1.93e5,1.51e5,8.39e4,4.89e4,4.24e4};
-    float yerr[] = {0.0017, 0.0014, 0.0005, 0.0005,0.0005,0.0007,0.0002,0.0001,0.0001};
-/*
+    float x[] = {2700, 2600, 2500, 2450, 2400, 2350, 2300, 2250, 2200};
+    float y[] = {8.34e5, 5.25e5, 3.44e5, 2.43e5, 1.93e5, 1.51e5, 8.39e4, 4.89e4, 4.24e4};
+    float yerr[] = {0.0017, 0.0014, 0.0005, 0.0005, 0.0005, 0.0007, 0.0002, 0.0001, 0.0001};
+    /*
     //
     // ** UV-2
     float x2[] = {2600,};
@@ -794,31 +868,28 @@ void drawHV(const char *name = "",char* path="")
     float yerr2[] = {0};
 */
 
-
-
     //double GainSyserr = 0.0257; //unit:pC
     double GainSyserr = 0.0; //unit:pC
 
     const int n = sizeof(x) / sizeof(x[0]);
-    float xerr[n]={0};
-    for(int i =0; i<n; i++)
+    float xerr[n] = {0};
+    for (int i = 0; i < n; i++)
     {
-        yerr[i] = sqrt(yerr[i]*yerr[i]+GainSyserr*GainSyserr);
-        yerr[i] = yerr[i]*1.e-12/1.6e-19;
-
+        yerr[i] = sqrt(yerr[i] * yerr[i] + GainSyserr * GainSyserr);
+        yerr[i] = yerr[i] * 1.e-12 / 1.6e-19;
     }
 
     TGraphErrors *g1 = new TGraphErrors(n, x, y, xerr, yerr);
 
     TCanvas *c1;
-    c1=cdC(1);
+    c1 = cdC(1);
     c1->SetLogy();
-    DrawMyPad(gPad, "Work voltage (kV)", "Gain ",2150,2850,2e4,5e6,0,0);
+    DrawMyPad(gPad, "Work voltage (kV)", "Gain ", 2150, 2850, 2e4, 5e6, 0, 0);
     g1->Draw("Psame");
 
     //mydraw.Graph(g1,"NPE","TimeRes (ps)",1.5,20,4);
-    
-    DrawMyGraph(g1, "Work voltage (kV)", "Gain ", 1.5, 20, kGreen+2);
+
+    DrawMyGraph(g1, "Work voltage (kV)", "Gain ", 1.5, 20, kGreen + 2);
 
     TF1 *fhv = new TF1("fhv", HVfun, 2200, 2700, 3);
     fhv->SetParNames("cons", "#delta", "#alpha");
@@ -826,16 +897,201 @@ void drawHV(const char *name = "",char* path="")
     //fhv->SetParLimits(1,1,10);
     fhv->SetParameter(0, -10);
     fhv->FixParameter(2, 40);
-    g1->Fit(fhv,"","",2350,2800);
+    g1->Fit(fhv, "", "", 2350, 2800);
     fhv->Draw("same");
     //g1->GetXaxis()->SetRangeUser(1800, 2900);
     //g1->GetYaxis()->SetRangeUser(1e4, 1e7);
     gPad->Update();
     gPad->Modified();
-    
+
     //sprintf(buff, "%s/%s_HVscan.png", path, name);
     sprintf(buff, "UV-6-HVscan.png");
     c1->SaveAs(buff);
+}
+
+void AnalysisTime(int start = 0)
+{
+
+    setgStyle();
+    const int ThNum = 1;
+
+    double fLEDth[14];
+    double fTOT[14];
+    double fLEDtime[14];
+    double freftime[8];
+    double frise[4];
+    double fcharge[4];
+
+    double risethmin = 0.1;       //Unit: ns.
+    double risethmax = 111110.35; //Unit: ns.
+    double chargethmin = 5;       //Unit: pC.
+    //chargethmax =0.55; //Unit: pC.
+    double chargethmax = 30; //Unit: pC.
+
+    int iter = 3;
+    double fac = 0.5;    //the ratio of base to signal
+    double rangeL = 2.5; // the fit range factor
+    double rangeR = 3.5; // the fit range factor
+    int rbt = 8;
+    int rbU = 8;
+
+    double UL = -0.05, UR = 3;
+    double tL = -1, tR = 100;
+
+    double TAcor = 0;
+    double T[400000] = {0};
+
+    ofstream output;
+    sprintf(buff, "%s/%s.dat", path, name);
+    output.open(buff, ios::trunc);
+
+    //MyClass t(buff);
+    //MyClass* t = new MyClass(buff);
+    //TTree *t2 = (TTree *)t.fChain;
+    sprintf(buff, "%s/%s.root", path, name);
+    if (gSystem->AccessPathName(buff))
+    {
+        cout << "Error!! The File " << buff << " doesn't exist" << endl;
+        return;
+    }
+    cout << "====>>  Start to open the root file : " << buff << endl;
+    TFile *f1 = new TFile(buff, "read");
+    TTree *t2 = (TTree *)f1->Get("Pico");
+    t2->SetMakeClass(1);
+    t2->SetBranchAddress("MCP2_LEDthrd", fLEDth);
+    t2->SetBranchAddress("MCP2_LEDtime", fLEDtime);
+    t2->SetBranchAddress("MCP2_TOT", fTOT);
+    t2->SetBranchAddress("MCP2_rise_time", frise);
+    t2->SetBranchAddress("MCP2_all_charge", fcharge);
+    t2->SetBranchAddress("TR1_CFDtime", freftime);
+    int NEvents = t2->GetEntries();
+    TCanvas *cCor;
+    cCor = cdC(0);
+    int CNum = 0;
+    TH1D *htime = new TH1D("htime", "Time Resolution;T (ps);Counts", 101e3, tL, tR);
+
+    TH2D *hATorigin[2];
+    TH2D *hAT[2];
+
+    for (int h = 0; h < 1; h++)
+    {
+        sprintf(buff, "hAT%d", h);
+        hATorigin[h] = new TH2D(buff, "hAT;TOT (ps); Timediff (ps)", 1e3, UL, UR, 101e3, tL, tR);
+    }
+    TF1 *fitAT = new TF1("fitAT", "0", UL, UR);
+    TF1 *fitT;
+    TH1F *htfit;
+    for (int k = start; k < start + 1; k++)
+    //for (int k = 0; k < 10; k++)
+    {
+
+        for (int s = 0; s < iter; s++)
+        {
+            //cout << "progress check iter1: " << s << endl;
+            if (s != 0)
+            {
+                fitAT = profilefit(hAT[0], rbU, rbt * 4, tL, tR, UL, 1.5, buff);
+                if (!fitAT)
+                {
+                    cout << " the profilefit is failed! " << endl;
+                    return;
+                }
+                htime->Reset();
+                hAT[0]->Reset();
+            }
+            
+            hAT[0]=(TH2D *)hATorigin[0]->Clone();
+
+            for (int i = 0; i < NEvents; i++)
+            {
+                t2->GetEntry(i);
+                //fLEDth[k] = t.MCP2_LEDthrd[k];
+                //fLEDtime[k] = t.MCP2_LEDtime[k];
+                //fTOT[k] = t.MCP2_TOT[k];
+                //frise = t.MCP2_rise_time[0];
+                //fcharge = t.MCP2_all_charge[0];
+                //freftime = t.TR1_CFDtime[6];
+                //cout<<fLEDth[k]<<"\t"<<fTOT[k]<<"\t"<<fLEDtime[k]<<"\t"<<frise[0]<<"\t"<<fcharge[0]<<"\t"<<freftime[6]<<endl;
+                //if(fcharge[0]>5) cout<<fTOT[k]<<endl;
+                if (s == 0)
+                {
+                    T[i] = fLEDtime[k] - freftime[6];
+                    tL = 23.5;
+                    tR = 25;
+                }
+
+                //if (s == 0 && fcharge > 0.05) cout << "T[i]=" << T[i] << "\t,freftime" << freftime << endl;
+                else
+                {
+
+                    TAcor = fitAT->Eval(fTOT[k]);
+                    T[i] = T[i] - TAcor;
+                    tL = -1;
+                    tR = 1;
+                }
+                if (fcharge[0] > chargethmin && fcharge[0] < chargethmax &&
+                    frise[0] > risethmin && frise[0] < risethmax && fLEDtime[k] != 0)
+                {
+                    htime->Fill(T[i]);
+                    hAT[0]->Fill(fTOT[k], T[i]);
+                    //if (s == 1) cout << "TAcor=" << TAcor<< ",T[i]=" << T[i] << "\t,fTOT[k]" << fTOT[k] << endl;
+                }
+                // cout<<"process check"<<endl;
+            }
+
+            //cCor = cdC(CNum++);
+            //ht->Draw();
+
+            //cCor = cdC(CNum++);
+            //hAT[0]->Draw();
+            cCor->cd();
+            cCor->Clear();
+            //if (s == 1)    return;
+            htfit = (TH1F *)twogausfit(htime, fac, rangeL, rangeR, rbt, tL, tR);
+            //htfit->Draw();
+            if (!htfit)
+            {
+                cout << "The twogausfit failed!" << endl;
+                sprintf(buff, "%s/%s_TH%.2fmV_TR_cor%d.png", path, name, fLEDth[k] * 1e3, s);
+                cCor->SaveAs(buff);
+                return;
+            }
+            DrawMyHist(htfit, "", "", 1, 3);
+            htfit->SetNdivisions(505);
+            fitT = (TF1 *)htfit->GetFunction("fit2");
+            double sigma = fitT->GetParameter(2) * 1e3;
+            sprintf(buff, "#sigma=%.0fps", sigma);
+            TLatex *l = DrawMyLatex(buff, 0.2, 0.5);
+            l->Draw();
+            if (!fitT)
+            {
+                fitT = new TF1("fitT", "landau", tL, tR);
+                TFitResultPtr failed = htime->Fit("RQ");
+                if (failed)
+                {
+                    fitT = 0;
+                    cout << "gaus and landau fit both failed !" << endl;
+                }
+            }
+
+            sprintf(buff, "%s/%s_TH%.2fmV_TR_cor%d.png", path, name, fLEDth[k] * 1e3, s);
+            cCor->SaveAs(buff);
+            if (fitT)
+                output << fLEDth[k] << "\t" << s << "\t" << fitT->GetParameter(2) << "\t" << fitT->GetParError(2) << endl;
+            else
+                output << fLEDth[k] << "\t" << s << "\t"
+                       << "0000"
+                       << "\t"
+                       << "0000" << endl;
+            //sprintf(buff, "%s/%s_Th%.2fmV_At_pfx_cor%d", path, name, fLEDth[k]*1e3, s);
+            //if(h==1) {hAT[h]->Draw("colz");return;}
+
+            //cout << "progress check iter2: " << s << endl;
+        }
+        //cout << "progress check iter3: " << endl;
+    }
+    //cout << "progress check iter4: " << endl;
+    //return;
 }
 
 void drawall()

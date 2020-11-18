@@ -306,7 +306,7 @@ TH1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, doub
     fitU->SetParameter(1, mean);
     fitU->SetParameter(2, sigma);
     cout << mean << "\t" << sigma << endl;
-    hU->Fit(fitU, "R");
+    hU->Fit(fitU, "Q");
     mean = fitU->GetParameter(1);
     sigma = fitU->GetParameter(2);
 
@@ -373,6 +373,12 @@ TF1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, doub
 TH1 *twogausfit(TH1 *ht, double fac, double leftfac,double rightfac, int rbt, double tL, double tR)
 {
     //First fit for ensuring the rangement of histgram;
+    double validbin=ht->Integral(ht->FindBin(tL),ht->FindBin(tR));
+    cout<<"twogausfit valid bin = "<< validbin<<endl;
+    if(validbin<=50) {
+        return NULL;
+    }
+    
     TH1 *h = (TH1 *)ht->Clone();
     h->Rebin(rbt);
     double mean = h->GetBinCenter(h->GetMaximumBin());
@@ -381,16 +387,23 @@ TH1 *twogausfit(TH1 *ht, double fac, double leftfac,double rightfac, int rbt, do
     h->GetXaxis()->SetRangeUser(tL, tR);
     fit->SetParameter(1, mean);
     //fit->SetParameter(2,sigma);
-    h->Fit(fit);
+    cout << h->GetName() << "\t,tL=" << tL << "\t,tR=" << tR << "\t,mean="<<mean<< "\t,sigma="<<sigma<< endl;
+    
+    h->Fit(fit,"RQ");
+    //TFitResultPtr failed = h->Fit(fit,"R");
+    //failed =1 means fit failed
+    //if (failed)
+    //    return h = NULL;
     mean = fit->GetParameter(1);
     sigma = TMath::Abs(fit->GetParameter(2));
+    //h->Draw();
     //return h;
     if (tL < mean - 5 * sigma || sigma > 1)
     {
         tL = mean - 10 * sigma;
         tR = mean + 10 * sigma;
     }
-    cout << h->GetName() << "\t" << tL << "\t" << tR << endl;
+    cout << h->GetName() << "\t,tL=" << tL << "\t,tR=" << tR << "\t,mean="<<mean<< "\t,sigma="<<sigma<< endl;
 
     h->GetXaxis()->SetRangeUser(tL, tR);
 
@@ -405,7 +418,11 @@ TH1 *twogausfit(TH1 *ht, double fac, double leftfac,double rightfac, int rbt, do
     fit2->SetParLimits(5, sigma, 3*sigma);
 
     //h->Fit(fit2);
-    h->Fit(fit2, "", "", mean - leftfac * sigma, mean + rightfac * sigma);
+    h->Fit(fit2, "RQ", "", mean - leftfac * sigma, mean + rightfac * sigma);
+    //failed = h->Fit(fit2, "R", "", mean - leftfac * sigma, mean + rightfac * sigma);
+    //cout<<"Is two gaus fit failed? : " <<failed<<endl;
+    //if (failed)
+    //    return h = NULL;
     TF1 *fit_tr = new TF1("fit_tr", "gaus", tL, tR);
     fit_tr->SetParameter(0, fit2->GetParameter(0));
     fit_tr->SetParameter(1, fit2->GetParameter(1));
@@ -420,6 +437,7 @@ TH1 *twogausfit(TH1 *ht, double fac, double leftfac,double rightfac, int rbt, do
     fit_bg->SetLineStyle(7);
     fit_tr->Draw("same");
     fit_bg->Draw("same");
+    
 
     if (fit2->GetParameter(3) >= fit2->GetParameter(0) && TMath::Abs(fit2->GetParameter(5)) >= 0.05)
     {
@@ -441,14 +459,19 @@ TH1 *twogausfit(TH1 *ht, double fac, double leftfac,double rightfac, int rbt, do
         tR = mean + 10 * sigma;
     }
 
-    cout << h->GetName() << "\t" << tL << "\t" << tR << endl;
+    cout << h->GetName() << "\t,tL=" << tL << "\t,tR=" << tR << "\t,mean="<<mean<< "\t,sigma="<<sigma<< endl;
     h->GetXaxis()->SetRangeUser(tL, tR);
     return h;
 }
 
 TF1 *profilefit(TH2 *Rt, double rbU, double rbt, double tL, double tR, double UL, double UR, char *name)
 {
-
+    double validbin=Rt->Integral();
+    //double validbin=Rt->Integral(Rt->FindBin(UL,tL),Rt->FindBin(UR,tR));
+    cout<<"profilefit valid bin = "<< validbin<<endl;
+    if(validbin<=50) {
+        return NULL;
+    }
     TCanvas *cAT = new TCanvas("cAT", "cAT", 800, 600);
     TCanvas *cpfx = new TCanvas("cpfx", "cpfx", 800, 600);
     cAT->Clear();
@@ -480,19 +503,21 @@ TF1 *profilefit(TH2 *Rt, double rbU, double rbt, double tL, double tR, double UL
     TF1 *fitQt = new TF1("fitQt", "pol5", UL, UR);
 
     fitQt->SetNpx(1000000);
-    Qpfx->Fit(fitQt, "R");
-
+    Qpfx->Fit(fitQt, "QR");
+    //TFitResultPtr failed = Qpfx->Fit(fitQt, "Q");
+    //if (failed) return fitQt = NULL;
     sprintf(buff, "%s_pfx.png", name);
     cpfx->SaveAs(buff);
     sprintf(buff, "%s_ATrelationship.png", name);
     cAT->SaveAs(buff);
-    sfile->WriteTObject(Qpfx);
-    sfile->WriteTObject(Qt);
+    //sfile->WriteTObject(Qpfx);
+    //sfile->WriteTObject(Qt);
 
     Qpfx->Reset();
-    //delete Qt;
-    //delete Qpfx;
-    //delete c5;
+    delete cAT;
+    delete cpfx;
+    delete Qt;
+    delete Qpfx;
     return fitQt;
 }
 

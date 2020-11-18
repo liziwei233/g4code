@@ -30,7 +30,9 @@
         "istream": "cpp",
         "string": "cpp",
         "initializer_list": "cpp",
-        "MyClass4ch.C": "cpp"
+        "MyClass4ch.C": "cpp",
+        "MCP_SPEchar.C": "cpp",
+        "peaks.C": "cpp"
     },
     "editor.quickSuggestionsDelay": 30,
     "editor.acceptSuggestionOnCommitCharacter": false,
