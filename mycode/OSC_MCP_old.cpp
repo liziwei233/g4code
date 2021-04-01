@@ -1,4 +1,5 @@
 #include "TH1F.h"
+#include "TMath.h"
 #include "Include/DrawMyClass.h"
 #define MyClass_cxx
 //#include "MyClass3ch.h"
@@ -95,7 +96,7 @@ double risethmin = -11110.1;  //Unit: ns.
 double risethmax = 111110.35; //Unit: ns.
 double chargethmin = 0.05;     //Unit: pC.
 //chargethmax =0.55; //Unit: pC.
-double chargethmax = 0.2; //Unit: pC.
+double chargethmax = 30; //Unit: pC.
 Color_t clr[] = {1, 2, kGreen + 3, 4, 6, 7, kOrange, kViolet + 2};
 
 void setallname(const int theHV=1800,const char* theTubeNo="KT0890"){
@@ -320,11 +321,34 @@ double pmtfun(double *x, double *par)
 double HVfun(double *x, double *par)
 {
     double val = 0.;
-    double A = par[1];
-    double alpha = par[2];
-    double C = par[0];
+    double C = par[0]; // -10
+    double A = par[1]; // 0.0000001
+    double alpha = par[2]; //40 
     //val = A*TMath::Power(x[0],beta);
     val = TMath::Exp(C + x[0] * A * alpha);
+    return val;
+}
+double HVfun_complex(double *x, double *par)
+{
+    double val = 0.;
+    double E0 = par[0]; //~1eV, initial energy of the secondary electron
+    double alpha = par[1]; //=40, the ratio of length to diameter
+    double K = par[2]; //~0.2, a constant from the ralation delta = K*Ec ,Ec is the collision energy
+    //double C = par[3];
+    //val = A*TMath::Power(x[0],beta);
+    double a =4.*E0*alpha*alpha;
+    val = TMath::Power(K*x[0]*x[0]/a,a/x[0]);
+    return val;
+}
+double HVfun_complex2(double *x, double *par)
+{
+    double val = 0.;
+    double E0 = par[0]; //~1eV, initial energy of the secondary electron
+    double alpha = par[1]; //=40, the ratio of length to diameter
+    double A = par[2]; //~0.2, is the propotionality constant in the relation delta = A*sqrt(Ec);
+    //val = A*TMath::Power(x[0],beta);
+    double a =2.*TMath::Sqrt(E0)*alpha;
+    val = TMath::Power(A*x[0]/a,a*a/x[0]);
     return val;
 }
 
@@ -1574,7 +1598,7 @@ bool GetV1742Gain(int rb=1,int left =20,int right=100, int N = 16,int startID=0)
 {
 
     //setgStyle();
-    sprintf(buff, "%s/%sgain.dat", path, name);
+    sprintf(buff, "%s/%sV1742gain.dat", path, name);
     ofstream op;
     op.open(buff,ios::trunc);
     double fcharge[16][4];
@@ -1669,9 +1693,11 @@ void drawBias(int N=16,int startID=0){
     cg->SaveAs(buff);
 }
 
-bool GetOSCGain(int N=2)
+bool GetOSCGain(int rb=1,int left =20,int right=100,int N=2)
 {
-
+    sprintf(buff, "%s/%sOSCgain.dat", path, name);
+    ofstream op;
+    op.open(buff,ios::trunc);
     //setgStyle();
     int CHID[]={2,4};
     int AnodeID[]={1,9};
@@ -1713,10 +1739,11 @@ bool GetOSCGain(int N=2)
     for (int j = 0; j < N; j++)
     {
         hq = hqarray[j];
-        fgain[CHID[j]-1]=drawSPE(AnodeID[j],16,20,150);
+        fgain[CHID[j]-1]=drawSPE(AnodeID[j],rb,left,right);
+        op<<fgain[CHID[j]-1]<<endl;
     }
     //TH2D* GainUniformtext =(TH2D*) GainUniform->Clone();
-   
+   op.close();
     return 1;
 }
 

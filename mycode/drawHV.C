@@ -26,6 +26,30 @@ double HVfun(double *x, double *par){
     val = TMath::Exp(C+x[0]*A*alpha);
     return val;
 }
+double HVfun_complex(double *x, double *par)
+{
+    double val = 0.;
+    double E0 = par[0]; //~1eV, initial energy of the secondary electron
+    double alpha = par[1]; //=40, the ratio of length to diameter
+    double K = par[2]; //~0.2, a constant from the ralation delta = K*Ec ,Ec is the collision energy
+    //double C = par[3];
+    //val = A*TMath::Power(x[0],beta);
+    double a =4.*E0*alpha*alpha;
+    val = TMath::Power(K*x[0]*x[0]/a,a/x[0]);
+    return val;
+}
+double HVfun_complex2(double *x, double *par)
+{
+    double val = 0.;
+    double E0 = par[0]; //~1eV, initial energy of the secondary electron
+    double alpha = par[1]; //=40, the ratio of length to diameter
+    double A = par[2]; //~0.2, is the propotionality constant in the relation delta = A*sqrt(Ec);
+    //val = A*TMath::Power(x[0],beta);
+    double a =2.*TMath::Sqrt(E0)*alpha;
+    val = TMath::Power(A*x[0]/a,a*a/x[0]);
+    return val;
+}
+
 //int main()
 void drawHV(const char* name="")
 {
@@ -57,21 +81,44 @@ h1->FillRandom("gaus",1e3);
 TF1 *f1 = new TF1("f1","sin(x)",-1,1);
 */
 TCanvas *c1;
-c1->cdC(1);
+c1 = cdC(1);
 c1->SetLogy();
 g1->Draw("AP");
 //mydraw.Graph(g1,"NPE","TimeRes (ps)",1.5,20,4);
 
 DrawMyGraph(g1,"Work voltage (kV)","Gain ",1.5,20,4);
 
-TF1* fhv= new TF1("fhv",HVfun,3000,3400,3);
-fhv->SetParNames("cons","#delta","#alpha");
+/*
+TF1* fhv= new TF1("fhv",HVfun_complex,3000,3400,3);
+fhv->SetParNames("E0","#alpha","K");
 //fhv->SetParLimits(0,1,1e7);
 //fhv->SetParLimits(1,1,10);
-fhv->SetParameter(0,-10);
-fhv->FixParameter(2,40);
-g1->Fit(fhv);
+fhv->SetParameter(0,1);
+fhv->FixParameter(1,40);
+fhv->SetParameter(2,0.2);
+//fhv->SetParameter(3,0);
+*/
 
+/*
+TF1* fhv= new TF1("fhv",HVfun_complex2,3000,3400,3);
+fhv->SetParNames("E0","#alpha","A");
+//fhv->SetParLimits(0,1,1e7);
+//fhv->SetParLimits(1,1,10);
+fhv->SetParameter(0,1);
+fhv->FixParameter(1,40);
+fhv->SetParameter(2,0.2);
+*/
+
+/*
+TF1* fhv= new TF1("fhv",HVfun,3000,3400,3);
+fhv->SetParNames("C","A","#alpha");
+//fhv->SetParLimits(0,1,1e7);
+//fhv->SetParLimits(1,1,10);
+//fhv->SetParameter(0,-10);
+fhv->FixParameter(2,40);
+//fhv->SetParameter(1,0.2);
+*/
+g1->Fit(fhv);
 g1->GetXaxis()->SetRangeUser(1800,2400);
 g1->GetYaxis()->SetRangeUser(6e4,1e7);
 
