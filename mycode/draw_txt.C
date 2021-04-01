@@ -213,7 +213,7 @@ int main(){
 } 
 */
 
-int draw_txt2(const char *name = "/mnt/e/R10754DATA2/HV2200-TRF37D73-220nH-10k_1")
+int draw_txt2(double left=35,double right =55, const char *name = "/mnt/e/R10754DATA2/HV2200-ADL5545-220nH-10k_180mVTOTsatuated")
 //int draw_txt2(const char *name = "/mnt/e/R10754DATA2/HV2200-ADL5545-220nH-10k_1")
 {
 
@@ -223,7 +223,7 @@ int draw_txt2(const char *name = "/mnt/e/R10754DATA2/HV2200-TRF37D73-220nH-10k_1
     //** set your parameters **//
     //
 
-    int N = 9;
+    int N = 14;
     int iter = 2;
     double fttserr[3][N];
     double ftts[3][N];
@@ -265,7 +265,7 @@ int draw_txt2(const char *name = "/mnt/e/R10754DATA2/HV2200-TRF37D73-220nH-10k_1
             input >> x[ct] >> iter >> ftts[k][ct] >> fttserr[k][ct];
             cout << x[ct] << "\t" << iter << "\t" << ftts[k][ct] << "\t" << fttserr[k][ct] << endl;
             x[ct] = x[ct] * 1e3;
-            ftts[k][ct] = ftts[k][ct] * 1e3;
+            ftts[k][ct] = abs(ftts[k][ct]) * 1e3;
             fttserr[k][ct] = fttserr[k][ct] * 1e3;
             //tr[j][k]=hitsigma*1e3;
         }
@@ -303,7 +303,7 @@ TF1 *f1 = new TF1("f1","sin(x)",-1,1);
     //mydraw.Graph(g1,"NPE","TimeRes (ps)",1.5,20,4);
     DrawMyGraph(g1, "Fixed Threshold (mV)", "TTS (ps)", 1.5, 20, 1, 1, 2);
     DrawMyGraph(g2, "Fixed Threshold (mV)", "TTS (ps)", 1.5, 20, 2, 2, 2);
-    g1->GetYaxis()->SetRangeUser(10, 100);
+    g1->GetYaxis()->SetRangeUser(left, right);
     g1->GetYaxis()->SetNdivisions(505);
     g1->GetXaxis()->SetNdivisions(505);
     g2->Draw("sameP");

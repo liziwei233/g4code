@@ -12,7 +12,7 @@
 #include "TLatex.h"
 #include "TLegend.h"
 #include "TVirtualPad.h"
-
+#include "TString.h"
 
 using namespace std;
 #define verbose
@@ -251,7 +251,7 @@ TLatex *DrawMyLatex(char *text, Double_t x = 0.65, Double_t y = 0.5, Int_t textF
     latex->Draw("same");
     return latex;
 }
-void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,float x2,float y1,float y2,bool xNd=0, bool yNd=0){
+TH1F* DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,float x2,float y1,float y2,bool xNd=0, bool yNd=0){
 
 
 	TH1F* hpad = pad->DrawFrame(x1,y1,x2,y2);
@@ -281,6 +281,7 @@ void DrawMyPad(TVirtualPad *pad,const char* xname,const char* yname,float x1,flo
     if(yNd) hpad->GetYaxis()->SetNdivisions(505);
 	pad->Modified();
 	pad->Update();
+    return hpad;
 
 }
 TCanvas *cdC(int n)
@@ -289,12 +290,17 @@ TCanvas *cdC(int n)
     TCanvas *c = new TCanvas(buff, buff, 800, 600);
     c->cd();
     gPad->SetGrid();
-    SetMyPad(gPad, 0.15, 0.05, 0.1, 0.14);
+    SetMyPad(gPad, 0.15, 0.15, 0.1, 0.14);
     return c;
 }
 
 TH1 *gausfit(TH1 *h,double sigma, double facleft, double facright, int rbU, double UL, double UR)
 {
+    double validbin=h->Integral(h->FindBin(UL),h->FindBin(UR));
+    cout<<"gausfit valid bin = "<< validbin<<endl;
+    if(validbin<=50) {
+        return NULL;
+    }
     double mean = 0;
     //double sigma = 0;
     TH1 *hU = (TH1 *)h->Clone();
@@ -419,6 +425,7 @@ TH1 *twogausfit(TH1 *ht, double fac, double leftfac,double rightfac, int rbt, do
 
     //h->Fit(fit2);
     h->Fit(fit2, "RQ", "", mean - leftfac * sigma, mean + rightfac * sigma);
+    //h->Fit(fit2, "Q", "", 21, 28);
     //failed = h->Fit(fit2, "R", "", mean - leftfac * sigma, mean + rightfac * sigma);
     //cout<<"Is two gaus fit failed? : " <<failed<<endl;
     //if (failed)
@@ -503,9 +510,14 @@ TF1 *profilefit(TH2 *Rt, double rbU, double rbt, double tL, double tR, double UL
     TF1 *fitQt = new TF1("fitQt", "pol5", UL, UR);
 
     fitQt->SetNpx(1000000);
-    Qpfx->Fit(fitQt, "QR");
+    TFitResultPtr failed = Qpfx->Fit(fitQt, "QR");
+    if (failed){
+        fitQt = new TF1("fitQt", "pol4", UL, UR);
+        fitQt->SetNpx(1000000);
+        failed = Qpfx->Fit(fitQt, "QR");
+    }
     //TFitResultPtr failed = Qpfx->Fit(fitQt, "Q");
-    //if (failed) return fitQt = NULL;
+    if (failed) return fitQt = NULL;
     sprintf(buff, "%s_pfx.png", name);
     cpfx->SaveAs(buff);
     sprintf(buff, "%s_ATrelationship.png", name);
@@ -520,5 +532,56 @@ TF1 *profilefit(TH2 *Rt, double rbU, double rbt, double tL, double tR, double UL
     delete Qpfx;
     return fitQt;
 }
+double URound(double value, int digite)
+{
+    if (digite < 1)
+    {
+        return (double)(long long)(value);
+    }
 
+    long iPub = (long)pow(10, digite); // get digite squre of 10
+    value *= iPub;
+    long long iValue = (long long)(value + 0.5);
+
+    return ((double)(iValue) / iPub);
+}
+double SetPrecision(int value, int N){
+    std::vector<int> v;
+    for(int i=0; i<10;i++)
+    {
+        cout<<"origin: " <<value<<endl;
+        v.push_back(value%10);
+        cout<<"a: " <<value%10<<endl;
+        cout<<"value: "<<(int)value/10<<endl;
+        value=(int)value/10;
+
+        if(value<=0) break;
+    }
+    for(int i=0; i<N&&i<v.size();i++)
+    {
+        cout<<"a: " <<*(v.end()-1-i)<<endl;
+        cout<<"10: " <<std::pow(10,v.size()-i)<<endl;
+    value += *(v.end()-1-i)*std::pow(10,v.size()-1-i);
+
+    }
+    return value;
+}
+TString GetFilepath(TString fileName)
+{
+    cout << "The input is:" << fileName << endl;
+    TString prename;
+    prename = fileName.Replace(0, 1000, fileName, fileName.Last('/'));
+    cout << "File path is:" << prename << endl;
+    return prename;
+};
+
+TString GetFilename(TString fileName)
+{
+    cout << "The inpuut is:" << fileName << endl;
+    TString prename;
+    prename = fileName.Copy().Remove(0, fileName.Last('/') + 1);
+    prename = prename.Remove(prename.Last('.'), prename.Length());
+    cout << "Dat filename is:" << prename << endl;
+    return prename;
+};
 #endif // #ifdef MyClass_cxx

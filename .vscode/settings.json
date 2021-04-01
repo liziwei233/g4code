@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.mac": "shellscript",
+        "*.gdml_entity": "xml",
+        "*.gdml": "html",
+        "iostream": "cpp",
+        "Outputfun_MCP.C": "cpp",
+        "Output.C": "cpp",
+        "MCP_TR.C": "cpp",
+        "ostream": "cpp"
+    }
+}

@@ -6,11 +6,12 @@
 #include "MyClassnew4ch.h"
 
 //char path[1024] = "/mnt/d/Experiment/labtest/XGS_MCP-PMT/12-2";
-char path[1024] = "/mnt/f/XOPtest/4Anode/crosstalk/A1";
+//char path[1024] = "/mnt/f/XOPtest/4Anode/crosstalk/A1";
+char path[1024] = "/mnt/f/CRsys/CosmicRayTest";
 //char path[1024] = "/mnt/f/LPZ/Sr90-EJ228";
 //char name[1024] = "201901-A3";
 //char name[1024] = "1244-3100v";
-char name[1024] = "MPE2";
+char name[1024] = "20210109";
 Color_t clr[10] = {1, 2, 4, 6, 8};
 
 TH1F *hq = new TH1F("hq", ";charge (pC);Counts", 15e3, -0.1, 8);
@@ -45,8 +46,8 @@ void gethist(double chargethmax = 1e4)
 {
     TGaxis::SetMaxDigits(3);
 
-    double fcharge;
     double fchargegate[3];
+    double fcharge;
     double frise;
     double fbaseline;
     double fbaselinerms;
@@ -79,28 +80,30 @@ void gethist(double chargethmax = 1e4)
     for (int i = 0; i < N; i++)
     {
         t1->GetEntry(i);
-        fcharge = t.MCP3_all_charge[0];
-        //fcharge2 =    t.MCP3_all_charge[1];
-        frise = t.MCP3_rise_time;
-        fbaseline = t.MCP3_baseline_level;
-        fbaselinerms = t.MCP3_baseline_rms;
-        famplitude = t.MCP3_global_maximum_y;
-        ftime = t.MCP3_CFDtime[3];
-        //fampnerbor =  t.MCP3_global_maximum_y;
-        fampnerbor = t.MCP3_secondinvertpeak_y;
-        freftime = t.TR100_CFDtime[3];
+        fcharge =       t.MCP0_all_charge[0];
+        //fcharge2 =    t.MCP0_all_charge[1];
+        frise =         t.MCP0_rise_time;
+        fbaseline =     t.MCP0_baseline_level;
+        fbaselinerms =  t.MCP0_baseline_rms;
+        famplitude =    t.MCP0_global_maximum_y;
+        ftime =         t.MCP0_CFDtime[3];
+        //fampnerbor =  t.MCP0_global_maximum_y;
+        fampnerbor =    t.MCP0_secondinvertpeak_y;
+        freftime =      t.TR100_CFDtime[3];
 
         //if (frise > risethmin&&fbaselinerms<blrmsth)
         if (1)
         {
-            hq->Fill(fcharge * 0.2586 * 1e-3);
+            //hq->Fill(fcharge * 0.2586 * 1e-3);
+            hq->Fill(fcharge);
 //if (frise < risethmax)
 #ifdef GATE
             hqgate[0]->Fill(fchargegate[0]);
             hqgate[1]->Fill(fchargegate[1]);
             hqgate[2]->Fill(fchargegate[2]);
 #endif
-            ha->Fill(famplitude * 0.2586 * 1e-3);
+            //ha->Fill(famplitude * 0.2586 * 1e-3);
+            ha->Fill(famplitude);
             //cout<<Q[1]<<endl;
             hbl->Fill(fbaseline);
             hblrms->Fill(fbaselinerms);
@@ -672,6 +675,103 @@ void drawavewaveform(int CanvasNum = CN++, float left = 5, float right = 100, in
     
     gPad->SaveAs(buff);
 }
+
+void drawEff(TString input, int chN=4){
+    //sprintf(buff, "%s/%s.root", path, name);
+    if (gSystem->AccessPathName(input))
+    {
+        cout << "Error!! The File " << input << " doesn't exist" << endl;
+        return 0;
+    }
+    cout << "====>>  Start to open the root file : " << input << endl;
+    TString filepath = GetFilepath(input);
+    TString filename = GetFilename(input);
+    
+    TFile *f1 = new TFile(input, "read");
+    TTree *t2 = (TTree *)f1->Get("Pico");
+    t2->SetMakeClass(1);
+
+    double famp[chN];
+    double ampth=3;
+    int counter=0;
+    TH1D *hPMTID = new TH1D("hPMTID", ";PMTID;Counts", chN, 1, chN+1);
+    TH1D *hNPMT = new TH1D("hNPMT", ";Number of Fired PMT;Counts", chN+1, 0, chN+1);
+    for(int i=0;i<chN;i++){
+
+    sprintf(buff, "MCP%d_global_maximum_y", i);
+    t2->SetBranchAddress(buff, &famp[i]);
+    }
+    
+    int NEvents = t2->GetEntries();
+    for (int i = 0; i < NEvents; i++)
+    {
+        t2->GetEntry(i);
+        counter=0;
+        for(int j =0; j<chN; j++){
+
+        if (famp[j]>ampth)
+        {
+            hPMTID->Fill(j+1);
+            counter++;
+        }
+        }
+        if(counter>0) hNPMT->Fill(counter);
+    }
+
+    TLatex *la;
+    TLegend *leg;
+    TCanvas *c;
+    counter = 0;
+//
+    // *** Number of fired PMT ***
+    // **
+
+    double Eff[5];
+    c = cdC(counter++);
+    DrawMyHist(hNPMT, "", "", 1, 2);
+    //ht->Rebin(2);
+    hNPMT->Draw();
+    hNPMT->GetXaxis()->SetNdivisions(505);
+    NEvents = hNPMT->Integral(1,5);
+    for (int i = 0; i < 5; i++)
+    {
+
+        Eff[i] = hNPMT->GetBinContent(hNPMT->FindBin(i)) / NEvents;
+        sprintf(buff, "NPMT=%d,Eff=%.1f%%", i, Eff[i] * 100);
+        la = DrawMyLatex(buff, 0.3, 0.4 + 0.07 * i, 42, 0.05);
+        la->Draw("same");
+    }
+    //fit = gausfit(ht, 20e-3, 3, 3, 1, tL, tR);
+    //sprintf(buff, "TR=%.0fps", fit->GetParameter(2) * 1e3);
+    //la = DrawMyLatex(buff, 0.2, 0.4);
+    sprintf(buff, "%s/%sNPMT.png", filepath.Data(), filename.Data());
+    c->SaveAs(buff);
+
+    //
+    // ---------draw efficiency of PMT--------//
+    //
+    double PMTEff[4];
+    c = cdC(counter++);
+    DrawMyHist(hPMTID, "", "", 1, 2);
+    //ht->Rebin(2);
+    hPMTID->Draw();
+    hPMTID->GetXaxis()->SetNdivisions(505);
+    for (int i = 0; i < 4; i++)
+    {
+
+        PMTEff[i] = hPMTID->GetBinContent(hPMTID->FindBin(i + 1)) / NEvents;
+        sprintf(buff, "PMTID=%d,Eff=%.1f%%", i + 1, PMTEff[i] * 100);
+        la = DrawMyLatex(buff, 0.3, 0.4 + 0.1 * i, 42, 0.06);
+        la->Draw("same");
+    }
+    //fit = gausfit(ht, 20e-3, 3, 3, 1, tL, tR);
+    //sprintf(buff, "TR=%.0fps", fit->GetParameter(2) * 1e3);
+    //la = DrawMyLatex(buff, 0.2, 0.4);
+    sprintf(buff, "%s/%sPMTID.png", filepath.Data(), filename.Data());
+    c->SaveAs(buff);
+    //return;
+
+} 
 
 void drawall()
 {

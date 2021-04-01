@@ -10,13 +10,12 @@
 //char path[1024] = "/mnt/f/R10754/KT0881/A7A8";
 //char path[1024] = "/mnt/f/R10754/KT0881/A7light_A4crosstalk";
 //char path[1024] = "/mnt/f/R10754/KT0881/DarkNoise";
-char path[1024] = "/mnt/f/xl-1";
 //char path[1024] = "/data2/R710liziwei/lab_data/R10754DATA/HVSCAN";
-//char path[1024] = "/mnt/d/ExpDATA/labtest/R10754/batch";
+//char path[1024] = "/mnt/d/ExpDATA/labtest/R10754/KT0881_HVSCAN";
 //char path[1024] = "/mnt/d/ExpDATA/labtest/R10754/code/root_results";
 //char path[1024] = "/mnt/f/wypmttest/pmt";
 //char path[1024] = "/mnt/f/R10754/Gain";
-//char path[1024] = "/mnt/f/R10754/batch/V1742";
+char path[1024] = "/mnt/f/R10754/batch/MT0197/V1742";
 //char path[1024] = "/mnt/f/R10754/batch/KT0881/V1742";
 //char path[1024] = "/mnt/f/R10754/batch/KT0890/V1742";
 //char path[1024] = "/mnt/c/Users/liziwei/OneDrive/work/g4code/data";
@@ -33,9 +32,9 @@ char path[1024] = "/mnt/f/xl-1";
 //char name[1024] = "2000V-th30mV";
 //char name[1024] = "HV2000-A4-Light4";
 //char name[1024] = "HV2200-D3.3";
-//char name[1024] = "calibrate-HV2000-A4";
+char name[1024] = "calibrate-HV2200-A1A9";
 //char name[1024] = "KT0881-HV1900";
-char name[1024] = "-2700-2550-1050-300";
+//char name[1024] = "KT0890-HV1800";
 //char name[1024] = "KT0890-HV1800-OSC-A1A9";
 
 //char name[1024] =       "HV1900-ADL5545-220nH";
@@ -93,21 +92,23 @@ bool fexist;
 double CN = 0;
 double risethmin = -11110.1;  //Unit: ns.
 double risethmax = 111110.35; //Unit: ns.
-double chargethmin = 0.05;     //Unit: pC.
+double chargethmin = 0.06;     //Unit: pC.
 //chargethmax =0.55; //Unit: pC.
-double chargethmax = 0.2; //Unit: pC.
+double chargethmax = 30; //Unit: pC.
 Color_t clr[] = {1, 2, kGreen + 3, 4, 6, 7, kOrange, kViolet + 2};
 
 void setallname(const int theHV=1800,const char* theTubeNo="KT0890"){
     HV=theHV;
     sprintf(TubeNo, "%s", theTubeNo);
-    sprintf(path, "/mnt/f/R10754/batch/%s/V1742", TubeNo);
+    //sprintf(path, "/mnt/f/R10754/batch/%s/V1742", TubeNo);
+    sprintf(path, "/mnt/f/R10754/batch/%s/OSC", TubeNo);
     cout << "your path is: " << path << endl;
-    sprintf(name, "%s-HV%d", TubeNo,HV);
+    //sprintf(name, "%s-HV%d", TubeNo,HV);
+    sprintf(name, "%s-HV%d-OSC-A1A9", TubeNo,HV);
     cout << "your file name is: " << name << endl;
 }
 
-bool gethist()
+bool gethist(double chargethmax = 1e4)
 {
     TGaxis::SetMaxDigits(3);
 
@@ -162,18 +163,18 @@ bool gethist()
         fbaselinerms = t.MCP2_baseline_rms;
         famplitude = t.MCP2_global_maximum_y;
         ftime = t.MCP2_CFDtime[3];
-        fctx = t.MCP2_secondinvertpeak_y;
 
         fampnerbor = t.MCP4_global_maximum_y;
         finvring = t.MCP4_secondinvertpeak_y;
-        //fctx = t.MCP4_global_maximum_x;
+        finvampnerbor = t.MCP4_invert_maximum_y;
+        fctx = t.MCP4_global_maximum_x;
         //fampnerbor = t.MCP4_secondinvertpeak_y;
         freftime = t.TR1_CFDtime[6];
 
         if (fbaselinerms < blrmsth)
         //if (1)
         {
-            if (frise > risethmin && frise < risethmax&&fctx/famplitude>-0.4)
+            if (frise > risethmin && frise < risethmax)
                 hq->Fill(fcharge);
 
             ha->Fill(famplitude);
@@ -1227,23 +1228,20 @@ void drawDN(const char *path = "/mnt/f/R10754/KT0881/DarkNoiseScan")
         c1->SaveAs(buff);
     }
 }
-void drawHV(const char* TubeNo="KT0890")
+void drawHV()
 {
     setgStyle();
     gStyle->SetOptTitle(0);
-    gStyle->SetOptFit(0);
+    gStyle->SetOptFit(1112);
 
-    //int N = 14;
-    int N = 5;
-    double gainOSC[2][N];
-    double gainV1742[2][N];
+    int N = 14;
+    double gain[N];
 
     double x[N];
-    int CHID[]={1,9};
 
     char str[1024];
     char buff[1024];
-    sprintf(buff, "%s/%s_V1742_A1A9.dat", path,TubeNo);
+    sprintf(buff, "%s/HVScan.txt", path);
     ifstream input;
     input.open(buff);
     if (!input)
@@ -1255,24 +1253,8 @@ void drawHV(const char* TubeNo="KT0890")
     for (int i = 0; i < N; i++)
     {
         cout << "enter the file: " << buff << endl;
-        input >> x[i] >> gainV1742[0][i]>>gainV1742[1][i];
+        input >> x[i] >> gain[i];
     }
-    input.close();
-
-    sprintf(buff, "%s/%s_OSC_A1A9.dat", path,TubeNo);
-    input.open(buff);
-    if (!input)
-    {
-        cout << "file can't be found: \n"
-             << buff << endl;
-        return 0;
-    }
-    for (int i = 0; i < N; i++)
-    {
-        cout << "enter the file: " << buff << endl;
-        input >> x[i] >> gainOSC[0][i]>>gainOSC[1][i];
-    }
-
 
     //double GainSyserr = 0.0257; //unit:pC
     double GainSyserr = 0.0; //unit:pC
@@ -1284,57 +1266,35 @@ void drawHV(const char* TubeNo="KT0890")
         yerr[i] = yerr[i] * 1.e-12 / 1.6e-19;
     }
 */
-TLegend *leg = DrawMyLeg(0.5,0.3,0.78,0.5,62,0.05);
-
-for(int i =0; i<2;i++){
-    leg->Clear();
-    TGraphErrors *g1 = new TGraphErrors(N, x, gainV1742[i], 0, 0);
-    TGraphErrors *g2 = new TGraphErrors(N, x, gainOSC[i], 0, 0);
+    TGraphErrors *g1 = new TGraphErrors(N, x, gain, 0, 0);
 
     TCanvas *c1;
-    c1 = cdC(i);
+    c1 = cdC(1);
     c1->SetLogy();
     SetMyPad(gPad, 0.15, 0.15, 0.1, 0.14);
-    TH1F* hpad=DrawMyPad(gPad, "Work voltage (kV)", "Gain ", 1850, 2300, 9.5e4, 1.2e7, 0, 0);
-    hpad->GetXaxis()->SetNdivisions(505);
+    DrawMyPad(gPad, "Work voltage (kV)", "Gain ", 1800, 2400, 2e4, 1e8, 0, 0);
     g1->Draw("Psame");
 
     //mydraw.Graph(g1,"NPE","TimeRes (ps)",1.5,20,4);
 
-    DrawMyGraph(g1, "Work voltage (kV)", "Gain ", 1.5, 20, 2);
-    
-    leg->AddEntry(g1,"V1742","lp");
-    TF1 *fhv = new TF1("fhv1", HVfun, 1500, 2500, 3);
-    fhv->SetLineColor(2);
+    DrawMyGraph(g1, "Work voltage (kV)", "Gain ", 1.5, 20, kGreen + 2);
+
+    TF1 *fhv = new TF1("fhv", HVfun, 1800, 2500, 3);
     fhv->SetParNames("cons", "#delta", "#alpha");
     //fhv->SetParLimits(0,1,1e7);
     //fhv->SetParLimits(1,1,10);
     fhv->SetParameter(0, -10);
     fhv->FixParameter(2, 40);
-    g1->Fit(fhv,"","",1850,2300);
+    g1->Fit(fhv, "", "", 1850, 2350);
     fhv->Draw("same");
-    
-    DrawMyGraph(g2, "Work voltage (kV)", "Gain ", 1.5, 20, 1);
-    leg->AddEntry(g2,"OSC","lp");
-    TF1 *fhv2 = new TF1("fhv2", HVfun, 1500, 2500, 3);
-    fhv2->SetLineColor(1);
-    fhv2->SetParNames("cons", "#delta", "#alpha");
-    //fhv->SetParLimits(0,1,1e7);
-    //fhv->SetParLimits(1,1,10);
-    fhv2->SetParameter(0, -10);
-    fhv2->FixParameter(2, 40);
-    g2->Draw("Psame");
-    g2->Fit(fhv2,"","",1850,2300);
-    fhv2->Draw("same");
     //g1->GetXaxis()->SetRangeUser(1800, 2900);
     //g1->GetYaxis()->SetRangeUser(1e4, 1e7);
     gPad->Update();
     gPad->Modified();
-    leg->Draw();
-    sprintf(buff, "%s/%s_A%d_HVscan.png", path,TubeNo,CHID[i]);
+
+    sprintf(buff, "%s/_HVscan.png", path);
     //sprintf(buff, "UV-6-HVscan.png");
     c1->SaveAs(buff);
-}
 }
 
 bool GetGain(int N = 4)
@@ -1574,7 +1534,7 @@ bool GetV1742Gain(int rb=1,int left =20,int right=100, int N = 16,int startID=0)
 {
 
     //setgStyle();
-    sprintf(buff, "%s/%sgain.dat", path, name);
+    sprintf(buff, "%s/%sV1742gain.dat", path, name);
     ofstream op;
     op.open(buff,ios::trunc);
     double fcharge[16][4];
@@ -1669,9 +1629,11 @@ void drawBias(int N=16,int startID=0){
     cg->SaveAs(buff);
 }
 
-bool GetOSCGain(int N=2)
+bool GetOSCGain(int rb=1,int left =20,int right=100,int N=2)
 {
-
+    sprintf(buff, "%s/%sOSCgain.dat", path, name);
+    ofstream op;
+    op.open(buff,ios::trunc);
     //setgStyle();
     int CHID[]={2,4};
     int AnodeID[]={1,9};
@@ -1713,10 +1675,11 @@ bool GetOSCGain(int N=2)
     for (int j = 0; j < N; j++)
     {
         hq = hqarray[j];
-        fgain[CHID[j]-1]=drawSPE(AnodeID[j],16,20,150);
+        fgain[CHID[j]-1]=drawSPE(AnodeID[j],rb,left,right);
+        op<<fgain[CHID[j]-1]<<endl;
     }
     //TH2D* GainUniformtext =(TH2D*) GainUniform->Clone();
-   
+   op.close();
     return 1;
 }
 
